@@ -17,7 +17,8 @@ import org.m0skit0.android.emtmadridalarms.data.EmtCredentials
 import org.m0skit0.android.emtmadridalarms.data.ArrivalsProvider
 import org.m0skit0.android.emtmadridalarms.data.arrivalsFor
 import org.m0skit0.android.emtmadridalarms.data.EmtDateProvider
-import org.m0skit0.android.emtmadridalarms.data.EmtLineService
+import org.m0skit0.android.emtmadridalarms.data.LinesProvider
+import org.m0skit0.android.emtmadridalarms.data.linesForToday
 import org.m0skit0.android.emtmadridalarms.data.EmtRepository
 import org.m0skit0.android.emtmadridalarms.data.StopsProvider
 import org.m0skit0.android.emtmadridalarms.data.stopsForLine
@@ -55,7 +56,7 @@ val dataModule = module {
     single { EmtCredentials.fromBuildConfig() }
     singleOf(::EmtAuthTokenProvider)
     single<EmtDateProvider> { EmtDateProvider { todayDateRef() } }
-    singleOf(::EmtLineService)
+    single<LinesProvider> { LinesProvider { linesForToday(get(), get(), get()) } }
     single<StopsProvider> { StopsProvider { busLine -> stopsForLine(busLine, get(), get()) } }
     single<ArrivalsProvider> { ArrivalsProvider { request -> arrivalsFor(request, get(), get(), get()) } }
     singleOf(::EmtRepository) bind BusAlarmRepository::class
