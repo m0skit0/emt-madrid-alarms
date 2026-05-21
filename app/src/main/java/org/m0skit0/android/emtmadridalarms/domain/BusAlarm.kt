@@ -1,9 +1,19 @@
 package org.m0skit0.android.emtmadridalarms.domain
 
+import kotlinx.coroutines.flow.Flow
+
 data class BusAlarmRequest(
     val line: String,
     val stopId: String,
     val targetMinutes: Int,
+)
+
+data class PersistedAlarmState(
+    val activeAlarm: BusAlarmRequest?,
+    val latestEtaSeconds: Int?,
+    val latestDestination: String,
+    val statusMessage: String,
+    val isRinging: Boolean,
 )
 
 data class BusLine(
@@ -69,4 +79,32 @@ fun validateAlarmRequest(line: String, stopId: String, minutes: String): String?
     val targetMinutes = minutes.toIntOrNull()
     if (targetMinutes == null || targetMinutes <= 0) return "Minutes must be a positive number."
     return null
+}
+
+interface BusAlarmRepository {
+    suspend fun lines(): List<BusLine>
+    suspend fun stopsForLine(line: BusLine): List<BusStop>
+    suspend fun arrivalsFor(request: BusAlarmRequest): List<BusArrival>
+}
+
+interface AlarmStateStore {
+    val state: Flow<PersistedAlarmState>
+
+    suspend fun saveActiveAlarm(request: BusAlarmRequest)
+    suspend fun clearActiveAlarm()
+    suspend fun saveLatestArrival(etaSeconds: Int?, destination: String)
+    suspend fun saveStatus(message: String)
+    suspend fun setRinging(isRinging: Boolean)
+}
+
+class LoadBusLinesUseCase(private val repository: BusAlarmRepository) {
+    suspend operator fun invoke(): List<BusLine> = repository.lines()
+}
+
+class LoadBusStopsUseCase(private val repository: BusAlarmRepository) {
+    suspend operator fun invoke(line: BusLine): List<BusStop> = repository.stopsForLine(line)
+}
+
+class LoadBusArrivalsUseCase(private val repository: BusAlarmRepository) {
+    suspend operator fun invoke(request: BusAlarmRequest): List<BusArrival> = repository.arrivalsFor(request)
 }

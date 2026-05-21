@@ -8,12 +8,14 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
+import org.m0skit0.android.emtmadridalarms.domain.PersistedAlarmState
 
 private val Context.alarmDataStore by preferencesDataStore(name = "bus_alarm")
 
-class AlarmStorage(private val context: Context) {
-    val state: Flow<PersistedAlarmState> = context.alarmDataStore.data.map { preferences ->
+class AlarmStorage(private val context: Context) : AlarmStateStore {
+    override val state: Flow<PersistedAlarmState> = context.alarmDataStore.data.map { preferences ->
         val line = preferences[Keys.LINE].orEmpty()
         val stopId = preferences[Keys.STOP_ID].orEmpty()
         val targetMinutes = preferences[Keys.TARGET_MINUTES] ?: 0
@@ -30,7 +32,7 @@ class AlarmStorage(private val context: Context) {
         )
     }
 
-    suspend fun saveActiveAlarm(request: BusAlarmRequest) {
+    override suspend fun saveActiveAlarm(request: BusAlarmRequest) {
         context.alarmDataStore.edit { preferences ->
             preferences[Keys.LINE] = request.line
             preferences[Keys.STOP_ID] = request.stopId
@@ -42,7 +44,7 @@ class AlarmStorage(private val context: Context) {
         }
     }
 
-    suspend fun clearActiveAlarm() {
+    override suspend fun clearActiveAlarm() {
         context.alarmDataStore.edit { preferences ->
             preferences.remove(Keys.LINE)
             preferences.remove(Keys.STOP_ID)
@@ -53,7 +55,7 @@ class AlarmStorage(private val context: Context) {
         }
     }
 
-    suspend fun saveLatestArrival(etaSeconds: Int?, destination: String) {
+    override suspend fun saveLatestArrival(etaSeconds: Int?, destination: String) {
         context.alarmDataStore.edit { preferences ->
             if (etaSeconds == null) {
                 preferences.remove(Keys.LATEST_ETA_SECONDS)
@@ -65,13 +67,13 @@ class AlarmStorage(private val context: Context) {
         }
     }
 
-    suspend fun saveStatus(message: String) {
+    override suspend fun saveStatus(message: String) {
         context.alarmDataStore.edit { preferences ->
             preferences[Keys.STATUS_MESSAGE] = message
         }
     }
 
-    suspend fun setRinging(isRinging: Boolean) {
+    override suspend fun setRinging(isRinging: Boolean) {
         context.alarmDataStore.edit { preferences ->
             preferences[Keys.IS_RINGING] = isRinging
         }
@@ -87,11 +89,3 @@ class AlarmStorage(private val context: Context) {
         val IS_RINGING = booleanPreferencesKey("is_ringing")
     }
 }
-
-data class PersistedAlarmState(
-    val activeAlarm: BusAlarmRequest?,
-    val latestEtaSeconds: Int?,
-    val latestDestination: String,
-    val statusMessage: String,
-    val isRinging: Boolean,
-)

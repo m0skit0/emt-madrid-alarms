@@ -1,25 +1,29 @@
 package org.m0skit0.android.emtmadridalarms.ui
 
-import android.app.Application
+import android.content.Context
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.m0skit0.android.emtmadridalarms.data.AlarmStorage
-import org.m0skit0.android.emtmadridalarms.data.EmtRepository
+import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
+import org.m0skit0.android.emtmadridalarms.domain.LoadBusLinesUseCase
+import org.m0skit0.android.emtmadridalarms.domain.LoadBusStopsUseCase
 import org.m0skit0.android.emtmadridalarms.domain.validateAlarmRequest
 import org.m0skit0.android.emtmadridalarms.service.AlarmMonitorService
 
-class AlarmViewModel(application: Application) : AndroidViewModel(application) {
-    private val storage = AlarmStorage(application.applicationContext)
-    private val repository = EmtRepository()
+class AlarmViewModel(
+    private val appContext: Context,
+    private val storage: AlarmStateStore,
+    private val loadBusLines: LoadBusLinesUseCase,
+    private val loadBusStops: LoadBusStopsUseCase,
+) : ViewModel() {
     private val _state = MutableStateFlow(AlarmState())
     val state: StateFlow<AlarmState> = _state.asStateFlow()
 
@@ -68,7 +72,7 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             Log.d(TAG, "Loading bus lines")
             _state.update { it.copy(isLoadingLines = true, errorMessage = null) }
-            runCatching { repository.lines() }
+            runCatching { loadBusLines() }
                 .onSuccess { lines ->
                     Log.d(TAG, "Loaded bus lines count=${lines.size}")
                     _state.update { it.copy(lines = lines, isLoadingLines = false) }
@@ -99,7 +103,7 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
             )
         }
         viewModelScope.launch {
-            runCatching { repository.stopsForLine(line) }
+            runCatching { loadBusStops(line) }
                 .onSuccess { stops ->
                     Log.d(TAG, "Loaded stops for line=${line.label} count=${stops.size}")
                     _state.update { it.copy(stops = stops, isLoadingStops = false) }
@@ -148,7 +152,7 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
             Log.d(TAG, "Starting alarm request line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             storage.saveActiveAlarm(request)
-            AlarmMonitorService.start(getApplication(), request)
+            AlarmMonitorService.start(appContext, request)
             _state.update { it.copy(isLoading = false, activeAlarm = request) }
             Log.d(TAG, "Alarm start requested")
         }
@@ -157,7 +161,7 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
     private fun cancelAlarm() {
         viewModelScope.launch {
             Log.d(TAG, "Cancelling alarm from UI")
-            AlarmMonitorService.cancel(getApplication())
+            AlarmMonitorService.cancel(appContext)
             storage.clearActiveAlarm()
             storage.setRinging(false)
             _state.update { it.copy(activeAlarm = null, latestEtaSeconds = null, latestDestination = "", statusMessage = "") }
@@ -167,7 +171,7 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
     private fun stopRinging() {
         viewModelScope.launch {
             Log.d(TAG, "Stopping ringing from UI")
-            AlarmMonitorService.stopRinging(getApplication())
+            AlarmMonitorService.stopRinging(appContext)
             storage.setRinging(false)
             storage.clearActiveAlarm()
             _state.update { it.copy(isRinging = false, activeAlarm = null) }
