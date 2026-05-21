@@ -1,6 +1,7 @@
 package org.m0skit0.android.emtmadridalarms.ui
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -65,12 +66,15 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun loadLines() {
         viewModelScope.launch {
+            Log.d(TAG, "Loading bus lines")
             _state.update { it.copy(isLoadingLines = true, errorMessage = null) }
             runCatching { repository.lines() }
                 .onSuccess { lines ->
+                    Log.d(TAG, "Loaded bus lines count=${lines.size}")
                     _state.update { it.copy(lines = lines, isLoadingLines = false) }
                 }
                 .onFailure { error ->
+                    Log.e(TAG, "Failed to load bus lines: ${error.message}", error)
                     _state.update {
                         it.copy(
                             isLoadingLines = false,
@@ -82,6 +86,7 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun selectLine(line: BusLine) {
+        Log.d(TAG, "Selected line label=${line.label} id=${line.id}")
         _state.update {
             it.copy(
                 selectedLine = line,
@@ -96,9 +101,11 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             runCatching { repository.stopsForLine(line) }
                 .onSuccess { stops ->
+                    Log.d(TAG, "Loaded stops for line=${line.label} count=${stops.size}")
                     _state.update { it.copy(stops = stops, isLoadingStops = false) }
                 }
                 .onFailure { error ->
+                    Log.e(TAG, "Failed to load stops for line=${line.label}: ${error.message}", error)
                     _state.update {
                         it.copy(
                             isLoadingStops = false,
@@ -110,6 +117,7 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun selectStop(stop: BusStop) {
+        Log.d(TAG, "Selected stop id=${stop.id} name=${stop.name}")
         _state.update {
             it.copy(selectedStop = stop, stopInput = stop.displayName, errorMessage = null)
         }
@@ -125,6 +133,7 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
             else -> validateAlarmRequest(selectedLine.label, selectedStop.id, current.minutesInput)
         }
         if (validationError != null) {
+            Log.w(TAG, "Cannot start alarm: $validationError")
             _state.update { it.copy(errorMessage = validationError) }
             return
         }
@@ -136,15 +145,18 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
         )
 
         viewModelScope.launch {
+            Log.d(TAG, "Starting alarm request line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             storage.saveActiveAlarm(request)
             AlarmMonitorService.start(getApplication(), request)
             _state.update { it.copy(isLoading = false, activeAlarm = request) }
+            Log.d(TAG, "Alarm start requested")
         }
     }
 
     private fun cancelAlarm() {
         viewModelScope.launch {
+            Log.d(TAG, "Cancelling alarm from UI")
             AlarmMonitorService.cancel(getApplication())
             storage.clearActiveAlarm()
             storage.setRinging(false)
@@ -154,10 +166,15 @@ class AlarmViewModel(application: Application) : AndroidViewModel(application) {
 
     private fun stopRinging() {
         viewModelScope.launch {
+            Log.d(TAG, "Stopping ringing from UI")
             AlarmMonitorService.stopRinging(getApplication())
             storage.setRinging(false)
             storage.clearActiveAlarm()
             _state.update { it.copy(isRinging = false, activeAlarm = null) }
         }
+    }
+
+    private companion object {
+        const val TAG = "AlarmViewModel"
     }
 }

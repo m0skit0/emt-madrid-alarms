@@ -15,6 +15,7 @@ import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CoroutineScope
@@ -41,15 +42,19 @@ class AlarmMonitorService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        Log.d(TAG, "Service created")
         storage = AlarmStorage(applicationContext)
         createChannels()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.d(TAG, "onStartCommand action=${intent?.action} startId=$startId flags=$flags")
         when (intent?.action) {
             ACTION_CANCEL -> cancelMonitoring()
             ACTION_STOP_RINGING -> stopRingingAndSelf()
             ACTION_START -> startMonitoring(intent.alarmRequest())
+            null -> Log.w(TAG, "Service restarted without action; no alarm restored yet")
+            else -> Log.w(TAG, "Unknown service action=${intent.action}")
         }
         return START_STICKY
     }
@@ -57,6 +62,7 @@ class AlarmMonitorService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
+        Log.d(TAG, "Service destroyed")
         monitorJob?.cancel()
         stopRinging()
         scope.cancel()
@@ -65,24 +71,41 @@ class AlarmMonitorService : Service() {
 
     private fun startMonitoring(request: BusAlarmRequest?) {
         if (request == null) {
+            Log.w(TAG, "Cannot start monitoring: invalid or missing alarm request")
             stopSelf()
             return
         }
 
+        Log.d(TAG, "Starting monitoring line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
         monitorJob?.cancel()
         startForeground(NOTIFICATION_ID, monitoringNotification(request, "Waiting for EMT arrivals..."))
+        Log.d(TAG, "Foreground monitoring notification started")
         monitorJob = scope.launch {
             storage.saveActiveAlarm(request)
+            var pollNumber = 0
             while (true) {
+                pollNumber++
                 try {
+                    Log.d(TAG, "Poll #$pollNumber: requesting arrivals line=${request.line} stop=${request.stopId}")
                     val arrivals = repository.arrivalsFor(request)
                     val nextArrival = arrivals.firstOrNull { it.estimateSeconds != 999999 }
+                    Log.d(
+                        TAG,
+                        "Poll #$pollNumber: arrivals=${arrivals.size}, next=${nextArrival?.estimateSeconds ?: "none"}s destination=${nextArrival?.destination.orEmpty()}",
+                    )
                     storage.saveLatestArrival(
                         etaSeconds = nextArrival?.estimateSeconds,
                         destination = nextArrival?.destination.orEmpty(),
                     )
 
-                    if (nextArrival != null && shouldTriggerAlarm(nextArrival.estimateSeconds, request.targetMinutes)) {
+                    val shouldTrigger = nextArrival?.let { shouldTriggerAlarm(it.estimateSeconds, request.targetMinutes) } == true
+                    Log.d(
+                        TAG,
+                        "Poll #$pollNumber: shouldTrigger=$shouldTrigger targetSeconds=${request.targetMinutes * 60}",
+                    )
+                    if (shouldTrigger) {
+                        checkNotNull(nextArrival)
+                        Log.i(TAG, "Triggering alarm line=${request.line} stop=${request.stopId} etaSeconds=${nextArrival.estimateSeconds}")
                         storage.setRinging(true)
                         storage.clearActiveAlarm()
                         storage.saveLatestArrival(nextArrival.estimateSeconds, nextArrival.destination)
@@ -90,14 +113,17 @@ class AlarmMonitorService : Service() {
                         break
                     }
                 } catch (error: Exception) {
+                    Log.e(TAG, "Poll #$pollNumber failed: ${error.message}", error)
                     storage.saveStatus(error.message ?: "Could not refresh EMT arrivals.")
                 }
+                Log.d(TAG, "Poll #$pollNumber complete; waiting ${POLL_INTERVAL_MS}ms")
                 delay(POLL_INTERVAL_MS)
             }
         }
     }
 
     private fun cancelMonitoring() {
+        Log.d(TAG, "Cancelling monitoring")
         monitorJob?.cancel()
         monitorJob = null
         scope.launch {
@@ -110,14 +136,17 @@ class AlarmMonitorService : Service() {
     }
 
     private fun startRinging(request: BusAlarmRequest) {
+        Log.i(TAG, "Starting ringing line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
         startForeground(NOTIFICATION_ID, ringingNotification(request))
         val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             ?: Uri.EMPTY
+        Log.d(TAG, "Using ringtone uri=$uri")
         ringtone = RingtoneManager.getRingtone(applicationContext, uri)?.apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) isLooping = true
             play()
         }
+        if (ringtone == null) Log.w(TAG, "No ringtone available for uri=$uri")
 
         vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             getSystemService(VibratorManager::class.java).defaultVibrator
@@ -132,9 +161,11 @@ class AlarmMonitorService : Service() {
             @Suppress("DEPRECATION")
             vibrator?.vibrate(longArrayOf(0L, 900L, 600L), 0)
         }
+        Log.d(TAG, "Ringing started: ringtone=${ringtone != null}, vibrator=${vibrator != null}")
     }
 
     private fun stopRingingAndSelf() {
+        Log.d(TAG, "Stopping ringing and service")
         scope.launch {
             storage.setRinging(false)
             storage.clearActiveAlarm()
@@ -145,6 +176,7 @@ class AlarmMonitorService : Service() {
     }
 
     private fun stopRinging() {
+        Log.d(TAG, "Stopping ringtone/vibration")
         ringtone?.stop()
         ringtone = null
         vibrator?.cancel()
@@ -202,6 +234,7 @@ class AlarmMonitorService : Service() {
                 enableVibration(true)
             },
         )
+        Log.d(TAG, "Notification channels ensured")
     }
 
     private fun Intent.alarmRequest(): BusAlarmRequest? {
@@ -212,6 +245,7 @@ class AlarmMonitorService : Service() {
     }
 
     companion object {
+        private const val TAG = "BusAlarm"
         private const val CHANNEL_MONITORING = "bus_alarm_monitoring"
         private const val CHANNEL_ALARM = "bus_alarm_ringing"
         private const val NOTIFICATION_ID = 1001
@@ -226,6 +260,7 @@ class AlarmMonitorService : Service() {
         private const val EXTRA_TARGET_MINUTES = "target_minutes"
 
         fun start(context: Context, request: BusAlarmRequest) {
+            Log.d(TAG, "Requesting service start line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
             val intent = Intent(context, AlarmMonitorService::class.java)
                 .setAction(ACTION_START)
                 .putExtra(EXTRA_LINE, request.line)
@@ -235,10 +270,12 @@ class AlarmMonitorService : Service() {
         }
 
         fun cancel(context: Context) {
+            Log.d(TAG, "Requesting service cancel")
             context.startService(Intent(context, AlarmMonitorService::class.java).setAction(ACTION_CANCEL))
         }
 
         fun stopRinging(context: Context) {
+            Log.d(TAG, "Requesting stop ringing")
             context.startService(Intent(context, AlarmMonitorService::class.java).setAction(ACTION_STOP_RINGING))
         }
     }
