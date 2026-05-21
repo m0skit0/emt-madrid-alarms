@@ -22,37 +22,56 @@ internal suspend fun pollAlarm(
     var pollNumber = 0
     while (true) {
         pollNumber++
-        try {
-            Log.d(TAG, "Poll #$pollNumber: requesting arrivals line=${request.line} stop=${request.stopId}")
-            val arrivals = loadBusArrivals(request)
-            val nextArrival = arrivals.firstOrNull { it.estimateSeconds != 999999 }
-            Log.d(
-                TAG,
-                "Poll #$pollNumber: arrivals=${arrivals.size}, next=${nextArrival?.estimateSeconds ?: "none"}s destination=${nextArrival?.destination.orEmpty()}",
-            )
-            storage.saveLatestArrival(
-                etaSeconds = nextArrival?.estimateSeconds,
-                destination = nextArrival?.destination.orEmpty(),
-            )
-
-            val shouldTrigger = nextArrival?.let { shouldTriggerAlarm(it.estimateSeconds, request.targetMinutes) } == true
-            Log.d(TAG, "Poll #$pollNumber: shouldTrigger=$shouldTrigger targetSeconds=${request.targetMinutes * 60}")
-            if (shouldTrigger) {
-                checkNotNull(nextArrival)
-                Log.i(TAG, "Triggering alarm line=${request.line} stop=${request.stopId} etaSeconds=${nextArrival.estimateSeconds}")
-                storage.setRinging(true)
-                storage.clearActiveAlarm()
-                storage.saveLatestArrival(nextArrival.estimateSeconds, nextArrival.destination)
-                onTriggered(nextArrival)
-                break
-            }
+        val triggered = try {
+            processPoll(pollNumber, request, loadBusArrivals, storage, onTriggered)
         } catch (error: Exception) {
             Log.e(TAG, "Poll #$pollNumber failed: ${error.message}", error)
             storage.saveStatus(error.message ?: "Could not refresh EMT arrivals.")
+            false
         }
+        if (triggered) break
         Log.d(TAG, "Poll #$pollNumber complete; waiting ${POLL_INTERVAL_MS}ms")
         delay(POLL_INTERVAL_MS)
     }
+}
+
+private suspend fun processPoll(
+    pollNumber: Int,
+    request: BusAlarmRequest,
+    loadBusArrivals: LoadBusArrivalsUseCase,
+    storage: AlarmStateStore,
+    onTriggered: suspend (BusArrival) -> Unit,
+): Boolean {
+    Log.d(TAG, "Poll #$pollNumber: requesting arrivals line=${request.line} stop=${request.stopId}")
+    val arrivals = loadBusArrivals(request)
+    val nextArrival = arrivals.firstOrNull { it.estimateSeconds != 999999 }
+    Log.d(TAG, "Poll #$pollNumber: arrivals=${arrivals.size}, next=${nextArrival?.estimateSeconds ?: "none"}s destination=${nextArrival?.destination.orEmpty()}")
+    storage.saveLatestArrival(
+        etaSeconds = nextArrival?.estimateSeconds,
+        destination = nextArrival?.destination.orEmpty(),
+    )
+    val shouldTrigger = nextArrival?.let { shouldTriggerAlarm(it.estimateSeconds, request.targetMinutes) } == true
+    Log.d(TAG, "Poll #$pollNumber: shouldTrigger=$shouldTrigger targetSeconds=${request.targetMinutes * 60}")
+    if (shouldTrigger) {
+        checkNotNull(nextArrival)
+        triggerAlarm(request, nextArrival, storage, onTriggered)
+        return true
+    } else {
+        return false
+    }
+}
+
+private suspend fun triggerAlarm(
+    request: BusAlarmRequest,
+    arrival: BusArrival,
+    storage: AlarmStateStore,
+    onTriggered: suspend (BusArrival) -> Unit,
+) {
+    Log.i(TAG, "Triggering alarm line=${request.line} stop=${request.stopId} etaSeconds=${arrival.estimateSeconds}")
+    storage.setRinging(true)
+    storage.clearActiveAlarm()
+    storage.saveLatestArrival(arrival.estimateSeconds, arrival.destination)
+    onTriggered(arrival)
 }
 
 private fun shouldTriggerAlarm(estimateSeconds: Int, targetMinutes: Int): Boolean {
