@@ -5,6 +5,8 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import org.m0skit0.android.emtmadridalarms.data.linesMatch
+import org.m0skit0.android.emtmadridalarms.data.normalizeLine
 
 class BusAlarmTest {
     @Test

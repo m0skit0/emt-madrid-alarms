@@ -1,5 +1,7 @@
 package org.m0skit0.android.emtmadridalarms.domain
 
+import org.m0skit0.android.emtmadridalarms.data.normalizeLine
+
 data class BusAlarmRequest(
     val line: String,
     val stopId: String,

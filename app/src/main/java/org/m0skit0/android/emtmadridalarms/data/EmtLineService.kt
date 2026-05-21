@@ -2,7 +2,6 @@ package org.m0skit0.android.emtmadridalarms.data
 
 import android.util.Log
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
-import org.m0skit0.android.emtmadridalarms.domain.normalizeLine
 
 fun interface LinesProvider : suspend () -> List<BusLine>
 

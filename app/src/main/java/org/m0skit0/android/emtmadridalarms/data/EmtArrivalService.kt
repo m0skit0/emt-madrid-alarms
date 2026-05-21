@@ -3,7 +3,6 @@ package org.m0skit0.android.emtmadridalarms.data
 import android.util.Log
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusArrival
-import org.m0skit0.android.emtmadridalarms.domain.linesMatch
 
 fun interface ArrivalsProvider : suspend (BusAlarmRequest) -> List<BusArrival>
 
