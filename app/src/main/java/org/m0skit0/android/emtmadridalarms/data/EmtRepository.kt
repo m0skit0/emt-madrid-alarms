@@ -8,12 +8,12 @@ import org.m0skit0.android.emtmadridalarms.domain.BusStop
 
 class EmtRepository(
     private val lineService: EmtLineService,
-    private val stopService: EmtStopService,
+    private val stopsProvider: StopsProvider,
     private val arrivalsProvider: ArrivalsProvider,
 ) : BusAlarmRepository {
     override suspend fun lines(): List<BusLine> = lineService.lines()
 
-    override suspend fun stopsForLine(line: BusLine): List<BusStop> = stopService.stopsForLine(line)
+    override suspend fun stopsForLine(line: BusLine): List<BusStop> = stopsProvider(line)
 
     override suspend fun arrivalsFor(request: BusAlarmRequest): List<BusArrival> = arrivalsProvider(request)
 }

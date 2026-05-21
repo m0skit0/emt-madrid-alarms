@@ -17,7 +17,7 @@ import org.m0skit0.android.emtmadridalarms.data.EmtCredentials
 import org.m0skit0.android.emtmadridalarms.data.defaultEmtDateProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtLineService
 import org.m0skit0.android.emtmadridalarms.data.EmtRepository
-import org.m0skit0.android.emtmadridalarms.data.EmtStopService
+import org.m0skit0.android.emtmadridalarms.data.stopsProvider
 import org.m0skit0.android.emtmadridalarms.data.arrivalsProvider
 import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRepository
@@ -53,7 +53,7 @@ val dataModule = module {
     singleOf(::EmtAuthTokenProvider)
     singleOf(::defaultEmtDateProvider)
     singleOf(::EmtLineService)
-    singleOf(::EmtStopService)
+    singleOf(::stopsProvider)
     singleOf(::arrivalsProvider)
     singleOf(::EmtRepository) bind BusAlarmRepository::class
     single { AlarmStorage(androidContext()) } bind AlarmStateStore::class
