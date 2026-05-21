@@ -19,7 +19,8 @@ class AlarmMonitorController(
     private val scope: CoroutineScope,
     private val loadBusArrivals: LoadBusArrivalsUseCase,
     private val storage: AlarmStateStore,
-    private val notifications: AlarmNotificationFactory,
+    private val monitoringNotification: MonitoringNotificationProvider,
+    private val ringingNotification: RingingNotificationProvider,
     private val signalPlayer: AlarmSignalPlayer,
 ) {
     private var monitorJob: Job? = null
@@ -34,7 +35,7 @@ class AlarmMonitorController(
         monitorJob?.cancel()
         service.startForeground(
             NOTIFICATION_ID,
-            notifications.monitoringNotification(request, "Waiting for EMT arrivals...", service.servicePendingIntent(ACTION_CANCEL, 2)),
+            monitoringNotification(request, "Waiting for EMT arrivals...", service.servicePendingIntent(ACTION_CANCEL, 2)),
         )
         Log.d(TAG, "Foreground monitoring notification started")
         monitorJob = scope.launch {
@@ -58,7 +59,7 @@ class AlarmMonitorController(
     }
 
     fun startRinging(request: BusAlarmRequest) {
-        service.startForeground(NOTIFICATION_ID, notifications.ringingNotification(request, service.servicePendingIntent(ACTION_STOP_RINGING, 3)))
+        service.startForeground(NOTIFICATION_ID, ringingNotification(request, service.servicePendingIntent(ACTION_STOP_RINGING, 3)))
         signalPlayer.start(request)
     }
 

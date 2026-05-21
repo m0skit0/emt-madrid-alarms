@@ -23,10 +23,16 @@ class AlarmMonitorService : Service() {
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "Service created")
-        val notifications = AlarmNotificationFactory(this)
-        val signalPlayer = AlarmSignalPlayer(applicationContext)
-        notifications.ensureChannels()
-        controller = AlarmMonitorController(this, scope, loadBusArrivals, storage, notifications, signalPlayer)
+        ensureNotificationChannels(this)
+        controller = AlarmMonitorController(
+            service = this,
+            scope = scope,
+            loadBusArrivals = loadBusArrivals,
+            storage = storage,
+            monitoringNotification = MonitoringNotificationProvider { request, text, intent -> monitoringNotification(this, request, text, intent) },
+            ringingNotification = RingingNotificationProvider { request, intent -> ringingNotification(this, request, intent) },
+            signalPlayer = AlarmSignalPlayer(applicationContext),
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
