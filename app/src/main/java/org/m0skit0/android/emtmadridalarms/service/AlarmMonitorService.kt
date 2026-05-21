@@ -18,20 +18,24 @@ class AlarmMonitorService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val loadBusArrivals: LoadBusArrivalsUseCase by inject()
     private val storage: AlarmStateStore by inject()
+    private val monitoringNotification: MonitoringNotificationProvider by inject()
+    private val ringingNotification: RingingNotificationProvider by inject()
+    private val channelsEnsurer: NotificationChannelsEnsurer by inject()
+    private val signalPlayer: AlarmSignalPlayer by inject()
     private lateinit var controller: AlarmMonitorController
 
     override fun onCreate() {
         super.onCreate()
         Log.d(TAG, "Service created")
-        ensureNotificationChannels(this)
+        channelsEnsurer()
         controller = AlarmMonitorController(
             service = this,
             scope = scope,
             loadBusArrivals = loadBusArrivals,
             storage = storage,
-            monitoringNotification = MonitoringNotificationProvider { request, text, intent -> monitoringNotification(this, request, text, intent) },
-            ringingNotification = RingingNotificationProvider { request, intent -> ringingNotification(this, request, intent) },
-            signalPlayer = AlarmSignalPlayer(applicationContext),
+            monitoringNotification = monitoringNotification,
+            ringingNotification = ringingNotification,
+            signalPlayer = signalPlayer,
         )
     }
 
