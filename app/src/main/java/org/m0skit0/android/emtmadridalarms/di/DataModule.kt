@@ -16,6 +16,8 @@ import org.m0skit0.android.emtmadridalarms.data.EmtApi
 import org.m0skit0.android.emtmadridalarms.data.EmtAuthTokenProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtCredentials
 import org.m0skit0.android.emtmadridalarms.data.EmtDateProvider
+import org.m0skit0.android.emtmadridalarms.data.EmtResponseValidator
+import org.m0skit0.android.emtmadridalarms.data.requireEmtSuccess
 import org.m0skit0.android.emtmadridalarms.data.LinesProvider
 import org.m0skit0.android.emtmadridalarms.data.StopsProvider
 import org.m0skit0.android.emtmadridalarms.data.arrivalsFor
@@ -54,8 +56,35 @@ val dataModule = module {
     single { EmtCredentials.fromBuildConfig() }
     singleOf(::EmtAuthTokenProvider)
     single<EmtDateProvider> { EmtDateProvider { todayDateRef() } }
-    single<LinesProvider> { LinesProvider { linesForToday(get(), get(), get()) } }
-    single<StopsProvider> { StopsProvider { busLine -> stopsForLine(busLine, get(), get()) } }
-    single<ArrivalsProvider> { ArrivalsProvider { request -> arrivalsFor(request, get(), get(), get()) } }
+    single<EmtResponseValidator> {
+        EmtResponseValidator { code, description ->
+            requireEmtSuccess(
+                code,
+                description
+            )
+        }
+    }
+    single<LinesProvider> { LinesProvider { linesForToday(get(), get(), get(), get()) } }
+    single<StopsProvider> {
+        StopsProvider { busLine ->
+            stopsForLine(
+                busLine,
+                get(),
+                get(),
+                get()
+            )
+        }
+    }
+    single<ArrivalsProvider> {
+        ArrivalsProvider { request ->
+            arrivalsFor(
+                request,
+                get(),
+                get(),
+                get(),
+                get()
+            )
+        }
+    }
     single { AlarmStorage(androidContext()) } bind AlarmStateStore::class
 }

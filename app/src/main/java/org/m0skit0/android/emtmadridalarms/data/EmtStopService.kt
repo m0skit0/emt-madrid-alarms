@@ -12,6 +12,7 @@ internal suspend fun stopsForLine(
     line: BusLine,
     api: EmtApi,
     authTokenProvider: EmtAuthTokenProvider,
+    validator: EmtResponseValidator,
 ): List<BusStop> {
     val accessToken = authTokenProvider.token()
     Log.d(TAG, "Loading stops for line=${line.label} id=${line.id}")
@@ -19,7 +20,7 @@ internal suspend fun stopsForLine(
         .flatMap { direction ->
             Log.d(TAG, "Loading stops for line=${line.label} direction=$direction")
             val response = api.lineStops(accessToken, line.id, direction)
-            requireEmtSuccess(response.code, response.description, "stops", TAG)
+            validator(response.code, response.description)
             val directionStops = response.data.flatMap { it.stops }
             Log.d(TAG, "Loaded stops direction=$direction raw=${directionStops.size}")
             directionStops

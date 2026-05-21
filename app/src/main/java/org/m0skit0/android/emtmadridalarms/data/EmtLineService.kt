@@ -12,11 +12,12 @@ internal suspend fun linesForToday(
     api: EmtApi,
     authTokenProvider: EmtAuthTokenProvider,
     dateProvider: EmtDateProvider,
+    validator: EmtResponseValidator,
 ): List<BusLine> {
     val dateRef = dateProvider()
     Log.d(TAG, "Loading EMT lines for dateRef=$dateRef")
     val response = api.lines(authTokenProvider.token(), dateRef)
-    requireEmtSuccess(response.code, response.description, "lines", TAG)
+    validator(response.code, response.description)
 
     val lines = response.data
         .mapNotNull { dto ->

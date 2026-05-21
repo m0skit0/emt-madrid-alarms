@@ -14,6 +14,7 @@ internal suspend fun arrivalsFor(
     api: EmtApi,
     authTokenProvider: EmtAuthTokenProvider,
     dateProvider: EmtDateProvider,
+    validator: EmtResponseValidator,
 ): List<BusArrival> {
     val dateRef = dateProvider()
     Log.d(TAG, "Loading arrivals line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes} dateRef=$dateRef")
@@ -23,7 +24,7 @@ internal suspend fun arrivalsFor(
         lineArrive = request.line.trim(),
         body = ArrivalsRequestBody(incidencesDate = dateRef),
     )
-    requireEmtSuccess(response.code, response.description, "arrivals", TAG)
+    validator(response.code, response.description)
 
     val rawArrivals = response.data.flatMap { it.arrivals }
     val arrivals = rawArrivals
