@@ -72,12 +72,13 @@ class EmtRepository(
 
     suspend fun arrivalsFor(request: BusAlarmRequest): List<BusArrival> {
         val token = token()
-        Log.d(TAG, "Loading arrivals line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
+        val dateRef = todayDateRef()
+        Log.d(TAG, "Loading arrivals line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes} dateRef=$dateRef")
         val response = api.arrivals(
             accessToken = token,
             stopId = request.stopId,
             lineArrive = request.line.trim(),
-            body = ArrivalsRequestBody(),
+            body = ArrivalsRequestBody(incidencesDate = dateRef),
         )
 
         if (response.code != null && response.code != "00") {

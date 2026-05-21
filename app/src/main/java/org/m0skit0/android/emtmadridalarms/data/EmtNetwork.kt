@@ -12,6 +12,7 @@ object EmtNetwork {
         ignoreUnknownKeys = true
         isLenient = true
         explicitNulls = false
+        encodeDefaults = true
     }
 
     private val okHttp = OkHttpClient.Builder()
