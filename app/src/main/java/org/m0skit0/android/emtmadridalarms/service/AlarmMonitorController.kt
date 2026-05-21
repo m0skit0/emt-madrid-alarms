@@ -9,7 +9,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
-import org.m0skit0.android.emtmadridalarms.domain.LoadBusArrivalsUseCase
 
 private const val TAG = "BusAlarm"
 private const val NOTIFICATION_ID = 1001
@@ -17,8 +16,8 @@ private const val NOTIFICATION_ID = 1001
 class AlarmMonitorController(
     private val service: Service,
     private val scope: CoroutineScope,
-    private val loadBusArrivals: LoadBusArrivalsUseCase,
     private val storage: AlarmStateStore,
+    private val pollingMonitor: AlarmPollingMonitor,
     private val monitoringNotification: MonitoringNotificationProvider,
     private val ringingNotification: RingingNotificationProvider,
     private val signalPlayer: AlarmSignalPlayer,
@@ -39,7 +38,7 @@ class AlarmMonitorController(
         )
         Log.d(TAG, "Foreground monitoring notification started")
         monitorJob = scope.launch {
-            AlarmPollingMonitor(loadBusArrivals, storage).monitor(request) {
+            pollingMonitor(request) {
                 withContext(Dispatchers.Main) { startRinging(request) }
             }
         }

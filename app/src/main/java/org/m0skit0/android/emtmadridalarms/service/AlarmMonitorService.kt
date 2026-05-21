@@ -10,14 +10,13 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import org.koin.android.ext.android.inject
 import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
-import org.m0skit0.android.emtmadridalarms.domain.LoadBusArrivalsUseCase
 
 private const val TAG = "BusAlarm"
 
 class AlarmMonitorService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val loadBusArrivals: LoadBusArrivalsUseCase by inject()
     private val storage: AlarmStateStore by inject()
+    private val pollingMonitor: AlarmPollingMonitor by inject()
     private val monitoringNotification: MonitoringNotificationProvider by inject()
     private val ringingNotification: RingingNotificationProvider by inject()
     private val channelsEnsurer: NotificationChannelsEnsurer by inject()
@@ -31,8 +30,8 @@ class AlarmMonitorService : Service() {
         controller = AlarmMonitorController(
             service = this,
             scope = scope,
-            loadBusArrivals = loadBusArrivals,
             storage = storage,
+            pollingMonitor = pollingMonitor,
             monitoringNotification = monitoringNotification,
             ringingNotification = ringingNotification,
             signalPlayer = signalPlayer,
