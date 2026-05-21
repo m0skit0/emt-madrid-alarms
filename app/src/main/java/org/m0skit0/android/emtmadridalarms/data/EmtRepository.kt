@@ -1,11 +1,17 @@
 package org.m0skit0.android.emtmadridalarms.data
 
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.m0skit0.android.emtmadridalarms.BuildConfig
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusArrival
+import org.m0skit0.android.emtmadridalarms.domain.BusLine
+import org.m0skit0.android.emtmadridalarms.domain.BusStop
+import org.m0skit0.android.emtmadridalarms.domain.normalizeLine
 import org.m0skit0.android.emtmadridalarms.domain.linesMatch
 
 class EmtRepository(
@@ -15,6 +21,41 @@ class EmtRepository(
     private val loginMutex = Mutex()
     private var accessToken: String? = null
     private var tokenExpiresAtMillis: Long = 0L
+
+    suspend fun lines(): List<BusLine> {
+        val response = api.lines(token(), todayDateRef())
+        if (response.code != null && response.code != "00") {
+            throw IOException(response.description ?: "EMT lines request failed with code ${response.code}")
+        }
+
+        return response.data
+            .mapNotNull { dto ->
+                val label = normalizeLine(dto.label.ifBlank { dto.line })
+                val id = label.ifBlank { normalizeLine(dto.line) }
+                if (id.isBlank() || label.isBlank()) return@mapNotNull null
+                BusLine(id = id, label = label, nameA = dto.nameA, nameB = dto.nameB)
+            }
+            .distinctBy { normalizeLine(it.label) }
+            .sortedWith(compareBy<BusLine> { !it.label.all(Char::isDigit) }.thenBy { it.label.toIntOrNull() ?: Int.MAX_VALUE }.thenBy { it.label })
+    }
+
+    suspend fun stopsForLine(line: BusLine): List<BusStop> {
+        val accessToken = token()
+        return listOf(1, 2)
+            .flatMap { direction ->
+                val response = api.lineStops(accessToken, line.id, direction)
+                if (response.code != null && response.code != "00") {
+                    throw IOException(response.description ?: "EMT stops request failed with code ${response.code}")
+                }
+                response.data.flatMap { it.stops }
+            }
+            .mapNotNull { dto ->
+                if (dto.stop.isBlank()) return@mapNotNull null
+                BusStop(id = dto.stop, name = dto.name, address = dto.postalAddress)
+            }
+            .distinctBy { it.id }
+            .sortedBy { it.id.toIntOrNull() ?: Int.MAX_VALUE }
+    }
 
     suspend fun arrivalsFor(request: BusAlarmRequest): List<BusArrival> {
         val token = token()
@@ -63,7 +104,7 @@ class EmtRepository(
 
         val tokenData = response.data.firstOrNull()
         val newToken = tokenData?.accessToken
-        if (response.code != "00" || newToken.isNullOrBlank()) {
+        if (newToken.isNullOrBlank()) {
             throw IOException(response.description ?: "EMT login failed")
         }
 
@@ -71,6 +112,8 @@ class EmtRepository(
         tokenExpiresAtMillis = System.currentTimeMillis() + ((tokenData.tokenSecExpiration ?: 900) * 1_000L)
         newToken
     }
+
+    private fun todayDateRef(): String = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
 }
 
 data class EmtCredentials(

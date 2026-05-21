@@ -15,6 +15,7 @@ object EmtNetwork {
     }
 
     private val okHttp = OkHttpClient.Builder()
+        .addInterceptor(ApiLoggingInterceptor())
         .connectTimeout(15, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .callTimeout(40, TimeUnit.SECONDS)

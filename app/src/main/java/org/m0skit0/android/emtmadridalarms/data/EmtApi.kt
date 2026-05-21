@@ -24,6 +24,19 @@ interface EmtApi {
         @Path("lineArrive") lineArrive: String,
         @Body body: ArrivalsRequestBody,
     ): EmtArrivalsResponse
+
+    @GET("v2/transport/busemtmad/lines/info/{dateRef}/")
+    suspend fun lines(
+        @Header("accessToken") accessToken: String,
+        @Path("dateRef") dateRef: String,
+    ): EmtLinesResponse
+
+    @GET("v1/transport/busemtmad/lines/{lineId}/stops/{direction}/")
+    suspend fun lineStops(
+        @Header("accessToken") accessToken: String,
+        @Path("lineId") lineId: String,
+        @Path("direction") direction: Int,
+    ): EmtLineStopsResponse
 }
 
 @Serializable
@@ -74,4 +87,45 @@ data class EmtArrivalDto(
     @SerialName("DistanceBus")
     @Serializable(with = FlexibleIntSerializer::class)
     val distanceMeters: Int = -1,
+)
+
+@Serializable
+data class EmtLinesResponse(
+    val code: String? = null,
+    val description: String? = null,
+    val data: List<EmtLineDto> = emptyList(),
+)
+
+@Serializable
+data class EmtLineDto(
+    @Serializable(with = FlexibleStringSerializer::class)
+    val line: String = "",
+    @Serializable(with = FlexibleStringSerializer::class)
+    val label: String = "",
+    @Serializable(with = FlexibleStringSerializer::class)
+    val nameA: String = "",
+    @Serializable(with = FlexibleStringSerializer::class)
+    val nameB: String = "",
+)
+
+@Serializable
+data class EmtLineStopsResponse(
+    val code: String? = null,
+    val description: String? = null,
+    val data: List<EmtLineStopsData> = emptyList(),
+)
+
+@Serializable
+data class EmtLineStopsData(
+    val stops: List<EmtStopDto> = emptyList(),
+)
+
+@Serializable
+data class EmtStopDto(
+    @Serializable(with = FlexibleStringSerializer::class)
+    val stop: String = "",
+    @Serializable(with = FlexibleStringSerializer::class)
+    val name: String = "",
+    @Serializable(with = FlexibleStringSerializer::class)
+    val postalAddress: String = "",
 )
