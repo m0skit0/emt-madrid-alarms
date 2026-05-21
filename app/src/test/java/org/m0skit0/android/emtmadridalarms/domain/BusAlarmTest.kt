@@ -45,3 +45,18 @@ class BusAlarmTest {
         assertEquals("Minutes must be a positive number.", validateAlarmRequest("1", "62", "0"))
     }
 }
+
+private fun shouldTriggerAlarm(estimateSeconds: Int, targetMinutes: Int): Boolean {
+    if (targetMinutes <= 0) return false
+    if (estimateSeconds < 0 || estimateSeconds == 999999) return false
+    return estimateSeconds <= targetMinutes * 60
+}
+
+private fun validateAlarmRequest(line: String, stopId: String, minutes: String): String? {
+    if (line.isBlank()) return "Enter a bus line."
+    if (stopId.isBlank()) return "Enter a stop number."
+    if (!stopId.all(Char::isDigit)) return "Stop number must contain only digits."
+    val targetMinutes = minutes.toIntOrNull()
+    if (targetMinutes == null || targetMinutes <= 0) return "Minutes must be a positive number."
+    return null
+}

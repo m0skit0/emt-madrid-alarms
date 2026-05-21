@@ -6,7 +6,6 @@ import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusArrival
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusArrivalsUseCase
-import org.m0skit0.android.emtmadridalarms.domain.shouldTriggerAlarm
 
 class AlarmPollingMonitor(
     private val loadBusArrivals: LoadBusArrivalsUseCase,
@@ -54,4 +53,10 @@ class AlarmPollingMonitor(
         const val TAG = "BusAlarm"
         const val POLL_INTERVAL_MS = 30_000L
     }
+}
+
+private fun shouldTriggerAlarm(estimateSeconds: Int, targetMinutes: Int): Boolean {
+    if (targetMinutes <= 0) return false
+    if (estimateSeconds < 0 || estimateSeconds == 999999) return false
+    return estimateSeconds <= targetMinutes * 60
 }

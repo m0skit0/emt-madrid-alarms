@@ -15,7 +15,6 @@ import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusLinesUseCase
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusStopsUseCase
-import org.m0skit0.android.emtmadridalarms.domain.validateAlarmRequest
 import org.m0skit0.android.emtmadridalarms.service.AlarmMonitorService
 
 class AlarmViewModel(
@@ -181,4 +180,13 @@ class AlarmViewModel(
     private companion object {
         const val TAG = "AlarmViewModel"
     }
+}
+
+private fun validateAlarmRequest(line: String, stopId: String, minutes: String): String? {
+    if (line.isBlank()) return "Enter a bus line."
+    if (stopId.isBlank()) return "Enter a stop number."
+    if (!stopId.all(Char::isDigit)) return "Stop number must contain only digits."
+    val targetMinutes = minutes.toIntOrNull()
+    if (targetMinutes == null || targetMinutes <= 0) return "Minutes must be a positive number."
+    return null
 }
