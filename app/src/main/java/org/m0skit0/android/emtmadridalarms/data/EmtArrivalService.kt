@@ -5,9 +5,19 @@ import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusArrival
 import org.m0skit0.android.emtmadridalarms.domain.linesMatch
 
+fun interface ArrivalsProvider : suspend (BusAlarmRequest) -> List<BusArrival>
+
 private const val TAG = "EmtArrivalService"
 
-suspend fun arrivalsFor(
+fun arrivalsProvider(
+    api: EmtApi,
+    authTokenProvider: EmtAuthTokenProvider,
+    dateProvider: EmtDateProvider,
+): ArrivalsProvider = ArrivalsProvider { request ->
+    arrivalsFor(request, api, authTokenProvider, dateProvider)
+}
+
+private suspend fun arrivalsFor(
     request: BusAlarmRequest,
     api: EmtApi,
     authTokenProvider: EmtAuthTokenProvider,
