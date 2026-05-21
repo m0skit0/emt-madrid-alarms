@@ -15,7 +15,9 @@ import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusLinesUseCase
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusStopsUseCase
-import org.m0skit0.android.emtmadridalarms.service.AlarmMonitorService
+import org.m0skit0.android.emtmadridalarms.service.cancelAlarmService
+import org.m0skit0.android.emtmadridalarms.service.startAlarmService
+import org.m0skit0.android.emtmadridalarms.service.stopAlarmRinging
 
 class AlarmViewModel(
     private val appContext: Context,
@@ -151,7 +153,7 @@ class AlarmViewModel(
             Log.d(TAG, "Starting alarm request line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             storage.saveActiveAlarm(request)
-            AlarmMonitorService.start(appContext, request)
+            startAlarmService(appContext, request)
             _state.update { it.copy(isLoading = false, activeAlarm = request) }
             Log.d(TAG, "Alarm start requested")
         }
@@ -160,7 +162,7 @@ class AlarmViewModel(
     private fun cancelAlarm() {
         viewModelScope.launch {
             Log.d(TAG, "Cancelling alarm from UI")
-            AlarmMonitorService.cancel(appContext)
+            cancelAlarmService(appContext)
             storage.clearActiveAlarm()
             storage.setRinging(false)
             _state.update { it.copy(activeAlarm = null, latestEtaSeconds = null, latestDestination = "", statusMessage = "") }
@@ -170,7 +172,7 @@ class AlarmViewModel(
     private fun stopRinging() {
         viewModelScope.launch {
             Log.d(TAG, "Stopping ringing from UI")
-            AlarmMonitorService.stopRinging(appContext)
+            stopAlarmRinging(appContext)
             storage.setRinging(false)
             storage.clearActiveAlarm()
             _state.update { it.copy(isRinging = false, activeAlarm = null) }
