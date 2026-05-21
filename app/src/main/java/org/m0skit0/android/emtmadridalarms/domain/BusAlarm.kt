@@ -81,12 +81,6 @@ fun validateAlarmRequest(line: String, stopId: String, minutes: String): String?
     return null
 }
 
-interface BusAlarmRepository {
-    suspend fun lines(): List<BusLine>
-    suspend fun stopsForLine(line: BusLine): List<BusStop>
-    suspend fun arrivalsFor(request: BusAlarmRequest): List<BusArrival>
-}
-
 interface AlarmStateStore {
     val state: Flow<PersistedAlarmState>
 
@@ -97,14 +91,8 @@ interface AlarmStateStore {
     suspend fun setRinging(isRinging: Boolean)
 }
 
-class LoadBusLinesUseCase(private val repository: BusAlarmRepository) {
-    suspend operator fun invoke(): List<BusLine> = repository.lines()
-}
+fun interface LoadBusLinesUseCase : suspend () -> List<BusLine>
 
-class LoadBusStopsUseCase(private val repository: BusAlarmRepository) {
-    suspend operator fun invoke(line: BusLine): List<BusStop> = repository.stopsForLine(line)
-}
+fun interface LoadBusStopsUseCase : suspend (BusLine) -> List<BusStop>
 
-class LoadBusArrivalsUseCase(private val repository: BusAlarmRepository) {
-    suspend operator fun invoke(request: BusAlarmRequest): List<BusArrival> = repository.arrivalsFor(request)
-}
+fun interface LoadBusArrivalsUseCase : suspend (BusAlarmRequest) -> List<BusArrival>

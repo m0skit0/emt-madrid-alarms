@@ -11,21 +11,18 @@ import org.koin.dsl.bind
 import org.koin.dsl.module
 import org.m0skit0.android.emtmadridalarms.data.AlarmStorage
 import org.m0skit0.android.emtmadridalarms.data.ApiLoggingInterceptor
+import org.m0skit0.android.emtmadridalarms.data.ArrivalsProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtApi
 import org.m0skit0.android.emtmadridalarms.data.EmtAuthTokenProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtCredentials
-import org.m0skit0.android.emtmadridalarms.data.ArrivalsProvider
-import org.m0skit0.android.emtmadridalarms.data.arrivalsFor
 import org.m0skit0.android.emtmadridalarms.data.EmtDateProvider
 import org.m0skit0.android.emtmadridalarms.data.LinesProvider
-import org.m0skit0.android.emtmadridalarms.data.linesForToday
 import org.m0skit0.android.emtmadridalarms.data.StopsProvider
+import org.m0skit0.android.emtmadridalarms.data.arrivalsFor
+import org.m0skit0.android.emtmadridalarms.data.linesForToday
 import org.m0skit0.android.emtmadridalarms.data.stopsForLine
 import org.m0skit0.android.emtmadridalarms.data.todayDateRef
 import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
-import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRepository
-import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
-import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import retrofit2.Retrofit
 
 val dataModule = module {
@@ -60,12 +57,5 @@ val dataModule = module {
     single<LinesProvider> { LinesProvider { linesForToday(get(), get(), get()) } }
     single<StopsProvider> { StopsProvider { busLine -> stopsForLine(busLine, get(), get()) } }
     single<ArrivalsProvider> { ArrivalsProvider { request -> arrivalsFor(request, get(), get(), get()) } }
-    single<BusAlarmRepository> {
-        object : BusAlarmRepository {
-            override suspend fun lines() = get<LinesProvider>()()
-            override suspend fun stopsForLine(line: BusLine) = get<StopsProvider>()(line)
-            override suspend fun arrivalsFor(request: BusAlarmRequest) = get<ArrivalsProvider>()(request)
-        }
-    }
     single { AlarmStorage(androidContext()) } bind AlarmStateStore::class
 }
