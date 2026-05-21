@@ -11,5 +11,11 @@ import org.m0skit0.android.emtmadridalarms.domain.LoadBusStopsUseCase
 val domainModule = module {
     single<LoadBusLinesUseCase> { LoadBusLinesUseCase { get<LinesProvider>()() } }
     single<LoadBusStopsUseCase> { LoadBusStopsUseCase { line -> get<StopsProvider>()(line) } }
-    single<LoadBusArrivalsUseCase> { LoadBusArrivalsUseCase { request -> get<ArrivalsProvider>()(request) } }
+    single<LoadBusArrivalsUseCase> {
+        LoadBusArrivalsUseCase { request ->
+            get<ArrivalsProvider>()(
+                request
+            )
+        }
+    }
 }
