@@ -18,7 +18,7 @@ internal suspend fun arrivalsFor(
     val dateRef = dateProvider()
     Log.d(TAG, "Loading arrivals line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes} dateRef=$dateRef")
     val response = api.arrivals(
-        accessToken = authTokenProvider.token(),
+        accessToken = authTokenProvider(),
         stopId = request.stopId,
         lineArrive = request.line.trim(),
         body = ArrivalsRequestBody(incidencesDate = dateRef),

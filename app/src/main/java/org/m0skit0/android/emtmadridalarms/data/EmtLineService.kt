@@ -15,7 +15,7 @@ internal suspend fun linesForToday(
 ): List<BusLine> {
     val dateRef = dateProvider()
     Log.d(TAG, "Loading EMT lines for dateRef=$dateRef")
-    val response = api.lines(authTokenProvider.token(), dateRef)
+    val response = api.lines(authTokenProvider(), dateRef)
     validator(response.code, response.description)
 
     val lines = response.data

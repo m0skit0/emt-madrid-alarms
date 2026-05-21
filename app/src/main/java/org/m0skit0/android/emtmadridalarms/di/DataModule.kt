@@ -14,6 +14,8 @@ import org.m0skit0.android.emtmadridalarms.data.ApiLoggingInterceptor
 import org.m0skit0.android.emtmadridalarms.data.ArrivalsProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtApi
 import org.m0skit0.android.emtmadridalarms.data.EmtAuthTokenProvider
+import org.m0skit0.android.emtmadridalarms.data.EmtAuthTokenState
+import org.m0skit0.android.emtmadridalarms.data.provideToken
 import org.m0skit0.android.emtmadridalarms.data.EmtCredentials
 import org.m0skit0.android.emtmadridalarms.data.EmtDateProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtResponseValidator
@@ -54,14 +56,12 @@ val dataModule = module {
     }
     single { get<Retrofit>().create(EmtApi::class.java) }
     single { EmtCredentials.fromBuildConfig() }
-    singleOf(::EmtAuthTokenProvider)
+    single { EmtAuthTokenState() }
+    single<EmtAuthTokenProvider> { EmtAuthTokenProvider { provideToken(get(), get(), get()) } }
     single<EmtDateProvider> { EmtDateProvider { todayDateRef() } }
     single<EmtResponseValidator> {
         EmtResponseValidator { code, description ->
-            requireEmtSuccess(
-                code,
-                description
-            )
+            requireEmtSuccess(code, description)
         }
     }
     single<LinesProvider> { LinesProvider { linesForToday(get(), get(), get(), get()) } }
