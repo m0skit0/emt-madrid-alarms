@@ -18,6 +18,7 @@ import org.m0skit0.android.emtmadridalarms.data.EmtDateProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtLineService
 import org.m0skit0.android.emtmadridalarms.data.EmtRepository
 import org.m0skit0.android.emtmadridalarms.data.EmtStopService
+import org.m0skit0.android.emtmadridalarms.data.arrivalsFor
 import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRepository
 import retrofit2.Retrofit
@@ -53,6 +54,12 @@ val dataModule = module {
     singleOf(::EmtDateProvider)
     singleOf(::EmtLineService)
     singleOf(::EmtStopService)
-    singleOf(::EmtRepository) bind BusAlarmRepository::class
+    single<BusAlarmRepository> {
+        EmtRepository(
+            lineService = get(),
+            stopService = get(),
+            arrivalsForFn = { request -> arrivalsFor(request, get(), get(), get()) },
+        )
+    }
     single { AlarmStorage(androidContext()) } bind AlarmStateStore::class
 }
