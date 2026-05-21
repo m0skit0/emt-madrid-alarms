@@ -9,15 +9,7 @@ fun interface ArrivalsProvider : suspend (BusAlarmRequest) -> List<BusArrival>
 
 private const val TAG = "EmtArrivalService"
 
-fun arrivalsProvider(
-    api: EmtApi,
-    authTokenProvider: EmtAuthTokenProvider,
-    dateProvider: EmtDateProvider,
-): ArrivalsProvider = ArrivalsProvider { request ->
-    arrivalsFor(request, api, authTokenProvider, dateProvider)
-}
-
-private suspend fun arrivalsFor(
+internal suspend fun arrivalsFor(
     request: BusAlarmRequest,
     api: EmtApi,
     authTokenProvider: EmtAuthTokenProvider,

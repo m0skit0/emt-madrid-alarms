@@ -14,12 +14,14 @@ import org.m0skit0.android.emtmadridalarms.data.ApiLoggingInterceptor
 import org.m0skit0.android.emtmadridalarms.data.EmtApi
 import org.m0skit0.android.emtmadridalarms.data.EmtAuthTokenProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtCredentials
-import org.m0skit0.android.emtmadridalarms.data.defaultEmtDateProvider
+import org.m0skit0.android.emtmadridalarms.data.ArrivalsProvider
+import org.m0skit0.android.emtmadridalarms.data.arrivalsFor
+import org.m0skit0.android.emtmadridalarms.data.EmtDateProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtLineService
 import org.m0skit0.android.emtmadridalarms.data.EmtRepository
 import org.m0skit0.android.emtmadridalarms.data.StopsProvider
 import org.m0skit0.android.emtmadridalarms.data.stopsForLine
-import org.m0skit0.android.emtmadridalarms.data.arrivalsProvider
+import org.m0skit0.android.emtmadridalarms.data.todayDateRef
 import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRepository
 import retrofit2.Retrofit
@@ -52,10 +54,10 @@ val dataModule = module {
     single { get<Retrofit>().create(EmtApi::class.java) }
     single { EmtCredentials.fromBuildConfig() }
     singleOf(::EmtAuthTokenProvider)
-    singleOf(::defaultEmtDateProvider)
+    single<EmtDateProvider> { EmtDateProvider { todayDateRef() } }
     singleOf(::EmtLineService)
     single<StopsProvider> { StopsProvider { busLine -> stopsForLine(busLine, get(), get()) } }
-    singleOf(::arrivalsProvider)
+    single<ArrivalsProvider> { ArrivalsProvider { request -> arrivalsFor(request, get(), get(), get()) } }
     singleOf(::EmtRepository) bind BusAlarmRepository::class
     single { AlarmStorage(androidContext()) } bind AlarmStateStore::class
 }
