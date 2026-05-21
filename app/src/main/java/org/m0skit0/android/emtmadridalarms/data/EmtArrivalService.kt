@@ -23,7 +23,7 @@ private suspend fun arrivalsFor(
     authTokenProvider: EmtAuthTokenProvider,
     dateProvider: EmtDateProvider,
 ): List<BusArrival> {
-    val dateRef = dateProvider.todayDateRef()
+    val dateRef = dateProvider()
     Log.d(TAG, "Loading arrivals line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes} dateRef=$dateRef")
     val response = api.arrivals(
         accessToken = authTokenProvider.token(),

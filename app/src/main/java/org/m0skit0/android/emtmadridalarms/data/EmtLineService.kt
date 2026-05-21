@@ -10,7 +10,7 @@ class EmtLineService(
     private val dateProvider: EmtDateProvider,
 ) {
     suspend fun lines(): List<BusLine> {
-        val dateRef = dateProvider.todayDateRef()
+        val dateRef = dateProvider()
         Log.d(TAG, "Loading EMT lines for dateRef=$dateRef")
         val response = api.lines(authTokenProvider.token(), dateRef)
         requireEmtSuccess(response.code, response.description, "lines", TAG)

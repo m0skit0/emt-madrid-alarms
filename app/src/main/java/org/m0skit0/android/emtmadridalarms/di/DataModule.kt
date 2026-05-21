@@ -14,7 +14,7 @@ import org.m0skit0.android.emtmadridalarms.data.ApiLoggingInterceptor
 import org.m0skit0.android.emtmadridalarms.data.EmtApi
 import org.m0skit0.android.emtmadridalarms.data.EmtAuthTokenProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtCredentials
-import org.m0skit0.android.emtmadridalarms.data.EmtDateProvider
+import org.m0skit0.android.emtmadridalarms.data.defaultEmtDateProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtLineService
 import org.m0skit0.android.emtmadridalarms.data.EmtRepository
 import org.m0skit0.android.emtmadridalarms.data.EmtStopService
@@ -51,7 +51,7 @@ val dataModule = module {
     single { get<Retrofit>().create(EmtApi::class.java) }
     single { EmtCredentials.fromBuildConfig() }
     singleOf(::EmtAuthTokenProvider)
-    singleOf(::EmtDateProvider)
+    singleOf(::defaultEmtDateProvider)
     singleOf(::EmtLineService)
     singleOf(::EmtStopService)
     singleOf(::arrivalsProvider)

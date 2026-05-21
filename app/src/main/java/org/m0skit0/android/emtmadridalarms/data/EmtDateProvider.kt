@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class EmtDateProvider {
-    fun todayDateRef(): String = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
-}
+fun interface EmtDateProvider : () -> String
+
+fun defaultEmtDateProvider(): EmtDateProvider =
+    EmtDateProvider { SimpleDateFormat("yyyyMMdd", Locale.US).format(Date()) }
