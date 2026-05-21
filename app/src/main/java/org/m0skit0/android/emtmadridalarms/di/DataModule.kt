@@ -12,7 +12,6 @@ import org.koin.dsl.module
 import org.m0skit0.android.emtmadridalarms.data.AlarmStorage
 import org.m0skit0.android.emtmadridalarms.data.ApiLoggingInterceptor
 import org.m0skit0.android.emtmadridalarms.data.EmtApi
-import org.m0skit0.android.emtmadridalarms.data.EmtArrivalService
 import org.m0skit0.android.emtmadridalarms.data.EmtAuthTokenProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtCredentials
 import org.m0skit0.android.emtmadridalarms.data.EmtDateProvider
@@ -54,7 +53,6 @@ val dataModule = module {
     singleOf(::EmtDateProvider)
     singleOf(::EmtLineService)
     singleOf(::EmtStopService)
-    singleOf(::EmtArrivalService)
     singleOf(::EmtRepository) bind BusAlarmRepository::class
     single { AlarmStorage(androidContext()) } bind AlarmStateStore::class
 }
