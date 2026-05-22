@@ -7,23 +7,33 @@ import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-import org.m0skit0.android.emtmadridalarms.data.AlarmStorage
+import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
 import org.m0skit0.android.emtmadridalarms.data.ApiLoggingInterceptor
 import org.m0skit0.android.emtmadridalarms.data.ArrivalsProvider
+import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.EmtApi
 import org.m0skit0.android.emtmadridalarms.data.EmtAuthTokenProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtCredentials
 import org.m0skit0.android.emtmadridalarms.data.EmtDateProvider
 import org.m0skit0.android.emtmadridalarms.data.EmtResponseValidator
 import org.m0skit0.android.emtmadridalarms.data.LinesProvider
+import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival
+import org.m0skit0.android.emtmadridalarms.data.SaveStatus
+import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.data.StopsProvider
+import org.m0skit0.android.emtmadridalarms.data.alarmStateReaderImpl
 import org.m0skit0.android.emtmadridalarms.data.arrivalsFor
+import org.m0skit0.android.emtmadridalarms.data.clearActiveAlarmImpl
 import org.m0skit0.android.emtmadridalarms.data.linesForToday
 import org.m0skit0.android.emtmadridalarms.data.provideToken
 import org.m0skit0.android.emtmadridalarms.data.requireEmtSuccess
+import org.m0skit0.android.emtmadridalarms.data.saveActiveAlarmImpl
+import org.m0skit0.android.emtmadridalarms.data.saveLatestArrivalImpl
+import org.m0skit0.android.emtmadridalarms.data.saveStatusImpl
+import org.m0skit0.android.emtmadridalarms.data.setRingingImpl
 import org.m0skit0.android.emtmadridalarms.data.stopsForLine
 import org.m0skit0.android.emtmadridalarms.data.todayDateRef
-import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -83,5 +93,10 @@ val dataModule = module {
             )
         }
     }
-    single<AlarmStateStore> { AlarmStorage(androidContext()) }
+    single<AlarmStateReader> { alarmStateReaderImpl(androidContext()) }
+    single<SaveActiveAlarm> { saveActiveAlarmImpl(androidContext()) }
+    single<ClearActiveAlarm> { clearActiveAlarmImpl(androidContext()) }
+    single<SaveLatestArrival> { saveLatestArrivalImpl(androidContext()) }
+    single<SaveStatus> { saveStatusImpl(androidContext()) }
+    single<SetRinging> { setRingingImpl(androidContext()) }
 }

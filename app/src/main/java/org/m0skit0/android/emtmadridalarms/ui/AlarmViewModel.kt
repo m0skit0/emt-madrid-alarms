@@ -9,7 +9,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
+import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
+import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
@@ -21,7 +24,10 @@ import org.m0skit0.android.emtmadridalarms.service.stopAlarmRinging
 
 class AlarmViewModel(
     private val appContext: Context,
-    private val storage: AlarmStateStore,
+    private val alarmStateReader: AlarmStateReader,
+    private val saveActiveAlarm: SaveActiveAlarm,
+    private val clearActiveAlarm: ClearActiveAlarm,
+    private val setRinging: SetRinging,
     private val loadBusLines: LoadBusLinesUseCase,
     private val loadBusStops: LoadBusStopsUseCase,
 ) : ViewModel() {
@@ -31,7 +37,7 @@ class AlarmViewModel(
     init {
         loadLines()
         viewModelScope.launch {
-            storage.state.collect { persisted ->
+            alarmStateReader().collect { persisted ->
                 _state.update { current ->
                     current.copy(
                         activeAlarm = persisted.activeAlarm,
@@ -152,7 +158,7 @@ class AlarmViewModel(
         viewModelScope.launch {
             Log.d(TAG, "Starting alarm request line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
             _state.update { it.copy(isLoading = true, errorMessage = null) }
-            storage.saveActiveAlarm(request)
+            saveActiveAlarm(request)
             startAlarmService(appContext, request)
             _state.update { it.copy(isLoading = false, activeAlarm = request) }
             Log.d(TAG, "Alarm start requested")
@@ -163,8 +169,8 @@ class AlarmViewModel(
         viewModelScope.launch {
             Log.d(TAG, "Cancelling alarm from UI")
             cancelAlarmService(appContext)
-            storage.clearActiveAlarm()
-            storage.setRinging(false)
+            clearActiveAlarm()
+            setRinging(false)
             _state.update { it.copy(activeAlarm = null, latestEtaSeconds = null, latestDestination = "", statusMessage = "") }
         }
     }
@@ -173,8 +179,8 @@ class AlarmViewModel(
         viewModelScope.launch {
             Log.d(TAG, "Stopping ringing from UI")
             stopAlarmRinging(appContext)
-            storage.setRinging(false)
-            storage.clearActiveAlarm()
+            setRinging(false)
+            clearActiveAlarm()
             _state.update { it.copy(isRinging = false, activeAlarm = null) }
         }
     }

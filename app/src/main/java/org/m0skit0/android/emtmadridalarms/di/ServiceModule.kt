@@ -2,6 +2,11 @@ package org.m0skit0.android.emtmadridalarms.di
 
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
+import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival
+import org.m0skit0.android.emtmadridalarms.data.SaveStatus
+import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.service.AlarmPollingMonitor
 import org.m0skit0.android.emtmadridalarms.service.AlarmSignalPlayer
 import org.m0skit0.android.emtmadridalarms.service.MonitoringNotificationProvider
@@ -42,7 +47,11 @@ val serviceModule = module {
                 request,
                 onTriggered,
                 get(),
-                get()
+                get<SaveActiveAlarm>(),
+                get<SaveStatus>(),
+                get<SaveLatestArrival>(),
+                get<SetRinging>(),
+                get<ClearActiveAlarm>(),
             )
         }
     }

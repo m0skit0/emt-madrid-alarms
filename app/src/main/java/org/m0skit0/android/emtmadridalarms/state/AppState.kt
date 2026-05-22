@@ -1,5 +1,6 @@
 package org.m0skit0.android.emtmadridalarms.state
 
+import org.m0skit0.android.emtmadridalarms.data.AlarmStorageState
 import org.m0skit0.android.emtmadridalarms.data.EmtAuthTokenState
 import org.m0skit0.android.emtmadridalarms.service.AlarmMonitorState
 
@@ -9,5 +10,6 @@ import org.m0skit0.android.emtmadridalarms.service.AlarmMonitorState
  */
 data class AppState(
     val emtAuthToken: EmtAuthTokenState = EmtAuthTokenState(),
-    val alarmMonitor: AlarmMonitorState = AlarmMonitorState()
+    val alarmMonitor: AlarmMonitorState = AlarmMonitorState(),
+    val alarmStorage: AlarmStorageState = AlarmStorageState(),
 )

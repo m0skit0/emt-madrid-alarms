@@ -9,7 +9,10 @@ val presentationModule = module {
     viewModel {
         AlarmViewModel(
             appContext = androidContext(),
-            storage = get(),
+            alarmStateReader = get(),
+            saveActiveAlarm = get(),
+            clearActiveAlarm = get(),
+            setRinging = get(),
             loadBusLines = get(),
             loadBusStops = get(),
         )

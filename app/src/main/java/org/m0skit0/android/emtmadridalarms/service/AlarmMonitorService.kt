@@ -9,7 +9,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import org.koin.android.ext.android.inject
-import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
+import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival
+import org.m0skit0.android.emtmadridalarms.data.SaveStatus
+import org.m0skit0.android.emtmadridalarms.data.SetRinging
+import org.m0skit0.android.emtmadridalarms.domain.LoadBusArrivalsUseCase
 import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
 
 private const val TAG = "BusAlarm"
@@ -17,8 +22,12 @@ private const val TAG = "BusAlarm"
 class AlarmMonitorService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val storage: AlarmStateStore by inject()
-    private val pollingMonitor: AlarmPollingMonitor by inject()
+    private val saveActiveAlarm: SaveActiveAlarm by inject()
+    private val clearActiveAlarm: ClearActiveAlarm by inject()
+    private val saveLatestArrival: SaveLatestArrival by inject()
+    private val saveStatus: SaveStatus by inject()
+    private val setRinging: SetRinging by inject()
+    private val loadBusArrivals: LoadBusArrivalsUseCase by inject()
     private val monitoringNotification: MonitoringNotificationProvider by inject()
     private val ringingNotification: RingingNotificationProvider by inject()
     private val channelsEnsurer: NotificationChannelsEnsurer by inject()
@@ -37,13 +46,15 @@ class AlarmMonitorService : Service() {
         Log.d(TAG, "Service created")
         channelsEnsurer()
 
-        // Functions with no internal dependencies
+        val pollingMonitor = AlarmPollingMonitor { request, onTriggered ->
+            pollAlarm(request, onTriggered, loadBusArrivals, saveActiveAlarm, saveStatus, saveLatestArrival, setRinging, clearActiveAlarm)
+        }
+
         stopSignal = stopSignalImpl(signalPlayer)
         cancelJob = cancelJobImpl(globalState)
-        stopRingingAndSelf = stopRingingAndSelfImpl(this, scope, storage, signalPlayer)
-        cancelMonitoring = cancelMonitoringImpl(this, scope, storage, signalPlayer, globalState)
+        stopRingingAndSelf = stopRingingAndSelfImpl(this, scope, setRinging, clearActiveAlarm, signalPlayer)
+        cancelMonitoring = cancelMonitoringImpl(this, scope, clearActiveAlarm, setRinging, signalPlayer, globalState)
 
-        // Functions with internal dependencies
         startRinging = startRingingImpl(this, ringingNotification, signalPlayer)
         startMonitoring = startMonitoringImpl(this, scope, pollingMonitor, monitoringNotification, startRinging, globalState)
     }

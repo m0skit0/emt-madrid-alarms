@@ -2,7 +2,11 @@ package org.m0skit0.android.emtmadridalarms.service
 
 import android.util.Log
 import kotlinx.coroutines.delay
-import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
+import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival
+import org.m0skit0.android.emtmadridalarms.data.SaveStatus
+import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusArrival
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusArrivalsUseCase
@@ -16,17 +20,21 @@ internal suspend fun pollAlarm(
     request: BusAlarmRequest,
     onTriggered: suspend (BusArrival) -> Unit,
     loadBusArrivals: LoadBusArrivalsUseCase,
-    storage: AlarmStateStore,
+    saveActiveAlarm: SaveActiveAlarm,
+    saveStatus: SaveStatus,
+    saveLatestArrival: SaveLatestArrival,
+    setRinging: SetRinging,
+    clearActiveAlarm: ClearActiveAlarm,
 ) {
-    storage.saveActiveAlarm(request)
+    saveActiveAlarm(request)
     var pollNumber = 0
     while (true) {
         pollNumber++
         val triggered = try {
-            processPoll(pollNumber, request, loadBusArrivals, storage, onTriggered)
+            processPoll(pollNumber, request, loadBusArrivals, saveStatus, saveLatestArrival, setRinging, clearActiveAlarm, onTriggered)
         } catch (error: Exception) {
             Log.e(TAG, "Poll #$pollNumber failed: ${error.message}", error)
-            storage.saveStatus(error.message ?: "Could not refresh EMT arrivals.")
+            saveStatus(error.message ?: "Could not refresh EMT arrivals.")
             false
         }
         if (triggered) break
@@ -39,22 +47,25 @@ private suspend fun processPoll(
     pollNumber: Int,
     request: BusAlarmRequest,
     loadBusArrivals: LoadBusArrivalsUseCase,
-    storage: AlarmStateStore,
+    saveStatus: SaveStatus,
+    saveLatestArrival: SaveLatestArrival,
+    setRinging: SetRinging,
+    clearActiveAlarm: ClearActiveAlarm,
     onTriggered: suspend (BusArrival) -> Unit,
 ): Boolean {
     Log.d(TAG, "Poll #$pollNumber: requesting arrivals line=${request.line} stop=${request.stopId}")
     val arrivals = loadBusArrivals(request)
     val nextArrival = arrivals.firstOrNull { it.estimateSeconds != 999999 }
     Log.d(TAG, "Poll #$pollNumber: arrivals=${arrivals.size}, next=${nextArrival?.estimateSeconds ?: "none"}s destination=${nextArrival?.destination.orEmpty()}")
-    storage.saveLatestArrival(
-        etaSeconds = nextArrival?.estimateSeconds,
-        destination = nextArrival?.destination.orEmpty(),
+    saveLatestArrival(
+        nextArrival?.estimateSeconds,
+        nextArrival?.destination.orEmpty(),
     )
     val shouldTrigger = nextArrival?.let { shouldTriggerAlarm(it.estimateSeconds, request.targetMinutes) } == true
     Log.d(TAG, "Poll #$pollNumber: shouldTrigger=$shouldTrigger targetSeconds=${request.targetMinutes * 60}")
     if (shouldTrigger) {
         checkNotNull(nextArrival)
-        triggerAlarm(request, nextArrival, storage, onTriggered)
+        triggerAlarm(request, nextArrival, setRinging, clearActiveAlarm, saveLatestArrival, onTriggered)
         return true
     } else {
         return false
@@ -64,13 +75,15 @@ private suspend fun processPoll(
 private suspend fun triggerAlarm(
     request: BusAlarmRequest,
     arrival: BusArrival,
-    storage: AlarmStateStore,
+    setRinging: SetRinging,
+    clearActiveAlarm: ClearActiveAlarm,
+    saveLatestArrival: SaveLatestArrival,
     onTriggered: suspend (BusArrival) -> Unit,
 ) {
     Log.i(TAG, "Triggering alarm line=${request.line} stop=${request.stopId} etaSeconds=${arrival.estimateSeconds}")
-    storage.setRinging(true)
-    storage.clearActiveAlarm()
-    storage.saveLatestArrival(arrival.estimateSeconds, arrival.destination)
+    setRinging(true)
+    clearActiveAlarm()
+    saveLatestArrival(arrival.estimateSeconds, arrival.destination)
     onTriggered(arrival)
 }
 

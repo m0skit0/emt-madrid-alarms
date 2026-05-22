@@ -7,7 +7,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.m0skit0.android.emtmadridalarms.domain.AlarmStateStore
+import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
 
@@ -64,7 +65,8 @@ internal fun startMonitoringImpl(
 internal fun cancelMonitoringImpl(
     service: Service,
     scope: CoroutineScope,
-    storage: AlarmStateStore,
+    clearActiveAlarm: ClearActiveAlarm,
+    setRinging: SetRinging,
     signalPlayer: AlarmSignalPlayer,
     globalState: GlobalStateHolder
 ): CancelMonitoring = CancelMonitoring {
@@ -74,8 +76,8 @@ internal fun cancelMonitoringImpl(
         appState.copy(alarmMonitor = appState.alarmMonitor.copy(monitorJob = null))
     }
     scope.launch {
-        storage.clearActiveAlarm()
-        storage.setRinging(false)
+        clearActiveAlarm()
+        setRinging(false)
     }
     signalPlayer.stop()
     service.stopForeground(Service.STOP_FOREGROUND_REMOVE)
@@ -94,13 +96,14 @@ internal fun startRingingImpl(
 internal fun stopRingingAndSelfImpl(
     service: Service,
     scope: CoroutineScope,
-    storage: AlarmStateStore,
+    setRinging: SetRinging,
+    clearActiveAlarm: ClearActiveAlarm,
     signalPlayer: AlarmSignalPlayer
 ): StopRingingAndSelf = StopRingingAndSelf {
     Log.d(TAG, "Stopping ringing and service")
     scope.launch {
-        storage.setRinging(false)
-        storage.clearActiveAlarm()
+        setRinging(false)
+        clearActiveAlarm()
     }
     signalPlayer.stop()
     service.stopForeground(Service.STOP_FOREGROUND_REMOVE)
