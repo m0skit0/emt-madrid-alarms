@@ -4,31 +4,43 @@ import android.util.Log
 import java.io.IOException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
 
 private const val TAG = "EmtAuthTokenProvider"
 
+/**
+ * Data class representing the state for authentication.
+ */
 data class EmtAuthTokenState(
-    val mutex: Mutex = Mutex(),
-    var accessToken: String? = null,
-    var tokenExpiresAtMillis: Long = 0L,
-)
+    val token: String? = null,
+    val expiresAtMillis: Long = 0L,
+) {
+    /**
+     * This mutex is defined in the body, not the constructor, for a critical reason:
+     * properties in the body are NOT part of the `copy()` method. This ensures that
+     * a single, stable mutex instance is shared across all copies of the AuthState,
+     * preserving the integrity of the lock.
+     */
+    val mutex = Mutex()
+}
 
 fun interface EmtAuthTokenProvider : suspend () -> String
 
 internal suspend fun provideToken(
     api: EmtApi,
     credentials: EmtCredentials,
-    state: EmtAuthTokenState,
-): String = state.mutex.withLock {
-    cachedToken(state) ?: fetchAndStoreToken(api, credentials, state)
+    globalState: GlobalStateHolder,
+): String = globalState.state.emtAuthToken.mutex.withLock {
+    cachedToken(globalState) ?: fetchAndStoreToken(api, credentials, globalState)
 }
 
-private fun cachedToken(state: EmtAuthTokenState): String? {
-    val cached = state.accessToken
-    if (cached.isNullOrBlank() || System.currentTimeMillis() >= state.tokenExpiresAtMillis - 60_000L) return null
+private fun cachedToken(globalState: GlobalStateHolder): String? {
+    val authState = globalState.state.emtAuthToken
+    val cached = authState.token
+    if (cached.isNullOrBlank() || System.currentTimeMillis() >= authState.expiresAtMillis - 60_000L) return null
     Log.d(
         TAG,
-        "Using cached EMT token expiresInMs=${state.tokenExpiresAtMillis - System.currentTimeMillis()}"
+        "Using cached EMT token expiresInMs=${authState.expiresAtMillis - System.currentTimeMillis()}"
     )
     return cached
 }
@@ -36,11 +48,11 @@ private fun cachedToken(state: EmtAuthTokenState): String? {
 private suspend fun fetchAndStoreToken(
     api: EmtApi,
     credentials: EmtCredentials,
-    state: EmtAuthTokenState,
+    globalState: GlobalStateHolder,
 ): String {
     requireCredentials(credentials)
     val (token, expiresAtMillis) = fetchToken(api, credentials)
-    storeToken(state, token, expiresAtMillis)
+    storeToken(globalState, token, expiresAtMillis)
     return token
 }
 
@@ -80,8 +92,14 @@ private suspend fun fetchToken(api: EmtApi, credentials: EmtCredentials): Pair<S
     return newToken to expiresAtMillis
 }
 
-private fun storeToken(state: EmtAuthTokenState, token: String, expiresAtMillis: Long) {
-    state.accessToken = token
-    state.tokenExpiresAtMillis = expiresAtMillis
+private fun storeToken(globalState: GlobalStateHolder, token: String, expiresAtMillis: Long) {
+    globalState.update { appState ->
+        appState.copy(
+            emtAuthToken = appState.emtAuthToken.copy(
+                token = token,
+                expiresAtMillis = expiresAtMillis
+            )
+        )
+    }
     Log.d(TAG, "Stored EMT token expiresAtMillis=$expiresAtMillis")
 }
