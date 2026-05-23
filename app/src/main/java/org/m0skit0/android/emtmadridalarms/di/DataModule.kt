@@ -1,5 +1,8 @@
 package org.m0skit0.android.emtmadridalarms.di
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.preferencesDataStore
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -24,6 +27,9 @@ import org.m0skit0.android.emtmadridalarms.data.stopsForLine
 import org.m0skit0.android.emtmadridalarms.data.todayDateRef
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit.SECONDS
+
+private val android.content.Context.alarmDataStore: DataStore<Preferences>
+        by preferencesDataStore(name = "bus_alarm")
 
 val dataModule = module {
     single {
@@ -58,10 +64,11 @@ val dataModule = module {
     single { linesForToday(get(), get(), get(), get()) }
     single { stopsForLine(get(), get(), get()) }
     single { arrivalsFor(get(), get(), get(), get()) }
-    single { alarmStateReader(androidContext()) }
-    single { saveActiveAlarm(androidContext()) }
-    single { clearActiveAlarm(androidContext()) }
-    single { saveLatestArrival(androidContext()) }
-    single { saveStatus(androidContext()) }
-    single { setRinging(androidContext()) }
+    single<DataStore<Preferences>> { androidContext().alarmDataStore }
+    single { alarmStateReader(get()) }
+    single { saveActiveAlarm(get()) }
+    single { clearActiveAlarm(get()) }
+    single { saveLatestArrival(get()) }
+    single { saveStatus(get()) }
+    single { setRinging(get()) }
 }

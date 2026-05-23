@@ -25,7 +25,7 @@ class LineLoaderTest {
     }
 
     @Test
-    fun `sets isLoadingLines true then populates lines on success`() = scope.runTest {
+    fun `given a successful lines fetch, when loader is invoked, then state contains the lines and isLoadingLines is false`() = scope.runTest {
         val lines = listOf(BusLine("1", "1", "A", "B"))
         val state = MutableStateFlow(AlarmState())
         val loader = lineLoader(loadBusLines = { lines }, state = state, scope = scope)
@@ -39,7 +39,7 @@ class LineLoaderTest {
     }
 
     @Test
-    fun `sets error message on failure`() = scope.runTest {
+    fun `given a failing lines fetch, when loader is invoked, then state contains the error message`() = scope.runTest {
         val state = MutableStateFlow(AlarmState())
         val loader = lineLoader(
             loadBusLines = { error("network failure") },
@@ -56,7 +56,7 @@ class LineLoaderTest {
     }
 
     @Test
-    fun `uses fallback error message when exception message is null`() = scope.runTest {
+    fun `given an exception with a null message, when loader is invoked, then a fallback error message is shown`() = scope.runTest {
         val state = MutableStateFlow(AlarmState())
         val loader = lineLoader(
             loadBusLines = { throw RuntimeException() },
@@ -84,7 +84,7 @@ class StopLoaderTest {
     }
 
     @Test
-    fun `populates stops and clears isLoadingStops on success`() = scope.runTest {
+    fun `given a successful stops fetch, when loader is invoked, then state contains the stops and isLoadingStops is false`() = scope.runTest {
         val stops = listOf(BusStop("62", "Gran Via", "Calle 1"))
         val state = MutableStateFlow(AlarmState(isLoadingStops = true))
         val loader = stopLoader(loadBusStops = { stops }, state = state, scope = scope)
@@ -98,7 +98,7 @@ class StopLoaderTest {
     }
 
     @Test
-    fun `sets error message on failure`() = scope.runTest {
+    fun `given a failing stops fetch, when loader is invoked, then state contains the error message`() = scope.runTest {
         val state = MutableStateFlow(AlarmState(isLoadingStops = true))
         val loader = stopLoader(
             loadBusStops = { error("timeout") },
@@ -114,7 +114,7 @@ class StopLoaderTest {
     }
 
     @Test
-    fun `uses fallback error message when exception message is null`() = scope.runTest {
+    fun `given an exception with a null message, when loader is invoked, then a fallback error message is shown`() = scope.runTest {
         val state = MutableStateFlow(AlarmState(isLoadingStops = true))
         val loader = stopLoader(
             loadBusStops = { throw RuntimeException() },

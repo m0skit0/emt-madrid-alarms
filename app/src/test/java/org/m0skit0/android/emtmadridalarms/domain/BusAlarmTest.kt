@@ -9,44 +9,44 @@ import org.m0skit0.android.emtmadridalarms.ui.alarmRequestValidator
 
 class BusAlarmTest {
     @Test
-    fun `numeric line normalization removes leading zeroes`() {
+    fun `given a numeric line with leading zeroes, when normalized, then leading zeroes are removed`() {
         normalizeLine("001") shouldBe "1"
         linesMatch("1", "001") shouldBe true
     }
 
     @Test
-    fun `night line normalization keeps prefix and removes numeric leading zeroes`() {
+    fun `given a night line with leading zeroes, when normalized, then prefix is kept and numeric part is stripped`() {
         normalizeLine("n001") shouldBe "N1"
         linesMatch("N1", "n001") shouldBe true
     }
 
     @Test
-    fun `alarm request validator accepts valid values`() {
+    fun `given valid line stop and minutes, when validated, then no error is returned`() {
         alarmRequestValidator()("1", "62", "10") shouldBe null
     }
 
     @Test
-    fun `alarm request validator rejects blank line`() {
+    fun `given a blank line, when validated, then an error is returned`() {
         alarmRequestValidator()("", "62", "10") shouldBe "Enter a bus line."
     }
 
     @Test
-    fun `alarm request validator rejects non-digit stop`() {
+    fun `given a stop with non-digit characters, when validated, then an error is returned`() {
         alarmRequestValidator()("1", "A62", "10") shouldBe "Stop number must contain only digits."
     }
 
     @Test
-    fun `alarm request validator rejects zero minutes`() {
+    fun `given zero minutes, when validated, then an error is returned`() {
         alarmRequestValidator()("1", "62", "0") shouldBe "Minutes must be a positive number."
     }
 
     @Test
-    fun `alarm request validator rejects negative minutes`() {
+    fun `given negative minutes, when validated, then an error is returned`() {
         alarmRequestValidator()("1", "62", "-5") shouldBe "Minutes must be a positive number."
     }
 
     @Test
-    fun `alarm request validator rejects non-numeric minutes`() {
+    fun `given non-numeric minutes, when validated, then an error is returned`() {
         alarmRequestValidator()("1", "62", "abc") shouldBe "Minutes must be a positive number."
     }
 }

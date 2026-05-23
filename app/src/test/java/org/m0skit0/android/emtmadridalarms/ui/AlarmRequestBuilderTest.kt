@@ -13,42 +13,42 @@ class AlarmRequestValidatorTest {
     private val validator = alarmRequestValidator()
 
     @Test
-    fun `returns null for valid inputs`() {
+    fun `given valid line stop and minutes, when validated, then null is returned`() {
         validator("1", "62", "10") shouldBe null
     }
 
     @Test
-    fun `rejects blank line`() {
+    fun `given a blank line, when validated, then an error is returned`() {
         validator("", "62", "10") shouldBe "Enter a bus line."
     }
 
     @Test
-    fun `rejects blank stop`() {
+    fun `given a blank stop, when validated, then an error is returned`() {
         validator("1", "", "10") shouldBe "Enter a stop number."
     }
 
     @Test
-    fun `rejects stop with non-digit characters`() {
+    fun `given a stop with non-digit characters, when validated, then an error is returned`() {
         validator("1", "A62", "10") shouldBe "Stop number must contain only digits."
     }
 
     @Test
-    fun `rejects zero minutes`() {
+    fun `given zero minutes, when validated, then an error is returned`() {
         validator("1", "62", "0") shouldBe "Minutes must be a positive number."
     }
 
     @Test
-    fun `rejects negative minutes`() {
+    fun `given negative minutes, when validated, then an error is returned`() {
         validator("1", "62", "-1") shouldBe "Minutes must be a positive number."
     }
 
     @Test
-    fun `rejects non-numeric minutes`() {
+    fun `given non-numeric minutes, when validated, then an error is returned`() {
         validator("1", "62", "abc") shouldBe "Minutes must be a positive number."
     }
 
     @Test
-    fun `rejects whitespace-only line`() {
+    fun `given a whitespace-only line, when validated, then an error is returned`() {
         validator("   ", "62", "10") shouldBe "Enter a bus line."
     }
 }
@@ -61,7 +61,7 @@ class AlarmRequestBuilderTest {
     private val stop = BusStop(id = "62", name = "Stop", address = "Street")
 
     @Test
-    fun `returns success with correct request when state is valid`() {
+    fun `given valid line stop and minutes in state, when built, then a success with the correct request is returned`() {
         val state = AlarmState(selectedLine = line, selectedStop = stop, minutesInput = "10")
         builder(state).shouldBeSuccess { request ->
             request shouldBe BusAlarmRequest(line = "1", stopId = "62", targetMinutes = 10)
@@ -69,7 +69,7 @@ class AlarmRequestBuilderTest {
     }
 
     @Test
-    fun `returns failure when no line selected`() {
+    fun `given no selected line in state, when built, then a failure referencing bus line is returned`() {
         val state = AlarmState(selectedLine = null, selectedStop = stop, minutesInput = "10")
         builder(state).shouldBeFailure { error ->
             error.message shouldContain "bus line"
@@ -77,7 +77,7 @@ class AlarmRequestBuilderTest {
     }
 
     @Test
-    fun `returns failure when no stop selected`() {
+    fun `given no selected stop in state, when built, then a failure referencing stop is returned`() {
         val state = AlarmState(selectedLine = line, selectedStop = null, minutesInput = "10")
         builder(state).shouldBeFailure { error ->
             error.message shouldContain "stop"
@@ -85,7 +85,7 @@ class AlarmRequestBuilderTest {
     }
 
     @Test
-    fun `returns failure when minutes is invalid`() {
+    fun `given invalid minutes in state, when built, then a failure referencing positive is returned`() {
         val state = AlarmState(selectedLine = line, selectedStop = stop, minutesInput = "0")
         builder(state).shouldBeFailure { error ->
             error.message shouldContain "positive"
@@ -93,7 +93,7 @@ class AlarmRequestBuilderTest {
     }
 
     @Test
-    fun `delegates field validation to injected validator`() {
+    fun `given a custom validator that always errors, when built, then its error message is propagated`() {
         val alwaysError = AlarmRequestValidator { _, _, _ -> "custom error" }
         val builderWithCustomValidator = alarmRequestBuilder(alwaysError)
         val state = AlarmState(selectedLine = line, selectedStop = stop, minutesInput = "10")

@@ -9,13 +9,17 @@ import io.mockk.mockkStatic
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
+import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival
+import org.m0skit0.android.emtmadridalarms.data.SaveStatus
+import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusArrival
 
 class AlarmPollingMonitorTest {
     private val request = BusAlarmRequest(line = "1", stopId = "62", targetMinutes = 10)
     private val arrivalWithinWindow = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 300, distanceMeters = 0)
-    private val arrivalOutsideWindow = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 900, distanceMeters = 0)
     private val unavailableArrival = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 999999, distanceMeters = 0)
 
     @Before
@@ -28,12 +32,12 @@ class AlarmPollingMonitorTest {
     }
 
     @Test
-    fun `triggers alarm and invokes callback when arrival is within window`() = runTest {
-        val saveActiveAlarm = mockk<org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm>(relaxed = true)
-        val saveStatus = mockk<org.m0skit0.android.emtmadridalarms.data.SaveStatus>(relaxed = true)
-        val saveLatestArrival = mockk<org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival>(relaxed = true)
-        val setRinging = mockk<org.m0skit0.android.emtmadridalarms.data.SetRinging>(relaxed = true)
-        val clearActiveAlarm = mockk<org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm>(relaxed = true)
+    fun `given an arrival within the target window, when polled, then the alarm is triggered and ringing is set`() = runTest {
+        val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
+        val saveStatus = mockk<SaveStatus>(relaxed = true)
+        val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
+        val setRinging = mockk<SetRinging>(relaxed = true)
+        val clearActiveAlarm = mockk<ClearActiveAlarm>(relaxed = true)
         var triggeredWith: BusArrival? = null
 
         val monitor = pollAlarm(
@@ -53,12 +57,12 @@ class AlarmPollingMonitorTest {
     }
 
     @Test
-    fun `saves status message on loadBusArrivals failure`() = runTest {
-        val saveActiveAlarm = mockk<org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm>(relaxed = true)
-        val saveStatus = mockk<org.m0skit0.android.emtmadridalarms.data.SaveStatus>(relaxed = true)
-        val saveLatestArrival = mockk<org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival>(relaxed = true)
-        val setRinging = mockk<org.m0skit0.android.emtmadridalarms.data.SetRinging>(relaxed = true)
-        val clearActiveAlarm = mockk<org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm>(relaxed = true)
+    fun `given loadBusArrivals throws on the first call, when polled, then the error status is saved`() = runTest {
+        val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
+        val saveStatus = mockk<SaveStatus>(relaxed = true)
+        val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
+        val setRinging = mockk<SetRinging>(relaxed = true)
+        val clearActiveAlarm = mockk<ClearActiveAlarm>(relaxed = true)
         var callCount = 0
 
         val monitor = pollAlarm(
@@ -80,12 +84,12 @@ class AlarmPollingMonitorTest {
     }
 
     @Test
-    fun `skips sentinel arrival and does not trigger`() = runTest {
-        val saveActiveAlarm = mockk<org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm>(relaxed = true)
-        val saveStatus = mockk<org.m0skit0.android.emtmadridalarms.data.SaveStatus>(relaxed = true)
-        val saveLatestArrival = mockk<org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival>(relaxed = true)
-        val setRinging = mockk<org.m0skit0.android.emtmadridalarms.data.SetRinging>(relaxed = true)
-        val clearActiveAlarm = mockk<org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm>(relaxed = true)
+    fun `given a sentinel arrival on the first poll, when polled again, then the arrival is skipped and alarm triggers on second poll`() = runTest {
+        val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
+        val saveStatus = mockk<SaveStatus>(relaxed = true)
+        val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
+        val setRinging = mockk<SetRinging>(relaxed = true)
+        val clearActiveAlarm = mockk<ClearActiveAlarm>(relaxed = true)
         var callCount = 0
         var triggered = false
 
@@ -109,12 +113,12 @@ class AlarmPollingMonitorTest {
     }
 
     @Test
-    fun `saves active alarm on start`() = runTest {
-        val saveActiveAlarm = mockk<org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm>(relaxed = true)
-        val saveStatus = mockk<org.m0skit0.android.emtmadridalarms.data.SaveStatus>(relaxed = true)
-        val saveLatestArrival = mockk<org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival>(relaxed = true)
-        val setRinging = mockk<org.m0skit0.android.emtmadridalarms.data.SetRinging>(relaxed = true)
-        val clearActiveAlarm = mockk<org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm>(relaxed = true)
+    fun `given a valid request, when polling starts, then the active alarm is persisted immediately`() = runTest {
+        val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
+        val saveStatus = mockk<SaveStatus>(relaxed = true)
+        val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
+        val setRinging = mockk<SetRinging>(relaxed = true)
+        val clearActiveAlarm = mockk<ClearActiveAlarm>(relaxed = true)
 
         val monitor = pollAlarm(
             loadBusArrivals = { listOf(arrivalWithinWindow) },

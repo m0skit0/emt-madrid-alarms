@@ -1,17 +1,15 @@
 package org.m0skit0.android.emtmadridalarms.data
 
-import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.PersistedAlarmState
-
-private val Context.alarmDataStore by preferencesDataStore(name = "bus_alarm")
 
 private object Keys {
     val LINE = stringPreferencesKey("line")
@@ -38,8 +36,8 @@ fun interface SaveLatestArrival : suspend (Int?, String) -> Unit
 fun interface SaveStatus : suspend (String) -> Unit
 fun interface SetRinging : suspend (Boolean) -> Unit
 
-internal fun alarmStateReader(context: Context): AlarmStateReader = AlarmStateReader {
-    context.alarmDataStore.data.map { preferences ->
+internal fun alarmStateReader(dataStore: DataStore<Preferences>): AlarmStateReader = AlarmStateReader {
+    dataStore.data.map { preferences ->
         val line = preferences[Keys.LINE].orEmpty()
         val stopId = preferences[Keys.STOP_ID].orEmpty()
         val targetMinutes = preferences[Keys.TARGET_MINUTES] ?: 0
@@ -57,8 +55,8 @@ internal fun alarmStateReader(context: Context): AlarmStateReader = AlarmStateRe
     }
 }
 
-internal fun saveActiveAlarm(context: Context): SaveActiveAlarm = SaveActiveAlarm { request ->
-    context.alarmDataStore.edit { preferences ->
+internal fun saveActiveAlarm(dataStore: DataStore<Preferences>): SaveActiveAlarm = SaveActiveAlarm { request ->
+    dataStore.edit { preferences ->
         preferences[Keys.LINE] = request.line
         preferences[Keys.STOP_ID] = request.stopId
         preferences[Keys.TARGET_MINUTES] = request.targetMinutes
@@ -69,8 +67,8 @@ internal fun saveActiveAlarm(context: Context): SaveActiveAlarm = SaveActiveAlar
     }
 }
 
-internal fun clearActiveAlarm(context: Context): ClearActiveAlarm = ClearActiveAlarm {
-    context.alarmDataStore.edit { preferences ->
+internal fun clearActiveAlarm(dataStore: DataStore<Preferences>): ClearActiveAlarm = ClearActiveAlarm {
+    dataStore.edit { preferences ->
         preferences.remove(Keys.LINE)
         preferences.remove(Keys.STOP_ID)
         preferences.remove(Keys.TARGET_MINUTES)
@@ -80,9 +78,9 @@ internal fun clearActiveAlarm(context: Context): ClearActiveAlarm = ClearActiveA
     }
 }
 
-internal fun saveLatestArrival(context: Context): SaveLatestArrival =
+internal fun saveLatestArrival(dataStore: DataStore<Preferences>): SaveLatestArrival =
     SaveLatestArrival { etaSeconds, destination ->
-        context.alarmDataStore.edit { preferences ->
+        dataStore.edit { preferences ->
             if (etaSeconds == null) {
                 preferences.remove(Keys.LATEST_ETA_SECONDS)
             } else {
@@ -94,14 +92,14 @@ internal fun saveLatestArrival(context: Context): SaveLatestArrival =
         }
     }
 
-internal fun saveStatus(context: Context): SaveStatus = SaveStatus { message ->
-    context.alarmDataStore.edit { preferences ->
+internal fun saveStatus(dataStore: DataStore<Preferences>): SaveStatus = SaveStatus { message ->
+    dataStore.edit { preferences ->
         preferences[Keys.STATUS_MESSAGE] = message
     }
 }
 
-internal fun setRinging(context: Context): SetRinging = SetRinging { isRinging ->
-    context.alarmDataStore.edit { preferences ->
+internal fun setRinging(dataStore: DataStore<Preferences>): SetRinging = SetRinging { isRinging ->
+    dataStore.edit { preferences ->
         preferences[Keys.IS_RINGING] = isRinging
     }
 }

@@ -4,6 +4,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("jacoco")
 }
 
 val localProperties = Properties().apply {
@@ -56,6 +57,60 @@ android {
         compose = true
     }
 
+    buildTypes {
+        debug {
+            enableUnitTestCoverage = true
+        }
+    }
+}
+
+tasks.register<JacocoReport>("jacocoUnitTestReport") {
+    dependsOn("testDebugUnitTest")
+
+    reports {
+        xml.required.set(false)
+        html.required.set(true)
+    }
+
+    val fileFilter = listOf(
+        "**/R.class", "**/R$*.class", "**/BuildConfig.*", "**/Manifest*.*",
+        "**/*Test*.*", "android/**/*.*",
+        // Compose UI screens and theme
+        "**/ui/*Screen*.*", "**/ui/*Theme*.*", "**/ui/AppChrome*.*", "**/ui/ScreenLayout*.*",
+        "**/ui/EmtMadridAlarmsApp*.*", "**/ui/SelectionScreens*.*",
+        "**/ui/Routes*.*", "**/ui/AlarmMvi*.*", "**/ui/AlarmStatusScreens*.*",
+        "**/ui/ComposableSingletons*.*",
+        // Android framework entry points
+        "**/ui/MainActivity*.*", "**/BusAlarmApplication*.*", "**/MainActivity*.*",
+        // DI wiring
+        "**/di/**/*.*",
+        // Service layer — requires Android device (Service, Vibrator, Ringtone, NotificationManager)
+        "**/service/AlarmMonitorService*.*",
+        "**/service/AlarmMonitorController*.*",
+        "**/service/AlarmSignalPlayer*.*",
+        "**/service/AlarmNotificationFactory*.*",
+        "**/service/AlarmServiceIntents*.*",
+        "**/service/AlarmServiceCommands*.*",
+        // Network + serialisation DTOs — integration-level, no unit test surface
+        "**/data/EmtApi*.*",
+        "**/data/EmtApiModels*.*",
+        "**/data/EmtArrivalService*.*",
+        "**/data/EmtLineService*.*",
+        "**/data/EmtStopService*.*",
+        "**/data/EmtDateProvider*.*",
+        "**/data/EmtResponseValidator*.*",
+        "**/data/ApiLoggingInterceptor*.*",
+        // AlarmController — sends Android Intents, not unit-testable
+        "**/ui/AlarmController*.*",
+    )
+    val debugTree = fileTree("${layout.buildDirectory.get()}/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes") {
+        exclude(fileFilter)
+    }
+    classDirectories.setFrom(debugTree)
+    sourceDirectories.setFrom(files("src/main/java"))
+    executionData.setFrom(fileTree(layout.buildDirectory.get()) {
+        include("outputs/unit_test_code_coverage/debugUnitTest/testDebugUnitTest.exec")
+    })
 }
 
 kotlin {
