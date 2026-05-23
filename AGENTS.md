@@ -88,7 +88,7 @@ internal fun arrivalsFor(
 - `fun interface` must extend a lambda type (e.g. `suspend () -> String`, `(BusLine) -> List<BusStop>`). Never use `operator fun invoke`.
 - Factory functions are `internal`. The `fun interface` itself is `public` (it is the contract).
 - Factory functions must return the `fun interface` type directly — no separate function that returns the raw result type and a wrapper that delegates to it.
-- No `Impl` suffix on any function or type name.
+- No `Impl` or `Fn` suffix on any function or type name. Give functions a descriptive enough name that no disambiguating suffix is needed.
 - Context-capturing factories (those that partially apply `Context` or similar) are legitimate — they are not pure pass-throughs.
 
 ### Android framework subclasses
