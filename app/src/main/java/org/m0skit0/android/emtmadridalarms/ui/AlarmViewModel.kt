@@ -13,6 +13,7 @@ import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
 import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
+import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusLinesUseCase
@@ -34,9 +35,12 @@ class AlarmViewModel(
 
     private val loadLines: LineLoader = lineLoader(loadBusLines, _state, viewModelScope)
     private val loadStops: StopLoader = stopLoader(loadBusStops, _state, viewModelScope)
-    private val startAlarm: AlarmStarter = alarmStarter(appContext, saveActiveAlarm, _state, viewModelScope)
-    private val cancelAlarm: AlarmCanceller = alarmCanceller(appContext, clearActiveAlarm, setRinging, _state, viewModelScope)
-    private val stopRinging: RingingStop = ringingStop(appContext, clearActiveAlarm, setRinging, _state, viewModelScope)
+    private val startAlarm: AlarmStarter =
+        alarmStarter(appContext, saveActiveAlarm, _state, viewModelScope)
+    private val cancelAlarm: AlarmCanceller =
+        alarmCanceller(appContext, clearActiveAlarm, setRinging, _state, viewModelScope)
+    private val stopRinging: RingingStop =
+        ringingStop(appContext, clearActiveAlarm, setRinging, _state, viewModelScope)
 
     init {
         loadLines()
@@ -59,9 +63,23 @@ class AlarmViewModel(
         when (intent) {
             is AlarmIntent.LineChanged -> onLineChanged(intent.value)
             is AlarmIntent.LineSelected -> onLineSelected(intent.value)
-            is AlarmIntent.StopChanged -> _state.update { it.copy(stopInput = intent.value, selectedStop = null, errorMessage = null) }
+            is AlarmIntent.StopChanged -> _state.update {
+                it.copy(
+                    stopInput = intent.value,
+                    selectedStop = null,
+                    errorMessage = null
+                )
+            }
+
             is AlarmIntent.StopSelected -> onStopSelected(intent.value)
-            is AlarmIntent.MinutesChanged -> _state.update { it.copy(minutesInput = intent.value.filter(Char::isDigit), errorMessage = null) }
+            is AlarmIntent.MinutesChanged -> _state.update {
+                it.copy(
+                    minutesInput = intent.value.filter(
+                        Char::isDigit
+                    ), errorMessage = null
+                )
+            }
+
             AlarmIntent.RefreshLinesClicked -> loadLines()
             AlarmIntent.StartClicked -> onStartClicked()
             AlarmIntent.CancelClicked -> cancelAlarm()
@@ -72,35 +90,55 @@ class AlarmViewModel(
 
     private fun onLineChanged(value: String) {
         _state.update {
-            it.copy(lineInput = value, stopInput = "", selectedLine = null, selectedStop = null, stops = emptyList(), errorMessage = null)
+            it.copy(
+                lineInput = value,
+                stopInput = "",
+                selectedLine = null,
+                selectedStop = null,
+                stops = emptyList(),
+                errorMessage = null
+            )
         }
     }
 
     private fun onLineSelected(line: BusLine) {
         Log.d(TAG, "Line selected label=${line.label}")
         _state.update {
-            it.copy(selectedLine = line, lineInput = line.displayName, selectedStop = null, stopInput = "", stops = emptyList(), isLoadingStops = true, errorMessage = null)
+            it.copy(
+                selectedLine = line,
+                lineInput = line.displayName,
+                selectedStop = null,
+                stopInput = "",
+                stops = emptyList(),
+                isLoadingStops = true,
+                errorMessage = null
+            )
         }
         loadStops(line)
     }
 
     private fun onStopSelected(stop: BusStop) {
         Log.d(TAG, "Stop selected id=${stop.id} name=${stop.name}")
-        _state.update { it.copy(selectedStop = stop, stopInput = stop.displayName, errorMessage = null) }
+        _state.update {
+            it.copy(
+                selectedStop = stop,
+                stopInput = stop.displayName,
+                errorMessage = null
+            )
+        }
     }
 
     private fun onStartClicked() {
-        val (request, error) = buildAlarmRequest(_state.value)
-        if (error != null) {
-            Log.w(TAG, "Cannot start alarm: $error")
-            _state.update { it.copy(errorMessage = error) }
-            return
-        }
-        startAlarm(checkNotNull(request))
+        buildAlarmRequest(_state.value)
+            .onSuccess { startAlarm(it) }
+            .onFailure { error ->
+                Log.w(TAG, "Cannot start alarm: ${error.message}")
+                _state.update { it.copy(errorMessage = error.message) }
+            }
     }
 }
 
-private fun buildAlarmRequest(current: AlarmState): Pair<org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest?, String?> {
+private fun buildAlarmRequest(current: AlarmState): Result<BusAlarmRequest> {
     val line = current.selectedLine
     val stop = current.selectedStop
     val error = when {
@@ -108,14 +146,13 @@ private fun buildAlarmRequest(current: AlarmState): Pair<org.m0skit0.android.emt
         stop == null -> "Select a stop for the selected line."
         else -> validateAlarmRequest(line.label, stop.id, current.minutesInput)
     }
-    if (error != null) return Pair(null, error)
-    return Pair(
-        org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest(
+    if (error != null) return Result.failure(IllegalArgumentException(error))
+    return Result.success(
+        BusAlarmRequest(
             line = line!!.label,
             stopId = stop!!.id,
             targetMinutes = current.minutesInput.toInt(),
-        ),
-        null,
+        )
     )
 }
 
