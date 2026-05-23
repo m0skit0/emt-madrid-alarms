@@ -118,6 +118,12 @@ internal fun arrivalsFor(
 - `AlarmState` — immutable `data class`, all fields `val`.
 - `AlarmIntent` — `sealed interface` with `data class` / `data object` variants.
 - `AlarmViewModel.dispatch(intent)` is the single entry point for all UI events.
+- `AlarmViewModel` is a thin dispatcher. Logic is extracted into injected collaborators, each a `fun interface` + factory:
+  - `LineLoader` (`lineLoader`) — loads all available bus lines; owns loading/error state updates.
+  - `StopLoader` (`stopLoader`) — loads stops for a selected line; owns loading/error state updates.
+  - `AlarmStarter` (`alarmStarter`), `AlarmCanceller` (`alarmCanceller`), `RingingStop` (`ringingStop`) — alarm lifecycle operations.
+- Collaborator factories accept `MutableStateFlow<AlarmState>` and `CoroutineScope` so they can update state and launch coroutines without any Android dependency of their own.
+- `AlarmViewModel` instantiates collaborators in its body (not constructor) using `viewModelScope`, keeping the constructor free of scope/state references.
 
 ### Naming
 
