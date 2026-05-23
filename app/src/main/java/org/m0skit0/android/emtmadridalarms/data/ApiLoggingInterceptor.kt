@@ -26,7 +26,10 @@ class ApiLoggingInterceptor : Interceptor {
             response
         } catch (error: IOException) {
             val elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000
-            Log.w(Tag, "<-- ${request.method} $safeUrl FAILED (${elapsedMillis}ms): ${error.message}")
+            Log.w(
+                Tag,
+                "<-- ${request.method} $safeUrl FAILED (${elapsedMillis}ms): ${error.message}"
+            )
             throw error
         }
     }

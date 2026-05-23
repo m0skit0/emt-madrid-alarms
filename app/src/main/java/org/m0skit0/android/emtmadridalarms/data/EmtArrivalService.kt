@@ -15,7 +15,10 @@ internal fun arrivalsFor(
     validator: EmtResponseValidator,
 ): ArrivalsProvider = ArrivalsProvider { request ->
     val dateRef = dateProvider()
-    Log.d(TAG, "Loading arrivals line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes} dateRef=$dateRef")
+    Log.d(
+        TAG,
+        "Loading arrivals line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes} dateRef=$dateRef"
+    )
     val response = api.arrivals(
         accessToken = authTokenProvider(),
         stopId = request.stopId,
@@ -39,7 +42,11 @@ internal fun arrivalsFor(
         .sortedBy { it.estimateSeconds }
     Log.d(
         TAG,
-        "Loaded arrivals raw=${rawArrivals.size} matching=${arrivals.size} estimates=${arrivals.take(4).joinToString { "${it.line}:${it.estimateSeconds}s" }}",
+        "Loaded arrivals raw=${rawArrivals.size} matching=${arrivals.size} estimates=${
+            arrivals.take(4).joinToString {
+                "${it.line}:${it.estimateSeconds}s"
+            }
+        }",
     )
     arrivals
 }

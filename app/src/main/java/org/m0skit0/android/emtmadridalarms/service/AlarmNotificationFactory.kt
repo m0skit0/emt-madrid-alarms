@@ -12,7 +12,8 @@ import androidx.core.app.NotificationCompat
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.ui.MainActivity
 
-fun interface MonitoringNotificationProvider : (BusAlarmRequest, String, PendingIntent) -> Notification
+fun interface MonitoringNotificationProvider :
+        (BusAlarmRequest, String, PendingIntent) -> Notification
 
 fun interface RingingNotificationProvider : (BusAlarmRequest, PendingIntent) -> Notification
 
@@ -51,10 +52,18 @@ internal fun ensureNotificationChannels(context: Context): NotificationChannelsE
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return@NotificationChannelsEnsurer
         val manager = context.getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(
-            NotificationChannel(CHANNEL_MONITORING, "Bus alarm monitoring", NotificationManager.IMPORTANCE_LOW),
+            NotificationChannel(
+                CHANNEL_MONITORING,
+                "Bus alarm monitoring",
+                NotificationManager.IMPORTANCE_LOW
+            ),
         )
         manager.createNotificationChannel(
-            NotificationChannel(CHANNEL_ALARM, "Bus alarms", NotificationManager.IMPORTANCE_HIGH).apply {
+            NotificationChannel(
+                CHANNEL_ALARM,
+                "Bus alarms",
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
                 description = "Rings when a monitored bus reaches the configured arrival time."
                 enableVibration(true)
             },
@@ -69,4 +78,9 @@ private fun baseNotification(context: Context, channelId: String): NotificationC
         .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
 
 private fun activityPendingIntent(context: Context): PendingIntent =
-    PendingIntent.getActivity(context, 1, Intent(context, MainActivity::class.java), PendingIntent.FLAG_IMMUTABLE)
+    PendingIntent.getActivity(
+        context,
+        1,
+        Intent(context, MainActivity::class.java),
+        PendingIntent.FLAG_IMMUTABLE
+    )

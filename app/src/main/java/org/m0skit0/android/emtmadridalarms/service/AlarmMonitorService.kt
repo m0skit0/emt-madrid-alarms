@@ -41,11 +41,20 @@ class AlarmMonitorService : Service() {
 
         stopSignal = stopSignal(signalPlayer)
         cancelJob = cancelJob(globalState)
-        stopRingingAndSelf = stopRingingAndSelf(this, scope, setRinging, clearActiveAlarm, signalPlayer)
-        cancelMonitoring = cancelMonitoring(this, scope, clearActiveAlarm, setRinging, signalPlayer, globalState)
+        stopRingingAndSelf =
+            stopRingingAndSelf(this, scope, setRinging, clearActiveAlarm, signalPlayer)
+        cancelMonitoring =
+            cancelMonitoring(this, scope, clearActiveAlarm, setRinging, signalPlayer, globalState)
 
         startRinging = startRinging(this, ringingNotification, signalPlayer)
-        startMonitoring = startMonitoring(this, scope, pollingMonitor, monitoringNotification, startRinging, globalState)
+        startMonitoring = startMonitoring(
+            this,
+            scope,
+            pollingMonitor,
+            monitoringNotification,
+            startRinging,
+            globalState
+        )
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

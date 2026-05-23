@@ -63,10 +63,25 @@ class AlarmViewModel(
                     errorMessage = null,
                 )
             }
+
             is AlarmIntent.LineSelected -> selectLine(intent.value)
-            is AlarmIntent.StopChanged -> _state.update { it.copy(stopInput = intent.value, selectedStop = null, errorMessage = null) }
+            is AlarmIntent.StopChanged -> _state.update {
+                it.copy(
+                    stopInput = intent.value,
+                    selectedStop = null,
+                    errorMessage = null
+                )
+            }
+
             is AlarmIntent.StopSelected -> selectStop(intent.value)
-            is AlarmIntent.MinutesChanged -> _state.update { it.copy(minutesInput = intent.value.filter(Char::isDigit), errorMessage = null) }
+            is AlarmIntent.MinutesChanged -> _state.update {
+                it.copy(
+                    minutesInput = intent.value.filter(
+                        Char::isDigit
+                    ), errorMessage = null
+                )
+            }
+
             AlarmIntent.RefreshLinesClicked -> loadLines()
             AlarmIntent.StartClicked -> startAlarm()
             AlarmIntent.CancelClicked -> cancelAlarm()
@@ -116,11 +131,16 @@ class AlarmViewModel(
                     _state.update { it.copy(stops = stops, isLoadingStops = false) }
                 }
                 .onFailure { error ->
-                    Log.e(TAG, "Failed to load stops for line=${line.label}: ${error.message}", error)
+                    Log.e(
+                        TAG,
+                        "Failed to load stops for line=${line.label}: ${error.message}",
+                        error
+                    )
                     _state.update {
                         it.copy(
                             isLoadingStops = false,
-                            errorMessage = error.message ?: "Could not load stops for line ${line.label}.",
+                            errorMessage = error.message
+                                ?: "Could not load stops for line ${line.label}.",
                         )
                     }
                 }
@@ -156,7 +176,10 @@ class AlarmViewModel(
         )
 
         viewModelScope.launch {
-            Log.d(TAG, "Starting alarm request line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
+            Log.d(
+                TAG,
+                "Starting alarm request line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}"
+            )
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             saveActiveAlarm(request)
             startAlarmService(appContext, request)
@@ -171,7 +194,14 @@ class AlarmViewModel(
             cancelAlarmService(appContext)
             clearActiveAlarm()
             setRinging(false)
-            _state.update { it.copy(activeAlarm = null, latestEtaSeconds = null, latestDestination = "", statusMessage = "") }
+            _state.update {
+                it.copy(
+                    activeAlarm = null,
+                    latestEtaSeconds = null,
+                    latestDestination = "",
+                    statusMessage = ""
+                )
+            }
         }
     }
 

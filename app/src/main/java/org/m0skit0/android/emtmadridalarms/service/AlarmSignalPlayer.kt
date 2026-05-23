@@ -16,7 +16,10 @@ class AlarmSignalPlayer(private val context: Context) {
     private var vibrator: Vibrator? = null
 
     fun start(request: BusAlarmRequest) {
-        Log.i(TAG, "Starting ringing line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
+        Log.i(
+            TAG,
+            "Starting ringing line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}"
+        )
         val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             ?: Uri.EMPTY

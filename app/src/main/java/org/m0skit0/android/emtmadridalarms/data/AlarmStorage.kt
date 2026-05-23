@@ -80,17 +80,19 @@ internal fun clearActiveAlarm(context: Context): ClearActiveAlarm = ClearActiveA
     }
 }
 
-internal fun saveLatestArrival(context: Context): SaveLatestArrival = SaveLatestArrival { etaSeconds, destination ->
-    context.alarmDataStore.edit { preferences ->
-        if (etaSeconds == null) {
-            preferences.remove(Keys.LATEST_ETA_SECONDS)
-        } else {
-            preferences[Keys.LATEST_ETA_SECONDS] = etaSeconds
+internal fun saveLatestArrival(context: Context): SaveLatestArrival =
+    SaveLatestArrival { etaSeconds, destination ->
+        context.alarmDataStore.edit { preferences ->
+            if (etaSeconds == null) {
+                preferences.remove(Keys.LATEST_ETA_SECONDS)
+            } else {
+                preferences[Keys.LATEST_ETA_SECONDS] = etaSeconds
+            }
+            preferences[Keys.LATEST_DESTINATION] = destination
+            preferences[Keys.STATUS_MESSAGE] =
+                if (etaSeconds == null) "No matching arrivals right now." else "Last updated just now."
         }
-        preferences[Keys.LATEST_DESTINATION] = destination
-        preferences[Keys.STATUS_MESSAGE] = if (etaSeconds == null) "No matching arrivals right now." else "Last updated just now."
     }
-}
 
 internal fun saveStatus(context: Context): SaveStatus = SaveStatus { message ->
     context.alarmDataStore.edit { preferences ->

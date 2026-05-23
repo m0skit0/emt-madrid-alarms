@@ -40,7 +40,10 @@ internal fun MonitoringScreen(state: AlarmState, dispatch: (AlarmIntent) -> Unit
                 val eta = state.latestEtaSeconds
                 Text(if (eta == null) "Waiting for a matching arrival..." else "${eta / 60} min ${eta % 60} sec")
                 if (state.latestDestination.isNotBlank()) Text("Destination: ${state.latestDestination}")
-                if (state.statusMessage.isNotBlank()) Text(state.statusMessage, style = MaterialTheme.typography.bodySmall)
+                if (state.statusMessage.isNotBlank()) Text(
+                    state.statusMessage,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
         OutlinedButton(

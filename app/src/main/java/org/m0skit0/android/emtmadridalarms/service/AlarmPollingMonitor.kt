@@ -10,11 +10,12 @@ import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusArrival
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusArrivalsUseCase
+import kotlin.time.Duration.Companion.seconds
 
 fun interface AlarmPollingMonitor : suspend (BusAlarmRequest, suspend (BusArrival) -> Unit) -> Unit
 
 private const val TAG = "BusAlarm"
-private const val POLL_INTERVAL_MS = 30_000L
+private val POLL_INTERVAL = 30.seconds
 
 internal fun pollAlarm(
     loadBusArrivals: LoadBusArrivalsUseCase,
@@ -29,15 +30,23 @@ internal fun pollAlarm(
     while (true) {
         pollNumber++
         val triggered = try {
-            processPoll(pollNumber, request, loadBusArrivals, saveStatus, saveLatestArrival, setRinging, clearActiveAlarm, onTriggered)
+            processPoll(
+                pollNumber,
+                request,
+                loadBusArrivals,
+                saveLatestArrival,
+                setRinging,
+                clearActiveAlarm,
+                onTriggered
+            )
         } catch (error: Exception) {
             Log.e(TAG, "Poll #$pollNumber failed: ${error.message}", error)
             saveStatus(error.message ?: "Could not refresh EMT arrivals.")
             false
         }
         if (triggered) break
-        Log.d(TAG, "Poll #$pollNumber complete; waiting ${POLL_INTERVAL_MS}ms")
-        delay(POLL_INTERVAL_MS)
+        Log.d(TAG, "Poll #$pollNumber complete; waiting $POLL_INTERVAL")
+        delay(POLL_INTERVAL.inWholeMilliseconds)
     }
 }
 
@@ -45,7 +54,6 @@ private suspend fun processPoll(
     pollNumber: Int,
     request: BusAlarmRequest,
     loadBusArrivals: LoadBusArrivalsUseCase,
-    saveStatus: SaveStatus,
     saveLatestArrival: SaveLatestArrival,
     setRinging: SetRinging,
     clearActiveAlarm: ClearActiveAlarm,
@@ -54,20 +62,31 @@ private suspend fun processPoll(
     Log.d(TAG, "Poll #$pollNumber: requesting arrivals line=${request.line} stop=${request.stopId}")
     val arrivals = loadBusArrivals(request)
     val nextArrival = arrivals.firstOrNull { it.estimateSeconds != 999999 }
-    Log.d(TAG, "Poll #$pollNumber: arrivals=${arrivals.size}, next=${nextArrival?.estimateSeconds ?: "none"}s destination=${nextArrival?.destination.orEmpty()}")
+    Log.d(
+        TAG,
+        "Poll #$pollNumber: arrivals=${arrivals.size}, next=${nextArrival?.estimateSeconds ?: "none"}s destination=${nextArrival?.destination.orEmpty()}"
+    )
     saveLatestArrival(
         nextArrival?.estimateSeconds,
         nextArrival?.destination.orEmpty(),
     )
-    val shouldTrigger = nextArrival?.let { shouldTriggerAlarm(it.estimateSeconds, request.targetMinutes) } == true
-    Log.d(TAG, "Poll #$pollNumber: shouldTrigger=$shouldTrigger targetSeconds=${request.targetMinutes * 60}")
-    if (shouldTrigger) {
-        checkNotNull(nextArrival)
-        triggerAlarm(request, nextArrival, setRinging, clearActiveAlarm, saveLatestArrival, onTriggered)
-        return true
-    } else {
-        return false
-    }
+    val shouldTrigger =
+        nextArrival?.let { shouldTriggerAlarm(it.estimateSeconds, request.targetMinutes) } == true
+    Log.d(
+        TAG,
+        "Poll #$pollNumber: shouldTrigger=$shouldTrigger targetSeconds=${request.targetMinutes * 60}"
+    )
+    if (!shouldTrigger) return false
+    checkNotNull(nextArrival)
+    triggerAlarm(
+        request,
+        nextArrival,
+        setRinging,
+        clearActiveAlarm,
+        saveLatestArrival,
+        onTriggered
+    )
+    return true
 }
 
 private suspend fun triggerAlarm(
@@ -78,7 +97,10 @@ private suspend fun triggerAlarm(
     saveLatestArrival: SaveLatestArrival,
     onTriggered: suspend (BusArrival) -> Unit,
 ) {
-    Log.i(TAG, "Triggering alarm line=${request.line} stop=${request.stopId} etaSeconds=${arrival.estimateSeconds}")
+    Log.i(
+        TAG,
+        "Triggering alarm line=${request.line} stop=${request.stopId} etaSeconds=${arrival.estimateSeconds}"
+    )
     setRinging(true)
     clearActiveAlarm()
     saveLatestArrival(arrival.estimateSeconds, arrival.destination)

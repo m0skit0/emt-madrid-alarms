@@ -26,7 +26,13 @@ internal fun linesForToday(
             BusLine(id = id, label = label, nameA = dto.nameA, nameB = dto.nameB)
         }
         .distinctBy { normalizeLine(it.label) }
-        .sortedWith(compareBy<BusLine> { !it.label.all(Char::isDigit) }.thenBy { it.label.toIntOrNull() ?: Int.MAX_VALUE }.thenBy { it.label })
+        .sortedWith(busLineComparator())
     Log.d(TAG, "Loaded EMT lines raw=${response.data.size} mapped=${lines.size}")
     lines
 }
+
+private fun busLineComparator(): Comparator<BusLine> = compareBy<BusLine> {
+    !it.label.all(Char::isDigit)
+}.thenBy {
+    it.label.toIntOrNull() ?: Int.MAX_VALUE
+}.thenBy { it.label }

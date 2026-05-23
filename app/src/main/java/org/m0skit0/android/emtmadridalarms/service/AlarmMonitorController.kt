@@ -5,6 +5,7 @@ import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
@@ -42,11 +43,18 @@ internal fun startMonitoring(
         service.stopSelf()
         return@StartMonitoring
     }
-    Log.d(TAG, "Starting monitoring line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
+    Log.d(
+        TAG,
+        "Starting monitoring line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}"
+    )
     globalState.state.alarmMonitor.monitorJob?.cancel()
     service.startForeground(
         NOTIFICATION_ID,
-        monitoringNotification(request, "Waiting for EMT arrivals...", service.servicePendingIntent(ACTION_CANCEL, 2)),
+        monitoringNotification(
+            request,
+            "Waiting for EMT arrivals...",
+            service.servicePendingIntent(ACTION_CANCEL, 2)
+        ),
     )
     Log.d(TAG, "Foreground monitoring notification started")
     globalState.update { appState ->
@@ -54,7 +62,7 @@ internal fun startMonitoring(
             alarmMonitor = appState.alarmMonitor.copy(
                 monitorJob = scope.launch {
                     pollingMonitor(request) {
-                        withContext(Dispatchers.Main) { startRinging(request) }
+                        Dispatchers.Main { startRinging(request) }
                     }
                 }
             )
@@ -89,7 +97,10 @@ internal fun startRinging(
     ringingNotification: RingingNotificationProvider,
     signalPlayer: AlarmSignalPlayer
 ): StartRinging = StartRinging { request ->
-    service.startForeground(NOTIFICATION_ID, ringingNotification(request, service.servicePendingIntent(ACTION_STOP_RINGING, 3)))
+    service.startForeground(
+        NOTIFICATION_ID,
+        ringingNotification(request, service.servicePendingIntent(ACTION_STOP_RINGING, 3))
+    )
     signalPlayer.start(request)
 }
 
