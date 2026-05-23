@@ -22,16 +22,16 @@ import org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival
 import org.m0skit0.android.emtmadridalarms.data.SaveStatus
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.data.StopsProvider
-import org.m0skit0.android.emtmadridalarms.data.alarmStateReaderImpl
+import org.m0skit0.android.emtmadridalarms.data.alarmStateReader
 import org.m0skit0.android.emtmadridalarms.data.arrivalsFor
-import org.m0skit0.android.emtmadridalarms.data.clearActiveAlarmImpl
+import org.m0skit0.android.emtmadridalarms.data.clearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.linesForToday
 import org.m0skit0.android.emtmadridalarms.data.provideToken
 import org.m0skit0.android.emtmadridalarms.data.requireEmtSuccess
-import org.m0skit0.android.emtmadridalarms.data.saveActiveAlarmImpl
-import org.m0skit0.android.emtmadridalarms.data.saveLatestArrivalImpl
-import org.m0skit0.android.emtmadridalarms.data.saveStatusImpl
-import org.m0skit0.android.emtmadridalarms.data.setRingingImpl
+import org.m0skit0.android.emtmadridalarms.data.saveActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.saveLatestArrival
+import org.m0skit0.android.emtmadridalarms.data.saveStatus
+import org.m0skit0.android.emtmadridalarms.data.setRinging
 import org.m0skit0.android.emtmadridalarms.data.stopsForLine
 import org.m0skit0.android.emtmadridalarms.data.todayDateRef
 import retrofit2.Retrofit
@@ -93,10 +93,10 @@ val dataModule = module {
             )
         }
     }
-    single<AlarmStateReader> { alarmStateReaderImpl(androidContext()) }
-    single<SaveActiveAlarm> { saveActiveAlarmImpl(androidContext()) }
-    single<ClearActiveAlarm> { clearActiveAlarmImpl(androidContext()) }
-    single<SaveLatestArrival> { saveLatestArrivalImpl(androidContext()) }
-    single<SaveStatus> { saveStatusImpl(androidContext()) }
-    single<SetRinging> { setRingingImpl(androidContext()) }
+    single<AlarmStateReader> { alarmStateReader(androidContext()) }
+    single<SaveActiveAlarm> { saveActiveAlarm(androidContext()) }
+    single<ClearActiveAlarm> { clearActiveAlarm(androidContext()) }
+    single<SaveLatestArrival> { saveLatestArrival(androidContext()) }
+    single<SaveStatus> { saveStatus(androidContext()) }
+    single<SetRinging> { setRinging(androidContext()) }
 }

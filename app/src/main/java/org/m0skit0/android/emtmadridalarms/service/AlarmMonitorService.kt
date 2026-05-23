@@ -50,13 +50,13 @@ class AlarmMonitorService : Service() {
             pollAlarm(request, onTriggered, loadBusArrivals, saveActiveAlarm, saveStatus, saveLatestArrival, setRinging, clearActiveAlarm)
         }
 
-        stopSignal = stopSignalImpl(signalPlayer)
-        cancelJob = cancelJobImpl(globalState)
-        stopRingingAndSelf = stopRingingAndSelfImpl(this, scope, setRinging, clearActiveAlarm, signalPlayer)
-        cancelMonitoring = cancelMonitoringImpl(this, scope, clearActiveAlarm, setRinging, signalPlayer, globalState)
+        stopSignal = stopSignal(signalPlayer)
+        cancelJob = cancelJob(globalState)
+        stopRingingAndSelf = stopRingingAndSelf(this, scope, setRinging, clearActiveAlarm, signalPlayer)
+        cancelMonitoring = cancelMonitoring(this, scope, clearActiveAlarm, setRinging, signalPlayer, globalState)
 
-        startRinging = startRingingImpl(this, ringingNotification, signalPlayer)
-        startMonitoring = startMonitoringImpl(this, scope, pollingMonitor, monitoringNotification, startRinging, globalState)
+        startRinging = startRinging(this, ringingNotification, signalPlayer)
+        startMonitoring = startMonitoring(this, scope, pollingMonitor, monitoringNotification, startRinging, globalState)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {

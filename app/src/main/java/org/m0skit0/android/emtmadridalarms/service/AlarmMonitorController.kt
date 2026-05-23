@@ -29,7 +29,7 @@ fun interface StopRingingAndSelf : () -> Unit
 fun interface StopSignal : () -> Unit
 fun interface CancelJob : () -> Unit
 
-internal fun startMonitoringImpl(
+internal fun startMonitoring(
     service: Service,
     scope: CoroutineScope,
     pollingMonitor: AlarmPollingMonitor,
@@ -62,7 +62,7 @@ internal fun startMonitoringImpl(
     }
 }
 
-internal fun cancelMonitoringImpl(
+internal fun cancelMonitoring(
     service: Service,
     scope: CoroutineScope,
     clearActiveAlarm: ClearActiveAlarm,
@@ -84,7 +84,7 @@ internal fun cancelMonitoringImpl(
     service.stopSelf()
 }
 
-internal fun startRingingImpl(
+internal fun startRinging(
     service: Service,
     ringingNotification: RingingNotificationProvider,
     signalPlayer: AlarmSignalPlayer
@@ -93,7 +93,7 @@ internal fun startRingingImpl(
     signalPlayer.start(request)
 }
 
-internal fun stopRingingAndSelfImpl(
+internal fun stopRingingAndSelf(
     service: Service,
     scope: CoroutineScope,
     setRinging: SetRinging,
@@ -110,10 +110,10 @@ internal fun stopRingingAndSelfImpl(
     service.stopSelf()
 }
 
-internal fun stopSignalImpl(signalPlayer: AlarmSignalPlayer): StopSignal = StopSignal {
+internal fun stopSignal(signalPlayer: AlarmSignalPlayer): StopSignal = StopSignal {
     signalPlayer.stop()
 }
 
-internal fun cancelJobImpl(globalState: GlobalStateHolder): CancelJob = CancelJob {
+internal fun cancelJob(globalState: GlobalStateHolder): CancelJob = CancelJob {
     globalState.state.alarmMonitor.monitorJob?.cancel()
 }

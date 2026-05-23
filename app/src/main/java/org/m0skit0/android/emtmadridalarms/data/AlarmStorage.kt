@@ -38,7 +38,7 @@ fun interface SaveLatestArrival : suspend (Int?, String) -> Unit
 fun interface SaveStatus : suspend (String) -> Unit
 fun interface SetRinging : suspend (Boolean) -> Unit
 
-internal fun alarmStateReaderImpl(context: Context): AlarmStateReader = AlarmStateReader {
+internal fun alarmStateReader(context: Context): AlarmStateReader = AlarmStateReader {
     context.alarmDataStore.data.map { preferences ->
         val line = preferences[Keys.LINE].orEmpty()
         val stopId = preferences[Keys.STOP_ID].orEmpty()
@@ -57,7 +57,7 @@ internal fun alarmStateReaderImpl(context: Context): AlarmStateReader = AlarmSta
     }
 }
 
-internal fun saveActiveAlarmImpl(context: Context): SaveActiveAlarm = SaveActiveAlarm { request ->
+internal fun saveActiveAlarm(context: Context): SaveActiveAlarm = SaveActiveAlarm { request ->
     context.alarmDataStore.edit { preferences ->
         preferences[Keys.LINE] = request.line
         preferences[Keys.STOP_ID] = request.stopId
@@ -69,7 +69,7 @@ internal fun saveActiveAlarmImpl(context: Context): SaveActiveAlarm = SaveActive
     }
 }
 
-internal fun clearActiveAlarmImpl(context: Context): ClearActiveAlarm = ClearActiveAlarm {
+internal fun clearActiveAlarm(context: Context): ClearActiveAlarm = ClearActiveAlarm {
     context.alarmDataStore.edit { preferences ->
         preferences.remove(Keys.LINE)
         preferences.remove(Keys.STOP_ID)
@@ -80,7 +80,7 @@ internal fun clearActiveAlarmImpl(context: Context): ClearActiveAlarm = ClearAct
     }
 }
 
-internal fun saveLatestArrivalImpl(context: Context): SaveLatestArrival = SaveLatestArrival { etaSeconds, destination ->
+internal fun saveLatestArrival(context: Context): SaveLatestArrival = SaveLatestArrival { etaSeconds, destination ->
     context.alarmDataStore.edit { preferences ->
         if (etaSeconds == null) {
             preferences.remove(Keys.LATEST_ETA_SECONDS)
@@ -92,13 +92,13 @@ internal fun saveLatestArrivalImpl(context: Context): SaveLatestArrival = SaveLa
     }
 }
 
-internal fun saveStatusImpl(context: Context): SaveStatus = SaveStatus { message ->
+internal fun saveStatus(context: Context): SaveStatus = SaveStatus { message ->
     context.alarmDataStore.edit { preferences ->
         preferences[Keys.STATUS_MESSAGE] = message
     }
 }
 
-internal fun setRingingImpl(context: Context): SetRinging = SetRinging { isRinging ->
+internal fun setRinging(context: Context): SetRinging = SetRinging { isRinging ->
     context.alarmDataStore.edit { preferences ->
         preferences[Keys.IS_RINGING] = isRinging
     }
