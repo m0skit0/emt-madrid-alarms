@@ -10,6 +10,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -21,14 +23,41 @@ fun EmtMadridAlarmsApp(viewModel: AlarmViewModel = koinViewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
-    val backStackEntry by navController.currentBackStackEntryAsState()
 
+    ErrorSnackbarEffect(state, snackbarHostState, viewModel::dispatch)
+    NavigationEffect(state, navController)
+
+    EmtTheme {
+        Scaffold(
+            topBar = { AppTopBar() },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
+        ) { padding ->
+            AlarmNavHost(
+                navController = navController,
+                state = state,
+                dispatch = viewModel::dispatch,
+                modifier = Modifier.padding(padding),
+            )
+        }
+    }
+}
+
+@Composable
+private fun ErrorSnackbarEffect(
+    state: AlarmState,
+    snackbarHostState: SnackbarHostState,
+    dispatch: (AlarmIntent) -> Unit,
+) {
     LaunchedEffect(state.errorMessage) {
         val message = state.errorMessage ?: return@LaunchedEffect
         snackbarHostState.showSnackbar(message)
-        viewModel.dispatch(AlarmIntent.ErrorShown)
+        dispatch(AlarmIntent.ErrorShown)
     }
+}
 
+@Composable
+private fun NavigationEffect(state: AlarmState, navController: NavHostController) {
+    val backStackEntry by navController.currentBackStackEntryAsState()
     LaunchedEffect(state.isRinging, state.activeAlarm) {
         val targetRoute = when {
             state.isRinging -> Routes.RINGING
@@ -43,46 +72,39 @@ fun EmtMadridAlarmsApp(viewModel: AlarmViewModel = koinViewModel()) {
             }
         }
     }
+}
 
-    EmtTheme {
-        Scaffold(
-            topBar = { AppTopBar() },
-            snackbarHost = { SnackbarHost(snackbarHostState) },
-        ) { padding ->
-            NavHost(
-                navController = navController,
-                startDestination = Routes.SETUP,
-                modifier = Modifier.padding(padding),
-            ) {
-                composable(Routes.SETUP) {
-                    SetupScreen(
-                        state = state,
-                        dispatch = viewModel::dispatch,
-                        onSelectLine = { navController.navigate(Routes.SELECT_LINE) },
-                        onSelectStop = { navController.navigate(Routes.SELECT_STOP) },
-                    )
-                }
-                composable(Routes.SELECT_LINE) {
-                    LineSelectionScreen(
-                        state = state,
-                        dispatch = viewModel::dispatch,
-                        onBack = { navController.popBackStack() },
-                    )
-                }
-                composable(Routes.SELECT_STOP) {
-                    StopSelectionScreen(
-                        state = state,
-                        dispatch = viewModel::dispatch,
-                        onBack = { navController.popBackStack() },
-                    )
-                }
-                composable(Routes.MONITORING) {
-                    MonitoringScreen(state = state, dispatch = viewModel::dispatch)
-                }
-                composable(Routes.RINGING) {
-                    RingingScreen(state = state, dispatch = viewModel::dispatch)
-                }
-            }
+@Composable
+private fun AlarmNavHost(
+    navController: NavController,
+    state: AlarmState,
+    dispatch: (AlarmIntent) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    NavHost(
+        navController = navController as NavHostController,
+        startDestination = Routes.SETUP,
+        modifier = modifier,
+    ) {
+        composable(Routes.SETUP) {
+            SetupScreen(
+                state = state,
+                dispatch = dispatch,
+                onSelectLine = { navController.navigate(Routes.SELECT_LINE) },
+                onSelectStop = { navController.navigate(Routes.SELECT_STOP) },
+            )
+        }
+        composable(Routes.SELECT_LINE) {
+            LineSelectionScreen(state = state, dispatch = dispatch, onBack = { navController.popBackStack() })
+        }
+        composable(Routes.SELECT_STOP) {
+            StopSelectionScreen(state = state, dispatch = dispatch, onBack = { navController.popBackStack() })
+        }
+        composable(Routes.MONITORING) {
+            MonitoringScreen(state = state, dispatch = dispatch)
+        }
+        composable(Routes.RINGING) {
+            RingingScreen(state = state, dispatch = dispatch)
         }
     }
 }

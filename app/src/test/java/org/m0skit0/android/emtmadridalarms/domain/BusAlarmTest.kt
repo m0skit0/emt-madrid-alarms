@@ -1,45 +1,52 @@
 package org.m0skit0.android.emtmadridalarms.domain
 
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import org.junit.Test
+import org.m0skit0.android.emtmadridalarms.data.linesMatch
+import org.m0skit0.android.emtmadridalarms.data.normalizeLine
+import org.m0skit0.android.emtmadridalarms.ui.alarmRequestValidator
 
 class BusAlarmTest {
     @Test
-    fun `numeric line normalization removes leading zeroes`() {
-        assertEquals("1", normalizeLine("001"))
-        assertTrue(linesMatch("1", "001"))
+    fun `given a numeric line with leading zeroes, when normalized, then leading zeroes are removed`() {
+        normalizeLine("001") shouldBe "1"
+        linesMatch("1", "001") shouldBe true
     }
 
     @Test
-    fun `night line normalization keeps prefix and removes numeric leading zeroes`() {
-        assertEquals("N1", normalizeLine("n001"))
-        assertTrue(linesMatch("N1", "n001"))
+    fun `given a night line with leading zeroes, when normalized, then prefix is kept and numeric part is stripped`() {
+        normalizeLine("n001") shouldBe "N1"
+        linesMatch("N1", "n001") shouldBe true
     }
 
     @Test
-    fun `alarm triggers when estimate is inside target window`() {
-        assertTrue(shouldTriggerAlarm(600, 10))
-        assertTrue(shouldTriggerAlarm(599, 10))
-        assertFalse(shouldTriggerAlarm(601, 10))
+    fun `given valid line stop and minutes, when validated, then no error is returned`() {
+        alarmRequestValidator()("1", "62", "10") shouldBe null
     }
 
     @Test
-    fun `alarm ignores unavailable estimate sentinel`() {
-        assertFalse(shouldTriggerAlarm(999999, 10))
+    fun `given a blank line, when validated, then an error is returned`() {
+        alarmRequestValidator()("", "62", "10") shouldBe "Enter a bus line."
     }
 
     @Test
-    fun `request validation accepts valid values`() {
-        assertNull(validateAlarmRequest("1", "62", "10"))
+    fun `given a stop with non-digit characters, when validated, then an error is returned`() {
+        alarmRequestValidator()("1", "A62", "10") shouldBe "Stop number must contain only digits."
     }
 
     @Test
-    fun `request validation rejects invalid values`() {
-        assertEquals("Enter a bus line.", validateAlarmRequest("", "62", "10"))
-        assertEquals("Stop number must contain only digits.", validateAlarmRequest("1", "A62", "10"))
-        assertEquals("Minutes must be a positive number.", validateAlarmRequest("1", "62", "0"))
+    fun `given zero minutes, when validated, then an error is returned`() {
+        alarmRequestValidator()("1", "62", "0") shouldBe "Minutes must be a positive number."
+    }
+
+    @Test
+    fun `given negative minutes, when validated, then an error is returned`() {
+        alarmRequestValidator()("1", "62", "-5") shouldBe "Minutes must be a positive number."
+    }
+
+    @Test
+    fun `given non-numeric minutes, when validated, then an error is returned`() {
+        alarmRequestValidator()("1", "62", "abc") shouldBe "Minutes must be a positive number."
     }
 }

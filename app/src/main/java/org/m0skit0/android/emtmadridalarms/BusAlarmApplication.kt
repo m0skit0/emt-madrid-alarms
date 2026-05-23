@@ -6,13 +6,15 @@ import org.koin.core.context.startKoin
 import org.m0skit0.android.emtmadridalarms.di.dataModule
 import org.m0skit0.android.emtmadridalarms.di.domainModule
 import org.m0skit0.android.emtmadridalarms.di.presentationModule
+import org.m0skit0.android.emtmadridalarms.di.serviceModule
+import org.m0skit0.android.emtmadridalarms.di.stateModule
 
 class BusAlarmApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         startKoin {
             androidContext(this@BusAlarmApplication)
-            modules(dataModule, domainModule, presentationModule)
+            modules(dataModule, domainModule, presentationModule, serviceModule, stateModule)
         }
     }
 }

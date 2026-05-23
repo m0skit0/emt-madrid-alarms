@@ -29,21 +29,7 @@ internal fun SetupScreen(
     onSelectStop: () -> Unit,
 ) {
     ScreenColumn {
-        Image(
-            painter = painterResource(R.drawable.logo),
-            contentDescription = null,
-            modifier = Modifier.size(96.dp),
-        )
-        Text(
-            text = "Wake me when my bus is close",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-        )
-        Text(
-            text = "Search for a line, then pick one of the stops served by that line.",
-            style = MaterialTheme.typography.bodyLarge,
-        )
-        Spacer(Modifier.height(12.dp))
+        SetupHeader()
         PickerField(
             value = state.selectedLine?.displayName.orEmpty(),
             label = "Bus line",
@@ -62,29 +48,53 @@ internal fun SetupScreen(
             enabled = state.selectedLine != null,
             onClick = onSelectStop,
         )
-        if (!state.isLoadingLines && state.lines.isEmpty()) {
-            OutlinedButton(
-                onClick = { dispatch(AlarmIntent.RefreshLinesClicked) },
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text("Reload bus lines")
-            }
-        }
-        OutlinedTextField(
-            value = state.minutesInput,
-            onValueChange = { dispatch(AlarmIntent.MinutesChanged(it)) },
-            label = { Text("Trigger at minutes before arrival") },
-            singleLine = true,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Button(
-            onClick = { dispatch(AlarmIntent.StartClicked) },
-            enabled = !state.isLoading && !state.isLoadingStops && state.selectedLine != null && state.selectedStop != null,
+        AlarmInputControls(state, dispatch)
+    }
+}
+
+@Composable
+private fun SetupHeader() {
+    Image(
+        painter = painterResource(R.drawable.logo),
+        contentDescription = null,
+        modifier = Modifier.size(96.dp),
+    )
+    Text(
+        text = "Wake me when my bus is close",
+        style = MaterialTheme.typography.headlineMedium,
+        fontWeight = FontWeight.Bold,
+    )
+    Text(
+        text = "Search for a line, then pick one of the stops served by that line.",
+        style = MaterialTheme.typography.bodyLarge,
+    )
+    Spacer(Modifier.height(12.dp))
+}
+
+@Composable
+private fun AlarmInputControls(state: AlarmState, dispatch: (AlarmIntent) -> Unit) {
+    if (!state.isLoadingLines && state.lines.isEmpty()) {
+        OutlinedButton(
+            onClick = { dispatch(AlarmIntent.RefreshLinesClicked) },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text(if (state.isLoading) "Starting..." else "Start alarm")
+            Text("Reload bus lines")
         }
+    }
+    OutlinedTextField(
+        value = state.minutesInput,
+        onValueChange = { dispatch(AlarmIntent.MinutesChanged(it)) },
+        label = { Text("Trigger at minutes before arrival") },
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+        modifier = Modifier.fillMaxWidth(),
+    )
+    Button(
+        onClick = { dispatch(AlarmIntent.StartClicked) },
+        enabled = !state.isLoading && !state.isLoadingStops && state.selectedLine != null && state.selectedStop != null,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(if (state.isLoading) "Starting..." else "Start alarm")
     }
 }
 
