@@ -3,17 +3,17 @@ package org.m0skit0.android.emtmadridalarms.di
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
-import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
-import org.m0skit0.android.emtmadridalarms.data.ApiLoggingInterceptor
 import org.m0skit0.android.emtmadridalarms.data.EmtApi
 import org.m0skit0.android.emtmadridalarms.data.EmtCredentials
 import org.m0skit0.android.emtmadridalarms.data.alarmStateReader
 import org.m0skit0.android.emtmadridalarms.data.arrivalsFor
 import org.m0skit0.android.emtmadridalarms.data.clearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.linesForToday
+import org.m0skit0.android.emtmadridalarms.data.loggingInterceptor
 import org.m0skit0.android.emtmadridalarms.data.provideToken
 import org.m0skit0.android.emtmadridalarms.data.requireEmtSuccess
 import org.m0skit0.android.emtmadridalarms.data.saveActiveAlarm
@@ -34,10 +34,10 @@ val dataModule = module {
             encodeDefaults = true
         }
     }
-    singleOf(::ApiLoggingInterceptor)
+    single { loggingInterceptor() }
     single {
         OkHttpClient.Builder()
-            .addInterceptor(get<ApiLoggingInterceptor>())
+            .addInterceptor(get<Interceptor>())
             .connectTimeout(15, SECONDS)
             .readTimeout(30, SECONDS)
             .callTimeout(40, SECONDS)
