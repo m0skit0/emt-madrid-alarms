@@ -121,9 +121,13 @@ internal fun arrivalsFor(
 - `AlarmViewModel` is a thin dispatcher. Logic is extracted into injected collaborators, each a `fun interface` + factory:
   - `LineLoader` (`lineLoader`) — loads all available bus lines; owns loading/error state updates.
   - `StopLoader` (`stopLoader`) — loads stops for a selected line; owns loading/error state updates.
+  - `AlarmRequestValidator` (`alarmRequestValidator`) — pure validation of line/stop/minutes inputs; returns an error string or null.
+  - `AlarmRequestBuilder` (`alarmRequestBuilder`) — maps `AlarmState` to `Result<BusAlarmRequest>`; delegates validation to `AlarmRequestValidator`.
   - `AlarmStarter` (`alarmStarter`), `AlarmCanceller` (`alarmCanceller`), `RingingStop` (`ringingStop`) — alarm lifecycle operations.
 - Collaborator factories accept `MutableStateFlow<AlarmState>` and `CoroutineScope` so they can update state and launch coroutines without any Android dependency of their own.
-- `AlarmViewModel` instantiates collaborators in its body (not constructor) using `viewModelScope`, keeping the constructor free of scope/state references.
+- `AlarmRequestValidator` and `AlarmRequestBuilder` are pure — they take no `CoroutineScope` or `MutableStateFlow`.
+- `AlarmViewModel` receives all collaborators as constructor parameters. The `viewModel { }` block in `PresentationModule` creates the `MutableStateFlow<AlarmState>` and a `MainScope`, then constructs each collaborator and passes them in.
+- The VM cancels the injected scope in `onCleared()`, which also cancels all coroutines launched by the collaborators.
 
 ### Naming
 
