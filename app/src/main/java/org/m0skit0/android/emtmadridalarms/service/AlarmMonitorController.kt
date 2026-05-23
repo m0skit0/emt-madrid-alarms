@@ -43,20 +43,23 @@ internal fun startMonitoring(
         service.stopSelf()
         return@StartMonitoring
     }
-    Log.d(
-        TAG,
-        "Starting monitoring line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}"
-    )
+    Log.d(TAG, "Starting monitoring line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
     globalState.state.alarmMonitor.monitorJob?.cancel()
     service.startForeground(
         NOTIFICATION_ID,
-        monitoringNotification(
-            request,
-            "Waiting for EMT arrivals...",
-            service.servicePendingIntent(ACTION_CANCEL, 2)
-        ),
+        monitoringNotification(request, "Waiting for EMT arrivals...", service.servicePendingIntent(ACTION_CANCEL, 2)),
     )
     Log.d(TAG, "Foreground monitoring notification started")
+    launchMonitorJob(scope, globalState, pollingMonitor, request, startRinging)
+}
+
+private fun launchMonitorJob(
+    scope: CoroutineScope,
+    globalState: GlobalStateHolder,
+    pollingMonitor: AlarmPollingMonitor,
+    request: BusAlarmRequest,
+    startRinging: StartRinging,
+) {
     globalState.update { appState ->
         appState.copy(
             alarmMonitor = appState.alarmMonitor.copy(

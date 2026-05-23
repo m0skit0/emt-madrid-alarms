@@ -124,7 +124,7 @@ internal fun arrivalsFor(
 | Thing | Convention |
 |---|---|
 | `fun interface` | Noun describing the capability: `ArrivalsProvider`, `StartMonitoring`, `StopSignal` |
-| Factory function | Verb phrase matching the behaviour: `arrivalsFor(...)`, `startMonitoring(...)`, `stopSignalFn(...)` |
+| Factory function | Verb phrase matching the behaviour: `arrivalsFor(...)`, `startMonitoring(...)`, `stopSignal(...)` |
 | State data class | `<Domain>State`: `EmtAuthTokenState`, `AlarmMonitorState` |
 | Koin module val | `<layer>Module`: `dataModule`, `serviceModule` |
 | Log tag constant | `private const val TAG = "..."` at file level |

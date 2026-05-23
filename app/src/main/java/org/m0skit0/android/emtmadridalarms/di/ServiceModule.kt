@@ -7,13 +7,13 @@ import org.m0skit0.android.emtmadridalarms.service.monitoringNotification
 import org.m0skit0.android.emtmadridalarms.service.pollAlarm
 import org.m0skit0.android.emtmadridalarms.service.ringingNotification
 import org.m0skit0.android.emtmadridalarms.service.startSignal
-import org.m0skit0.android.emtmadridalarms.service.stopSignalFn
+import org.m0skit0.android.emtmadridalarms.service.stopSignal
 
 val serviceModule = module {
     single { monitoringNotification(androidContext()) }
     single { ringingNotification(androidContext()) }
     single { ensureNotificationChannels(androidContext()) }
     single { startSignal(androidContext(), get()) }
-    single { stopSignalFn(get()) }
+    single { stopSignal(get()) }
     single { pollAlarm(get(), get(), get(), get(), get(), get()) }
 }

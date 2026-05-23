@@ -23,38 +23,45 @@ fun interface StartSignal : (BusAlarmRequest) -> Unit
 
 internal fun startSignal(context: Context, globalState: GlobalStateHolder): StartSignal =
     StartSignal { request ->
-        Log.i(
-            TAG,
-            "Starting ringing line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}"
-        )
-        val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-            ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            ?: Uri.EMPTY
-        Log.d(TAG, "Using ringtone uri=$uri")
-        val ringtone = RingtoneManager.getRingtone(context, uri)?.apply {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) isLooping = true
-            play()
-        }
-        if (ringtone == null) Log.w(TAG, "No ringtone available for uri=$uri")
-        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            context.getSystemService(VibratorManager::class.java).defaultVibrator
-        } else {
-            @Suppress("DEPRECATION")
-            context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0L, 900L, 600L), 0))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(longArrayOf(0L, 900L, 600L), 0)
-        }
+        Log.i(TAG, "Starting ringing line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
+        val ringtone = resolveRingtone(context)
+        val vibrator = startVibration(context)
         globalState.update { appState ->
             appState.copy(alarmSignal = AlarmSignalState(ringtone = ringtone, vibrator = vibrator))
         }
         Log.d(TAG, "Ringing started: ringtone=${ringtone != null}")
     }
 
-internal fun stopSignalFn(globalState: GlobalStateHolder): StopSignal =
+private fun resolveRingtone(context: Context): Ringtone? {
+    val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
+        ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+        ?: Uri.EMPTY
+    Log.d(TAG, "Using ringtone uri=$uri")
+    val ringtone = RingtoneManager.getRingtone(context, uri)?.apply {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) isLooping = true
+        play()
+    }
+    if (ringtone == null) Log.w(TAG, "No ringtone available for uri=$uri")
+    return ringtone
+}
+
+private fun startVibration(context: Context): Vibrator {
+    val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        context.getSystemService(VibratorManager::class.java).defaultVibrator
+    } else {
+        @Suppress("DEPRECATION")
+        context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+    }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0L, 900L, 600L), 0))
+    } else {
+        @Suppress("DEPRECATION")
+        vibrator.vibrate(longArrayOf(0L, 900L, 600L), 0)
+    }
+    return vibrator
+}
+
+internal fun stopSignal(globalState: GlobalStateHolder): StopSignal =
     StopSignal {
         Log.d(TAG, "Stopping ringtone/vibration")
         val signal = globalState.state.alarmSignal

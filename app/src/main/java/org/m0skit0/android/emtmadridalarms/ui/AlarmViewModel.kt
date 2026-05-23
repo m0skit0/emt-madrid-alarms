@@ -53,40 +53,29 @@ class AlarmViewModel(
 
     fun dispatch(intent: AlarmIntent) {
         when (intent) {
-            is AlarmIntent.LineChanged -> _state.update {
-                it.copy(
-                    lineInput = intent.value,
-                    stopInput = "",
-                    selectedLine = null,
-                    selectedStop = null,
-                    stops = emptyList(),
-                    errorMessage = null,
-                )
-            }
-
+            is AlarmIntent.LineChanged -> onLineChanged(intent.value)
             is AlarmIntent.LineSelected -> selectLine(intent.value)
-            is AlarmIntent.StopChanged -> _state.update {
-                it.copy(
-                    stopInput = intent.value,
-                    selectedStop = null,
-                    errorMessage = null
-                )
-            }
-
+            is AlarmIntent.StopChanged -> _state.update { it.copy(stopInput = intent.value, selectedStop = null, errorMessage = null) }
             is AlarmIntent.StopSelected -> selectStop(intent.value)
-            is AlarmIntent.MinutesChanged -> _state.update {
-                it.copy(
-                    minutesInput = intent.value.filter(
-                        Char::isDigit
-                    ), errorMessage = null
-                )
-            }
-
+            is AlarmIntent.MinutesChanged -> _state.update { it.copy(minutesInput = intent.value.filter(Char::isDigit), errorMessage = null) }
             AlarmIntent.RefreshLinesClicked -> loadLines()
             AlarmIntent.StartClicked -> startAlarm()
             AlarmIntent.CancelClicked -> cancelAlarm()
             AlarmIntent.StopRingingClicked -> stopRinging()
             AlarmIntent.ErrorShown -> _state.update { it.copy(errorMessage = null) }
+        }
+    }
+
+    private fun onLineChanged(value: String) {
+        _state.update {
+            it.copy(
+                lineInput = value,
+                stopInput = "",
+                selectedLine = null,
+                selectedStop = null,
+                stops = emptyList(),
+                errorMessage = null,
+            )
         }
     }
 
@@ -101,12 +90,7 @@ class AlarmViewModel(
                 }
                 .onFailure { error ->
                     Log.e(TAG, "Failed to load bus lines: ${error.message}", error)
-                    _state.update {
-                        it.copy(
-                            isLoadingLines = false,
-                            errorMessage = error.message ?: "Could not load EMT bus lines.",
-                        )
-                    }
+                    _state.update { it.copy(isLoadingLines = false, errorMessage = error.message ?: "Could not load EMT bus lines.") }
                 }
         }
     }
@@ -124,6 +108,10 @@ class AlarmViewModel(
                 errorMessage = null,
             )
         }
+        loadStopsForLine(line)
+    }
+
+    private fun loadStopsForLine(line: BusLine) {
         viewModelScope.launch {
             runCatching { loadBusStops(line) }
                 .onSuccess { stops ->
@@ -131,16 +119,11 @@ class AlarmViewModel(
                     _state.update { it.copy(stops = stops, isLoadingStops = false) }
                 }
                 .onFailure { error ->
-                    Log.e(
-                        TAG,
-                        "Failed to load stops for line=${line.label}: ${error.message}",
-                        error
-                    )
+                    Log.e(TAG, "Failed to load stops for line=${line.label}: ${error.message}", error)
                     _state.update {
                         it.copy(
                             isLoadingStops = false,
-                            errorMessage = error.message
-                                ?: "Could not load stops for line ${line.label}.",
+                            errorMessage = error.message ?: "Could not load stops for line ${line.label}.",
                         )
                     }
                 }
@@ -149,12 +132,15 @@ class AlarmViewModel(
 
     private fun selectStop(stop: BusStop) {
         Log.d(TAG, "Selected stop id=${stop.id} name=${stop.name}")
-        _state.update {
-            it.copy(selectedStop = stop, stopInput = stop.displayName, errorMessage = null)
-        }
+        _state.update { it.copy(selectedStop = stop, stopInput = stop.displayName, errorMessage = null) }
     }
 
     private fun startAlarm() {
+        val request = buildAlarmRequest() ?: return
+        launchAlarm(request)
+    }
+
+    private fun buildAlarmRequest(): BusAlarmRequest? {
         val current = _state.value
         val selectedLine = current.selectedLine
         val selectedStop = current.selectedStop
@@ -166,20 +152,18 @@ class AlarmViewModel(
         if (validationError != null) {
             Log.w(TAG, "Cannot start alarm: $validationError")
             _state.update { it.copy(errorMessage = validationError) }
-            return
+            return null
         }
-
-        val request = BusAlarmRequest(
+        return BusAlarmRequest(
             line = selectedLine!!.label,
             stopId = selectedStop!!.id,
             targetMinutes = current.minutesInput.toInt(),
         )
+    }
 
+    private fun launchAlarm(request: BusAlarmRequest) {
         viewModelScope.launch {
-            Log.d(
-                TAG,
-                "Starting alarm request line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}"
-            )
+            Log.d(TAG, "Starting alarm request line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
             _state.update { it.copy(isLoading = true, errorMessage = null) }
             saveActiveAlarm(request)
             startAlarmService(appContext, request)
@@ -194,14 +178,7 @@ class AlarmViewModel(
             cancelAlarmService(appContext)
             clearActiveAlarm()
             setRinging(false)
-            _state.update {
-                it.copy(
-                    activeAlarm = null,
-                    latestEtaSeconds = null,
-                    latestDestination = "",
-                    statusMessage = ""
-                )
-            }
+            _state.update { it.copy(activeAlarm = null, latestEtaSeconds = null, latestDestination = "", statusMessage = "") }
         }
     }
 

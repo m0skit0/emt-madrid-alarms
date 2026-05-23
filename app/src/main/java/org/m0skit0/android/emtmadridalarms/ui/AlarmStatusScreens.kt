@@ -13,44 +13,54 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 
 @Composable
 internal fun MonitoringScreen(state: AlarmState, dispatch: (AlarmIntent) -> Unit) {
-    val alarm = state.activeAlarm
     ScreenColumn {
         Text(
             text = "Monitoring",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
         )
-        if (alarm == null) {
+        if (state.activeAlarm == null) {
             Text("No active alarm.")
         } else {
-            Card(Modifier.fillMaxWidth()) {
-                Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Line ${alarm.line}", style = MaterialTheme.typography.titleLarge)
-                    Text("Stop ${alarm.stopId}")
-                    Text("Alarm triggers at ${alarm.targetMinutes} minutes or less")
-                }
-            }
+            AlarmDetailsCard(state.activeAlarm)
         }
-        Card(Modifier.fillMaxWidth()) {
-            Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Latest EMT estimate", style = MaterialTheme.typography.titleMedium)
-                val eta = state.latestEtaSeconds
-                Text(if (eta == null) "Waiting for a matching arrival..." else "${eta / 60} min ${eta % 60} sec")
-                if (state.latestDestination.isNotBlank()) Text("Destination: ${state.latestDestination}")
-                if (state.statusMessage.isNotBlank()) Text(
-                    state.statusMessage,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-        }
+        EtaStatusCard(state)
         OutlinedButton(
             onClick = { dispatch(AlarmIntent.CancelClicked) },
             modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Cancel alarm")
+        }
+    }
+}
+
+@Composable
+private fun AlarmDetailsCard(alarm: BusAlarmRequest) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Line ${alarm.line}", style = MaterialTheme.typography.titleLarge)
+            Text("Stop ${alarm.stopId}")
+            Text("Alarm triggers at ${alarm.targetMinutes} minutes or less")
+        }
+    }
+}
+
+@Composable
+private fun EtaStatusCard(state: AlarmState) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("Latest EMT estimate", style = MaterialTheme.typography.titleMedium)
+            val eta = state.latestEtaSeconds
+            Text(if (eta == null) "Waiting for a matching arrival..." else "${eta / 60} min ${eta % 60} sec")
+            if (state.latestDestination.isNotBlank()) Text("Destination: ${state.latestDestination}")
+            if (state.statusMessage.isNotBlank()) Text(
+                state.statusMessage,
+                style = MaterialTheme.typography.bodySmall
+            )
         }
     }
 }
