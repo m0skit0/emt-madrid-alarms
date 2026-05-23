@@ -6,20 +6,13 @@ import org.m0skit0.android.emtmadridalarms.domain.BusStop
 
 fun interface StopsProvider : suspend (BusLine) -> List<BusStop>
 
-internal fun stopsProvider(
-    api: EmtApi,
-    authTokenProvider: EmtAuthTokenProvider,
-    validator: EmtResponseValidator,
-): StopsProvider = StopsProvider { line -> stopsForLine(line, api, authTokenProvider, validator) }
-
 private const val TAG = "EmtStopService"
 
-internal suspend fun stopsForLine(
-    line: BusLine,
+internal fun stopsForLine(
     api: EmtApi,
     authTokenProvider: EmtAuthTokenProvider,
     validator: EmtResponseValidator,
-): List<BusStop> {
+): StopsProvider = StopsProvider { line ->
     val accessToken = authTokenProvider()
     Log.d(TAG, "Loading stops for line=${line.label} id=${line.id}")
     val stops = listOf(1, 2)
@@ -38,5 +31,5 @@ internal suspend fun stopsForLine(
         .distinctBy { it.id }
         .sortedBy { it.id.toIntOrNull() ?: Int.MAX_VALUE }
     Log.d(TAG, "Loaded stops for line=${line.label} mapped=${stops.size}")
-    return stops
+    stops
 }

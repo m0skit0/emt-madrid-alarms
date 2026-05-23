@@ -13,7 +13,10 @@ import org.m0skit0.android.emtmadridalarms.domain.LoadBusArrivalsUseCase
 
 fun interface AlarmPollingMonitor : suspend (BusAlarmRequest, suspend (BusArrival) -> Unit) -> Unit
 
-internal fun alarmPollingMonitor(
+private const val TAG = "BusAlarm"
+private const val POLL_INTERVAL_MS = 30_000L
+
+internal fun pollAlarm(
     loadBusArrivals: LoadBusArrivalsUseCase,
     saveActiveAlarm: SaveActiveAlarm,
     saveStatus: SaveStatus,
@@ -21,22 +24,6 @@ internal fun alarmPollingMonitor(
     setRinging: SetRinging,
     clearActiveAlarm: ClearActiveAlarm,
 ): AlarmPollingMonitor = AlarmPollingMonitor { request, onTriggered ->
-    pollAlarm(request, onTriggered, loadBusArrivals, saveActiveAlarm, saveStatus, saveLatestArrival, setRinging, clearActiveAlarm)
-}
-
-private const val TAG = "BusAlarm"
-private const val POLL_INTERVAL_MS = 30_000L
-
-internal suspend fun pollAlarm(
-    request: BusAlarmRequest,
-    onTriggered: suspend (BusArrival) -> Unit,
-    loadBusArrivals: LoadBusArrivalsUseCase,
-    saveActiveAlarm: SaveActiveAlarm,
-    saveStatus: SaveStatus,
-    saveLatestArrival: SaveLatestArrival,
-    setRinging: SetRinging,
-    clearActiveAlarm: ClearActiveAlarm,
-) {
     saveActiveAlarm(request)
     var pollNumber = 0
     while (true) {

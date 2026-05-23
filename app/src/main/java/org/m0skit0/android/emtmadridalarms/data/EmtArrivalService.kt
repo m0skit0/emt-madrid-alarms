@@ -6,22 +6,14 @@ import org.m0skit0.android.emtmadridalarms.domain.BusArrival
 
 fun interface ArrivalsProvider : suspend (BusAlarmRequest) -> List<BusArrival>
 
-internal fun arrivalsProvider(
-    api: EmtApi,
-    authTokenProvider: EmtAuthTokenProvider,
-    dateProvider: EmtDateProvider,
-    validator: EmtResponseValidator,
-): ArrivalsProvider = ArrivalsProvider { request -> arrivalsFor(request, api, authTokenProvider, dateProvider, validator) }
-
 private const val TAG = "EmtArrivalService"
 
-internal suspend fun arrivalsFor(
-    request: BusAlarmRequest,
+internal fun arrivalsFor(
     api: EmtApi,
     authTokenProvider: EmtAuthTokenProvider,
     dateProvider: EmtDateProvider,
     validator: EmtResponseValidator,
-): List<BusArrival> {
+): ArrivalsProvider = ArrivalsProvider { request ->
     val dateRef = dateProvider()
     Log.d(TAG, "Loading arrivals line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes} dateRef=$dateRef")
     val response = api.arrivals(
@@ -49,5 +41,5 @@ internal suspend fun arrivalsFor(
         TAG,
         "Loaded arrivals raw=${rawArrivals.size} matching=${arrivals.size} estimates=${arrivals.take(4).joinToString { "${it.line}:${it.estimateSeconds}s" }}",
     )
-    return arrivals
+    arrivals
 }

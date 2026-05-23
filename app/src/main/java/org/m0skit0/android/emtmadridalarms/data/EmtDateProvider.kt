@@ -6,6 +6,5 @@ import java.util.Locale
 
 fun interface EmtDateProvider : () -> String
 
-internal fun emtDateProvider(): EmtDateProvider = EmtDateProvider { todayDateRef() }
-
-internal fun todayDateRef(): String = SimpleDateFormat("yyyyMMdd", Locale.US).format(Date())
+internal fun todayDateRef(): EmtDateProvider =
+    EmtDateProvider { SimpleDateFormat("yyyyMMdd", Locale.US).format(Date()) }

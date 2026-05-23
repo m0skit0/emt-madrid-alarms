@@ -26,18 +26,14 @@ data class EmtAuthTokenState(
 
 fun interface EmtAuthTokenProvider : suspend () -> String
 
-internal fun emtAuthTokenProvider(
+internal fun provideToken(
     api: EmtApi,
     credentials: EmtCredentials,
     globalState: GlobalStateHolder,
-): EmtAuthTokenProvider = EmtAuthTokenProvider { provideToken(api, credentials, globalState) }
-
-internal suspend fun provideToken(
-    api: EmtApi,
-    credentials: EmtCredentials,
-    globalState: GlobalStateHolder,
-): String = globalState.state.emtAuthToken.mutex.withLock {
-    cachedToken(globalState) ?: fetchAndStoreToken(api, credentials, globalState)
+): EmtAuthTokenProvider = EmtAuthTokenProvider {
+    globalState.state.emtAuthToken.mutex.withLock {
+        cachedToken(globalState) ?: fetchAndStoreToken(api, credentials, globalState)
+    }
 }
 
 private fun cachedToken(globalState: GlobalStateHolder): String? {

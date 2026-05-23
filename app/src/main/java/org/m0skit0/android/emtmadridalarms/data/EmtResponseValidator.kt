@@ -5,13 +5,9 @@ import java.io.IOException
 
 fun interface EmtResponseValidator : (String?, String?) -> Unit
 
-internal fun emtResponseValidator(): EmtResponseValidator = EmtResponseValidator { code, description ->
-    requireEmtSuccess(code, description)
-}
-
 private const val TAG = "EmtResponseValidator"
 
-internal fun requireEmtSuccess(code: String?, description: String?) {
+internal fun requireEmtSuccess(): EmtResponseValidator = EmtResponseValidator { code, description ->
     if (code != null && code != "00") {
         Log.w(TAG, "EMT request returned code=$code description=$description")
         throw IOException(description ?: "EMT request failed with code $code")
