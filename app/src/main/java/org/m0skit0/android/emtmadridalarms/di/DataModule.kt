@@ -23,17 +23,17 @@ import org.m0skit0.android.emtmadridalarms.data.SaveStatus
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.data.StopsProvider
 import org.m0skit0.android.emtmadridalarms.data.alarmStateReader
-import org.m0skit0.android.emtmadridalarms.data.arrivalsFor
+import org.m0skit0.android.emtmadridalarms.data.arrivalsProvider
 import org.m0skit0.android.emtmadridalarms.data.clearActiveAlarm
-import org.m0skit0.android.emtmadridalarms.data.linesForToday
-import org.m0skit0.android.emtmadridalarms.data.provideToken
-import org.m0skit0.android.emtmadridalarms.data.requireEmtSuccess
+import org.m0skit0.android.emtmadridalarms.data.emtAuthTokenProvider
+import org.m0skit0.android.emtmadridalarms.data.emtDateProvider
+import org.m0skit0.android.emtmadridalarms.data.emtResponseValidator
+import org.m0skit0.android.emtmadridalarms.data.linesProvider
 import org.m0skit0.android.emtmadridalarms.data.saveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.saveLatestArrival
 import org.m0skit0.android.emtmadridalarms.data.saveStatus
 import org.m0skit0.android.emtmadridalarms.data.setRinging
-import org.m0skit0.android.emtmadridalarms.data.stopsForLine
-import org.m0skit0.android.emtmadridalarms.data.todayDateRef
+import org.m0skit0.android.emtmadridalarms.data.stopsProvider
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit.SECONDS
 
@@ -64,35 +64,12 @@ val dataModule = module {
     }
     single { get<Retrofit>().create(EmtApi::class.java) }
     single { EmtCredentials.fromBuildConfig() }
-    single<EmtAuthTokenProvider> { EmtAuthTokenProvider { provideToken(get(), get(), get()) } }
-    single<EmtDateProvider> { EmtDateProvider { todayDateRef() } }
-    single<EmtResponseValidator> {
-        EmtResponseValidator { code, description ->
-            requireEmtSuccess(code, description)
-        }
-    }
-    single<LinesProvider> { LinesProvider { linesForToday(get(), get(), get(), get()) } }
-    single<StopsProvider> {
-        StopsProvider { busLine ->
-            stopsForLine(
-                busLine,
-                get(),
-                get(),
-                get()
-            )
-        }
-    }
-    single<ArrivalsProvider> {
-        ArrivalsProvider { request ->
-            arrivalsFor(
-                request,
-                get(),
-                get(),
-                get(),
-                get()
-            )
-        }
-    }
+    single<EmtAuthTokenProvider> { emtAuthTokenProvider(get(), get(), get()) }
+    single<EmtDateProvider> { emtDateProvider() }
+    single<EmtResponseValidator> { emtResponseValidator() }
+    single<LinesProvider> { linesProvider(get(), get(), get(), get()) }
+    single<StopsProvider> { stopsProvider(get(), get(), get()) }
+    single<ArrivalsProvider> { arrivalsProvider(get(), get(), get(), get()) }
     single<AlarmStateReader> { alarmStateReader(androidContext()) }
     single<SaveActiveAlarm> { saveActiveAlarm(androidContext()) }
     single<ClearActiveAlarm> { clearActiveAlarm(androidContext()) }

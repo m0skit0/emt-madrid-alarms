@@ -5,6 +5,13 @@ import org.m0skit0.android.emtmadridalarms.domain.BusLine
 
 fun interface LinesProvider : suspend () -> List<BusLine>
 
+internal fun linesProvider(
+    api: EmtApi,
+    authTokenProvider: EmtAuthTokenProvider,
+    dateProvider: EmtDateProvider,
+    validator: EmtResponseValidator,
+): LinesProvider = LinesProvider { linesForToday(api, authTokenProvider, dateProvider, validator) }
+
 private const val TAG = "EmtLineService"
 
 internal suspend fun linesForToday(

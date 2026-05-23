@@ -18,6 +18,15 @@ fun interface RingingNotificationProvider : (BusAlarmRequest, PendingIntent) -> 
 
 fun interface NotificationChannelsEnsurer : () -> Unit
 
+internal fun monitoringNotificationProvider(context: Context): MonitoringNotificationProvider =
+    MonitoringNotificationProvider { request, text, intent -> monitoringNotification(context, request, text, intent) }
+
+internal fun ringingNotificationProvider(context: Context): RingingNotificationProvider =
+    RingingNotificationProvider { request, intent -> ringingNotification(context, request, intent) }
+
+internal fun notificationChannelsEnsurer(context: Context): NotificationChannelsEnsurer =
+    NotificationChannelsEnsurer { ensureNotificationChannels(context) }
+
 private const val TAG = "BusAlarm"
 private const val CHANNEL_MONITORING = "bus_alarm_monitoring"
 private const val CHANNEL_ALARM = "bus_alarm_ringing"

@@ -5,6 +5,10 @@ import java.io.IOException
 
 fun interface EmtResponseValidator : (String?, String?) -> Unit
 
+internal fun emtResponseValidator(): EmtResponseValidator = EmtResponseValidator { code, description ->
+    requireEmtSuccess(code, description)
+}
+
 private const val TAG = "EmtResponseValidator"
 
 internal fun requireEmtSuccess(code: String?, description: String?) {

@@ -10,11 +10,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import org.koin.android.ext.android.inject
 import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
-import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
-import org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival
-import org.m0skit0.android.emtmadridalarms.data.SaveStatus
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
-import org.m0skit0.android.emtmadridalarms.domain.LoadBusArrivalsUseCase
 import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
 
 private const val TAG = "BusAlarm"
@@ -22,12 +18,9 @@ private const val TAG = "BusAlarm"
 class AlarmMonitorService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private val saveActiveAlarm: SaveActiveAlarm by inject()
     private val clearActiveAlarm: ClearActiveAlarm by inject()
-    private val saveLatestArrival: SaveLatestArrival by inject()
-    private val saveStatus: SaveStatus by inject()
     private val setRinging: SetRinging by inject()
-    private val loadBusArrivals: LoadBusArrivalsUseCase by inject()
+    private val pollingMonitor: AlarmPollingMonitor by inject()
     private val monitoringNotification: MonitoringNotificationProvider by inject()
     private val ringingNotification: RingingNotificationProvider by inject()
     private val channelsEnsurer: NotificationChannelsEnsurer by inject()
@@ -45,10 +38,6 @@ class AlarmMonitorService : Service() {
         super.onCreate()
         Log.d(TAG, "Service created")
         channelsEnsurer()
-
-        val pollingMonitor = AlarmPollingMonitor { request, onTriggered ->
-            pollAlarm(request, onTriggered, loadBusArrivals, saveActiveAlarm, saveStatus, saveLatestArrival, setRinging, clearActiveAlarm)
-        }
 
         stopSignal = stopSignal(signalPlayer)
         cancelJob = cancelJob(globalState)

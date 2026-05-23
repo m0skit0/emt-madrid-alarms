@@ -7,15 +7,12 @@ import org.m0skit0.android.emtmadridalarms.data.StopsProvider
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusArrivalsUseCase
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusLinesUseCase
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusStopsUseCase
+import org.m0skit0.android.emtmadridalarms.domain.loadBusArrivalsUseCase
+import org.m0skit0.android.emtmadridalarms.domain.loadBusLinesUseCase
+import org.m0skit0.android.emtmadridalarms.domain.loadBusStopsUseCase
 
 val domainModule = module {
-    single<LoadBusLinesUseCase> { LoadBusLinesUseCase { get<LinesProvider>()() } }
-    single<LoadBusStopsUseCase> { LoadBusStopsUseCase { line -> get<StopsProvider>()(line) } }
-    single<LoadBusArrivalsUseCase> {
-        LoadBusArrivalsUseCase { request ->
-            get<ArrivalsProvider>()(
-                request
-            )
-        }
-    }
+    single<LoadBusLinesUseCase> { loadBusLinesUseCase(get<LinesProvider>()) }
+    single<LoadBusStopsUseCase> { loadBusStopsUseCase(get<StopsProvider>()) }
+    single<LoadBusArrivalsUseCase> { loadBusArrivalsUseCase(get<ArrivalsProvider>()) }
 }

@@ -6,6 +6,13 @@ import org.m0skit0.android.emtmadridalarms.domain.BusArrival
 
 fun interface ArrivalsProvider : suspend (BusAlarmRequest) -> List<BusArrival>
 
+internal fun arrivalsProvider(
+    api: EmtApi,
+    authTokenProvider: EmtAuthTokenProvider,
+    dateProvider: EmtDateProvider,
+    validator: EmtResponseValidator,
+): ArrivalsProvider = ArrivalsProvider { request -> arrivalsFor(request, api, authTokenProvider, dateProvider, validator) }
+
 private const val TAG = "EmtArrivalService"
 
 internal suspend fun arrivalsFor(

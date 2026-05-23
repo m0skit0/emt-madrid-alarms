@@ -6,6 +6,12 @@ import org.m0skit0.android.emtmadridalarms.domain.BusStop
 
 fun interface StopsProvider : suspend (BusLine) -> List<BusStop>
 
+internal fun stopsProvider(
+    api: EmtApi,
+    authTokenProvider: EmtAuthTokenProvider,
+    validator: EmtResponseValidator,
+): StopsProvider = StopsProvider { line -> stopsForLine(line, api, authTokenProvider, validator) }
+
 private const val TAG = "EmtStopService"
 
 internal suspend fun stopsForLine(

@@ -26,6 +26,12 @@ data class EmtAuthTokenState(
 
 fun interface EmtAuthTokenProvider : suspend () -> String
 
+internal fun emtAuthTokenProvider(
+    api: EmtApi,
+    credentials: EmtCredentials,
+    globalState: GlobalStateHolder,
+): EmtAuthTokenProvider = EmtAuthTokenProvider { provideToken(api, credentials, globalState) }
+
 internal suspend fun provideToken(
     api: EmtApi,
     credentials: EmtCredentials,
