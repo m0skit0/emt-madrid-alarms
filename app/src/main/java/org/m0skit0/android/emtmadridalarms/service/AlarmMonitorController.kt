@@ -70,12 +70,41 @@ internal fun startMonitoring(
     }
 }
 
+internal fun startRinging(
+    service: Service,
+    ringingNotification: RingingNotificationProvider,
+    startSignal: StartSignal
+): StartRinging = StartRinging { request ->
+    service.startForeground(
+        NOTIFICATION_ID,
+        ringingNotification(request, service.servicePendingIntent(ACTION_STOP_RINGING, 3))
+    )
+    startSignal(request)
+}
+
+internal fun stopRingingAndSelf(
+    service: Service,
+    scope: CoroutineScope,
+    setRinging: SetRinging,
+    clearActiveAlarm: ClearActiveAlarm,
+    stopSignal: StopSignal
+): StopRingingAndSelf = StopRingingAndSelf {
+    Log.d(TAG, "Stopping ringing and service")
+    scope.launch {
+        setRinging(false)
+        clearActiveAlarm()
+    }
+    stopSignal()
+    service.stopForeground(Service.STOP_FOREGROUND_REMOVE)
+    service.stopSelf()
+}
+
 internal fun cancelMonitoring(
     service: Service,
     scope: CoroutineScope,
     clearActiveAlarm: ClearActiveAlarm,
     setRinging: SetRinging,
-    signalPlayer: AlarmSignalPlayer,
+    stopSignal: StopSignal,
     globalState: GlobalStateHolder
 ): CancelMonitoring = CancelMonitoring {
     Log.d(TAG, "Cancelling monitoring")
@@ -87,42 +116,9 @@ internal fun cancelMonitoring(
         clearActiveAlarm()
         setRinging(false)
     }
-    signalPlayer.stop()
+    stopSignal()
     service.stopForeground(Service.STOP_FOREGROUND_REMOVE)
     service.stopSelf()
-}
-
-internal fun startRinging(
-    service: Service,
-    ringingNotification: RingingNotificationProvider,
-    signalPlayer: AlarmSignalPlayer
-): StartRinging = StartRinging { request ->
-    service.startForeground(
-        NOTIFICATION_ID,
-        ringingNotification(request, service.servicePendingIntent(ACTION_STOP_RINGING, 3))
-    )
-    signalPlayer.start(request)
-}
-
-internal fun stopRingingAndSelf(
-    service: Service,
-    scope: CoroutineScope,
-    setRinging: SetRinging,
-    clearActiveAlarm: ClearActiveAlarm,
-    signalPlayer: AlarmSignalPlayer
-): StopRingingAndSelf = StopRingingAndSelf {
-    Log.d(TAG, "Stopping ringing and service")
-    scope.launch {
-        setRinging(false)
-        clearActiveAlarm()
-    }
-    signalPlayer.stop()
-    service.stopForeground(Service.STOP_FOREGROUND_REMOVE)
-    service.stopSelf()
-}
-
-internal fun stopSignal(signalPlayer: AlarmSignalPlayer): StopSignal = StopSignal {
-    signalPlayer.stop()
 }
 
 internal fun cancelJob(globalState: GlobalStateHolder): CancelJob = CancelJob {

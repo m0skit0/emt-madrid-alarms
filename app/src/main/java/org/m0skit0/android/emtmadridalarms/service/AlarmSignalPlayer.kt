@@ -10,12 +10,19 @@ import android.os.Vibrator
 import android.os.VibratorManager
 import android.util.Log
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
+import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
 
-class AlarmSignalPlayer(private val context: Context) {
-    private var ringtone: Ringtone? = null
-    private var vibrator: Vibrator? = null
+private const val TAG = "BusAlarm"
 
-    fun start(request: BusAlarmRequest) {
+data class AlarmSignalState(
+    val ringtone: Ringtone? = null,
+    val vibrator: Vibrator? = null,
+)
+
+fun interface StartSignal : (BusAlarmRequest) -> Unit
+
+internal fun startSignal(context: Context, globalState: GlobalStateHolder): StartSignal =
+    StartSignal { request ->
         Log.i(
             TAG,
             "Starting ringing line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}"
@@ -24,37 +31,36 @@ class AlarmSignalPlayer(private val context: Context) {
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             ?: Uri.EMPTY
         Log.d(TAG, "Using ringtone uri=$uri")
-        ringtone = RingtoneManager.getRingtone(context, uri)?.apply {
+        val ringtone = RingtoneManager.getRingtone(context, uri)?.apply {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) isLooping = true
             play()
         }
         if (ringtone == null) Log.w(TAG, "No ringtone available for uri=$uri")
-
-        vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             context.getSystemService(VibratorManager::class.java).defaultVibrator
         } else {
             @Suppress("DEPRECATION")
             context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
         }
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0L, 900L, 600L), 0))
+            vibrator.vibrate(VibrationEffect.createWaveform(longArrayOf(0L, 900L, 600L), 0))
         } else {
             @Suppress("DEPRECATION")
-            vibrator?.vibrate(longArrayOf(0L, 900L, 600L), 0)
+            vibrator.vibrate(longArrayOf(0L, 900L, 600L), 0)
         }
-        Log.d(TAG, "Ringing started: ringtone=${ringtone != null}, vibrator=${vibrator != null}")
+        globalState.update { appState ->
+            appState.copy(alarmSignal = AlarmSignalState(ringtone = ringtone, vibrator = vibrator))
+        }
+        Log.d(TAG, "Ringing started: ringtone=${ringtone != null}")
     }
 
-    fun stop() {
+internal fun stopSignalFn(globalState: GlobalStateHolder): StopSignal =
+    StopSignal {
         Log.d(TAG, "Stopping ringtone/vibration")
-        ringtone?.stop()
-        ringtone = null
-        vibrator?.cancel()
-        vibrator = null
+        val signal = globalState.state.alarmSignal
+        signal.ringtone?.stop()
+        signal.vibrator?.cancel()
+        globalState.update { appState ->
+            appState.copy(alarmSignal = AlarmSignalState())
+        }
     }
-
-    private companion object {
-        const val TAG = "BusAlarm"
-    }
-}

@@ -24,14 +24,14 @@ class AlarmMonitorService : Service() {
     private val monitoringNotification: MonitoringNotificationProvider by inject()
     private val ringingNotification: RingingNotificationProvider by inject()
     private val channelsEnsurer: NotificationChannelsEnsurer by inject()
-    private val signalPlayer: AlarmSignalPlayer by inject()
+    private val startSignal: StartSignal by inject()
+    private val stopSignal: StopSignal by inject()
     private val globalState: GlobalStateHolder by inject()
 
     private lateinit var startMonitoring: StartMonitoring
     private lateinit var cancelMonitoring: CancelMonitoring
     private lateinit var startRinging: StartRinging
     private lateinit var stopRingingAndSelf: StopRingingAndSelf
-    private lateinit var stopSignal: StopSignal
     private lateinit var cancelJob: CancelJob
 
     override fun onCreate() {
@@ -39,22 +39,11 @@ class AlarmMonitorService : Service() {
         Log.d(TAG, "Service created")
         channelsEnsurer()
 
-        stopSignal = stopSignal(signalPlayer)
         cancelJob = cancelJob(globalState)
-        stopRingingAndSelf =
-            stopRingingAndSelf(this, scope, setRinging, clearActiveAlarm, signalPlayer)
-        cancelMonitoring =
-            cancelMonitoring(this, scope, clearActiveAlarm, setRinging, signalPlayer, globalState)
-
-        startRinging = startRinging(this, ringingNotification, signalPlayer)
-        startMonitoring = startMonitoring(
-            this,
-            scope,
-            pollingMonitor,
-            monitoringNotification,
-            startRinging,
-            globalState
-        )
+        stopRingingAndSelf = stopRingingAndSelf(this, scope, setRinging, clearActiveAlarm, stopSignal)
+        cancelMonitoring = cancelMonitoring(this, scope, clearActiveAlarm, setRinging, stopSignal, globalState)
+        startRinging = startRinging(this, ringingNotification, startSignal)
+        startMonitoring = startMonitoring(this, scope, pollingMonitor, monitoringNotification, startRinging, globalState)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
