@@ -1,13 +1,10 @@
 package org.m0skit0.android.emtmadridalarms.data
 
-import android.util.Log
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
@@ -29,9 +26,6 @@ class EmtAuthTokenProviderTest {
 
     @Before
     fun setup() {
-        mockkStatic(Log::class)
-        every { Log.d(any(), any()) } returns 0
-        every { Log.w(any(), any<String>()) } returns 0
         api = mockk()
         globalState = GlobalStateHolder(AppState())
     }

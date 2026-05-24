@@ -1,7 +1,7 @@
 package org.m0skit0.android.emtmadridalarms.service
 
 import android.app.Service
-import android.util.Log
+import timber.log.Timber
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -38,17 +38,17 @@ internal fun startMonitoring(
     globalState: GlobalStateHolder
 ): StartMonitoring = StartMonitoring { request ->
     if (request == null) {
-        Log.w(TAG, "Cannot start monitoring: invalid or missing alarm request")
+        Timber.w("Cannot start monitoring: invalid or missing alarm request")
         service.stopSelf()
         return@StartMonitoring
     }
-    Log.d(TAG, "Starting monitoring line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
+    Timber.d("Starting monitoring line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
     globalState.state.alarmMonitor.monitorJob?.cancel()
     service.startForeground(
         NOTIFICATION_ID,
         monitoringNotification(request, "Waiting for EMT arrivals...", service.servicePendingIntent(ACTION_CANCEL, 2)),
     )
-    Log.d(TAG, "Foreground monitoring notification started")
+    Timber.d("Foreground monitoring notification started")
     launchMonitorJob(scope, globalState, pollingMonitor, request, startRinging)
 }
 
@@ -91,7 +91,7 @@ internal fun stopRingingAndSelf(
     clearActiveAlarm: ClearActiveAlarm,
     stopSignal: StopSignal
 ): StopRingingAndSelf = StopRingingAndSelf {
-    Log.d(TAG, "Stopping ringing and service")
+    Timber.d("Stopping ringing and service")
     scope.launch {
         setRinging(false)
         clearActiveAlarm()
@@ -109,7 +109,7 @@ internal fun cancelMonitoring(
     stopSignal: StopSignal,
     globalState: GlobalStateHolder
 ): CancelMonitoring = CancelMonitoring {
-    Log.d(TAG, "Cancelling monitoring")
+    Timber.d("Cancelling monitoring")
     globalState.state.alarmMonitor.monitorJob?.cancel()
     globalState.update { appState ->
         appState.copy(alarmMonitor = appState.alarmMonitor.copy(monitorJob = null))

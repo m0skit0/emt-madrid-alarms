@@ -1,6 +1,6 @@
 package org.m0skit0.android.emtmadridalarms.ui
 
-import android.util.Log
+import timber.log.Timber
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -17,15 +17,15 @@ internal fun lineLoader(
     scope: CoroutineScope,
 ): LineLoader = LineLoader {
     scope.launch {
-        Log.d(TAG, "Loading bus lines")
+        Timber.d("Loading bus lines")
         state.update { it.copy(isLoadingLines = true, errorMessage = null) }
         runCatching { loadBusLines() }
             .onSuccess { lines ->
-                Log.d(TAG, "Loaded ${lines.size} bus lines")
+                Timber.d("Loaded ${lines.size} bus lines")
                 state.update { it.copy(lines = lines, isLoadingLines = false) }
             }
             .onFailure { error ->
-                Log.e(TAG, "Failed to load bus lines: ${error.message}", error)
+                Timber.e("Failed to load bus lines: ${error.message}", error)
                 state.update {
                     it.copy(
                         isLoadingLines = false,

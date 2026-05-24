@@ -7,7 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.util.Log
+import timber.log.Timber
 import androidx.core.app.NotificationCompat
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.ui.MainActivity
@@ -68,7 +68,7 @@ internal fun ensureNotificationChannels(context: Context): NotificationChannelsE
                 enableVibration(true)
             },
         )
-        Log.d(TAG, "Notification channels ensured")
+        Timber.d("Notification channels ensured")
     }
 
 private fun baseNotification(context: Context, channelId: String): NotificationCompat.Builder =

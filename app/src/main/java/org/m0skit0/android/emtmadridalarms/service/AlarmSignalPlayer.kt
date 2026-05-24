@@ -8,7 +8,7 @@ import android.os.Build
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
-import android.util.Log
+import timber.log.Timber
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
 
@@ -23,25 +23,25 @@ fun interface StartSignal : (BusAlarmRequest) -> Unit
 
 internal fun startSignal(context: Context, globalState: GlobalStateHolder): StartSignal =
     StartSignal { request ->
-        Log.i(TAG, "Starting ringing line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
+        Timber.i("Starting ringing line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
         val ringtone = resolveRingtone(context)
         val vibrator = startVibration(context)
         globalState.update { appState ->
             appState.copy(alarmSignal = AlarmSignalState(ringtone = ringtone, vibrator = vibrator))
         }
-        Log.d(TAG, "Ringing started: ringtone=${ringtone != null}")
+        Timber.d("Ringing started: ringtone=${ringtone != null}")
     }
 
 private fun resolveRingtone(context: Context): Ringtone? {
     val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
         ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
         ?: Uri.EMPTY
-    Log.d(TAG, "Using ringtone uri=$uri")
+    Timber.d("Using ringtone uri=$uri")
     val ringtone = RingtoneManager.getRingtone(context, uri)?.apply {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) isLooping = true
         play()
     }
-    if (ringtone == null) Log.w(TAG, "No ringtone available for uri=$uri")
+    if (ringtone == null) Timber.w("No ringtone available for uri=$uri")
     return ringtone
 }
 
@@ -63,7 +63,7 @@ private fun startVibration(context: Context): Vibrator {
 
 internal fun stopSignal(globalState: GlobalStateHolder): StopSignal =
     StopSignal {
-        Log.d(TAG, "Stopping ringtone/vibration")
+        Timber.d("Stopping ringtone/vibration")
         val signal = globalState.state.alarmSignal
         signal.ringtone?.stop()
         signal.vibrator?.cancel()

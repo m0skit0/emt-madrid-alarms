@@ -1,6 +1,6 @@
 package org.m0skit0.android.emtmadridalarms.data
 
-import android.util.Log
+import timber.log.Timber
 import java.io.IOException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -40,10 +40,7 @@ private fun cachedToken(globalState: GlobalStateHolder): String? {
     val authState = globalState.state.emtAuthToken
     val cached = authState.token
     if (cached.isNullOrBlank() || System.currentTimeMillis() >= authState.expiresAtMillis - 60_000L) return null
-    Log.d(
-        TAG,
-        "Using cached EMT token expiresInMs=${authState.expiresAtMillis - System.currentTimeMillis()}"
-    )
+    Timber.d("Using cached EMT token expiresInMs=${authState.expiresAtMillis - System.currentTimeMillis()}")
     return cached
 }
 
@@ -60,16 +57,13 @@ private suspend fun fetchAndStoreToken(
 
 private fun requireCredentials(credentials: EmtCredentials) {
     if (!credentials.hasUsableCredentials) {
-        Log.w(TAG, "Missing EMT credentials")
+        Timber.w("Missing EMT credentials")
         throw IOException("Missing EMT credentials. Add EMT_EMAIL and EMT_PASSWORD, or EMT_CLIENT_ID and EMT_PASS_KEY, to local.properties.")
     }
 }
 
 private suspend fun fetchToken(api: EmtApi, credentials: EmtCredentials): Pair<String, Long> {
-    Log.d(
-        TAG,
-        "Requesting new EMT token authMode=${if (credentials.passKey.isNotBlank()) "passKey" else "email"}"
-    )
+    Timber.d("Requesting new EMT token authMode=${if (credentials.passKey.isNotBlank()) "passKey" else "email"}")
     val response = api.login(
         email = credentials.email.takeIf { it.isNotBlank() && credentials.passKey.isBlank() },
         password = credentials.password.takeIf { it.isNotBlank() && credentials.passKey.isBlank() },
@@ -79,18 +73,12 @@ private suspend fun fetchToken(api: EmtApi, credentials: EmtCredentials): Pair<S
     val tokenData = response.data.firstOrNull()
     val newToken = tokenData?.accessToken
     if (newToken.isNullOrBlank()) {
-        Log.w(
-            TAG,
-            "Login returned no token code=${response.code} description=${response.description}"
-        )
+        Timber.w("Login returned no token code=${response.code} description=${response.description}")
         throw IOException(response.description ?: "EMT login failed")
     }
     val expiresAtMillis =
         System.currentTimeMillis() + ((tokenData.tokenSecExpiration ?: 900) * 1_000L)
-    Log.d(
-        TAG,
-        "Fetched EMT token code=${response.code} expiresInSec=${tokenData.tokenSecExpiration ?: 900}"
-    )
+    Timber.d("Fetched EMT token code=${response.code} expiresInSec=${tokenData.tokenSecExpiration ?: 900}")
     return newToken to expiresAtMillis
 }
 
@@ -103,5 +91,5 @@ private fun storeToken(globalState: GlobalStateHolder, token: String, expiresAtM
             )
         )
     }
-    Log.d(TAG, "Stored EMT token expiresAtMillis=$expiresAtMillis")
+    Timber.d("Stored EMT token expiresAtMillis=$expiresAtMillis")
 }

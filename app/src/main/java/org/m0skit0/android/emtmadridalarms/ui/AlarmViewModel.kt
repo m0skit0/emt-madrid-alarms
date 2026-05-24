@@ -1,6 +1,6 @@
 package org.m0skit0.android.emtmadridalarms.ui
 
-import android.util.Log
+import timber.log.Timber
 import androidx.lifecycle.ViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -102,7 +102,7 @@ class AlarmViewModel(
     }
 
     private fun onLineSelected(line: BusLine) {
-        Log.d(TAG, "Line selected label=${line.label}")
+        Timber.d("Line selected label=${line.label}")
         _state.update {
             it.copy(
                 selectedLine = line,
@@ -118,7 +118,7 @@ class AlarmViewModel(
     }
 
     private fun onStopSelected(stop: BusStop) {
-        Log.d(TAG, "Stop selected id=${stop.id} name=${stop.name}")
+        Timber.d("Stop selected id=${stop.id} name=${stop.name}")
         _state.update {
             it.copy(
                 selectedStop = stop,
@@ -132,7 +132,7 @@ class AlarmViewModel(
         buildRequest(_state.value)
             .onSuccess { startAlarm(it) }
             .onFailure { error ->
-                Log.w(TAG, "Cannot start alarm: ${error.message}")
+                Timber.w("Cannot start alarm: ${error.message}")
                 _state.update { it.copy(errorMessage = error.message) }
             }
     }

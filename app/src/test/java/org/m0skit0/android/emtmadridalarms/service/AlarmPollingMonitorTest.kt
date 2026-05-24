@@ -1,13 +1,9 @@
 package org.m0skit0.android.emtmadridalarms.service
 
-import android.util.Log
 import io.kotest.matchers.shouldBe
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
-import io.mockk.mockkStatic
 import kotlinx.coroutines.test.runTest
-import org.junit.Before
 import org.junit.Test
 import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
@@ -21,15 +17,6 @@ class AlarmPollingMonitorTest {
     private val request = BusAlarmRequest(line = "1", stopId = "62", targetMinutes = 10)
     private val arrivalWithinWindow = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 300, distanceMeters = 0)
     private val unavailableArrival = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 999999, distanceMeters = 0)
-
-    @Before
-    fun stubLog() {
-        mockkStatic(Log::class)
-        every { Log.d(any(), any()) } returns 0
-        every { Log.e(any(), any(), any()) } returns 0
-        every { Log.i(any(), any()) } returns 0
-        every { Log.w(any(), any<String>()) } returns 0
-    }
 
     @Test
     fun `given an arrival within the target window, when polled, then the alarm is triggered and ringing is set`() = runTest {

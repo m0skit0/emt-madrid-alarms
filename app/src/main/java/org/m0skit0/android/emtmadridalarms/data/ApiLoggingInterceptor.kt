@@ -1,6 +1,6 @@
 package org.m0skit0.android.emtmadridalarms.data
 
-import android.util.Log
+import timber.log.Timber
 import java.io.IOException
 import okhttp3.Interceptor
 
@@ -17,15 +17,15 @@ internal fun loggingInterceptor(): Interceptor = Interceptor { chain ->
         append(url.encodedPath)
         if (url.encodedQuery != null) append("?").append(url.encodedQuery)
     }
-    Log.d(TAG, "--> ${request.method} $safeUrl")
+    Timber.d("--> ${request.method} $safeUrl")
     try {
         val response = chain.proceed(request)
         val elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000
-        Log.d(TAG, "<-- ${request.method} $safeUrl ${response.code} (${elapsedMillis}ms)")
+        Timber.d("<-- ${request.method} $safeUrl ${response.code} (${elapsedMillis}ms)")
         response
     } catch (error: IOException) {
         val elapsedMillis = (System.nanoTime() - startNanos) / 1_000_000
-        Log.w(TAG, "<-- ${request.method} $safeUrl FAILED (${elapsedMillis}ms): ${error.message}")
+        Timber.w("<-- ${request.method} $safeUrl FAILED (${elapsedMillis}ms): ${error.message}")
         throw error
     }
 }

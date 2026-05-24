@@ -3,7 +3,7 @@ package org.m0skit0.android.emtmadridalarms.service
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
-import android.util.Log
+import timber.log.Timber
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -36,7 +36,7 @@ class AlarmMonitorService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        Log.d(TAG, "Service created")
+        Timber.d("Service created")
         channelsEnsurer()
 
         cancelJob = cancelJob(globalState)
@@ -47,13 +47,13 @@ class AlarmMonitorService : Service() {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d(TAG, "onStartCommand action=${intent?.action} startId=$startId flags=$flags")
+        Timber.d("onStartCommand action=${intent?.action} startId=$startId flags=$flags")
         when (intent?.action) {
             ACTION_CANCEL -> cancelMonitoring()
             ACTION_STOP_RINGING -> stopRingingAndSelf()
             ACTION_START -> startMonitoring(intent.alarmRequest())
-            null -> Log.w(TAG, "Service restarted without action; no alarm restored yet")
-            else -> Log.w(TAG, "Unknown service action=${intent.action}")
+            null -> Timber.w("Service restarted without action; no alarm restored yet")
+            else -> Timber.w("Unknown service action=${intent.action}")
         }
         return START_STICKY
     }
@@ -61,7 +61,7 @@ class AlarmMonitorService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onDestroy() {
-        Log.d(TAG, "Service destroyed")
+        Timber.d("Service destroyed")
         cancelJob()
         stopSignal()
         scope.cancel()

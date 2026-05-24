@@ -1,6 +1,6 @@
 package org.m0skit0.android.emtmadridalarms.data
 
-import android.util.Log
+import timber.log.Timber
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 
 fun interface LinesProvider : suspend () -> List<BusLine>
@@ -14,7 +14,7 @@ internal fun linesForToday(
     validator: EmtResponseValidator,
 ): LinesProvider = LinesProvider {
     val dateRef = dateProvider()
-    Log.d(TAG, "Loading EMT lines for dateRef=$dateRef")
+    Timber.d("Loading EMT lines for dateRef=$dateRef")
     val response = api.lines(authTokenProvider(), dateRef)
     validator(response.code, response.description)
 
@@ -27,7 +27,7 @@ internal fun linesForToday(
         }
         .distinctBy { normalizeLine(it.label) }
         .sortedWith(busLineComparator())
-    Log.d(TAG, "Loaded EMT lines raw=${response.data.size} mapped=${lines.size}")
+    Timber.d("Loaded EMT lines raw=${response.data.size} mapped=${lines.size}")
     lines
 }
 

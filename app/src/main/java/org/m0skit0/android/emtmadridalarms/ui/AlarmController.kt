@@ -1,7 +1,7 @@
 package org.m0skit0.android.emtmadridalarms.ui
 
 import android.content.Context
-import android.util.Log
+import timber.log.Timber
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -27,12 +27,12 @@ internal fun alarmStarter(
     scope: CoroutineScope,
 ): AlarmStarter = AlarmStarter { request ->
     scope.launch {
-        Log.d(TAG, "Starting alarm line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
+        Timber.d("Starting alarm line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
         state.update { it.copy(isLoading = true, errorMessage = null) }
         saveActiveAlarm(request)
         startAlarmService(context, request)
         state.update { it.copy(isLoading = false, activeAlarm = request) }
-        Log.d(TAG, "Alarm start requested")
+        Timber.d("Alarm start requested")
     }
 }
 
@@ -44,7 +44,7 @@ internal fun alarmCanceller(
     scope: CoroutineScope,
 ): AlarmCanceller = AlarmCanceller {
     scope.launch {
-        Log.d(TAG, "Cancelling alarm")
+        Timber.d("Cancelling alarm")
         cancelAlarmService(context)
         clearActiveAlarm()
         setRinging(false)
@@ -60,7 +60,7 @@ internal fun ringingStop(
     scope: CoroutineScope,
 ): RingingStop = RingingStop {
     scope.launch {
-        Log.d(TAG, "Stopping ringing")
+        Timber.d("Stopping ringing")
         stopAlarmRinging(context)
         setRinging(false)
         clearActiveAlarm()

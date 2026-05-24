@@ -1,6 +1,6 @@
 package org.m0skit0.android.emtmadridalarms.ui
 
-import android.util.Log
+import timber.log.Timber
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
@@ -18,14 +18,14 @@ internal fun stopLoader(
     scope: CoroutineScope,
 ): StopLoader = StopLoader { line ->
     scope.launch {
-        Log.d(TAG, "Loading stops for line=${line.label}")
+        Timber.d("Loading stops for line=${line.label}")
         runCatching { loadBusStops(line) }
             .onSuccess { stops ->
-                Log.d(TAG, "Loaded ${stops.size} stops for line=${line.label}")
+                Timber.d("Loaded ${stops.size} stops for line=${line.label}")
                 state.update { it.copy(stops = stops, isLoadingStops = false) }
             }
             .onFailure { error ->
-                Log.e(TAG, "Failed to load stops for line=${line.label}: ${error.message}", error)
+                Timber.e("Failed to load stops for line=${line.label}: ${error.message}", error)
                 state.update {
                     it.copy(
                         isLoadingStops = false,

@@ -1,9 +1,6 @@
 package org.m0skit0.android.emtmadridalarms.ui
 
-import android.util.Log
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockkStatic
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -40,15 +37,12 @@ class AlarmViewModelTest {
 
     private fun emptyPersisted() = PersistedAlarmState(
         activeAlarm = null, latestEtaSeconds = null,
+
         latestDestination = "", statusMessage = "", isRinging = false,
     )
 
     @Before
     fun setup() {
-        mockkStatic(Log::class)
-        every { Log.d(any(), any()) } returns 0
-        every { Log.w(any(), any<String>()) } returns 0
-
         loadLinesCallCount = 0
         lastLoadStopsArg = null
         startAlarmArg = null
