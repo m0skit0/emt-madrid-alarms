@@ -85,12 +85,7 @@ private fun <T> SearchSelectionScreen(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     val filteredOptions = remember(query, options) {
-        val trimmedQuery = query.trim()
-        if (trimmedQuery.isBlank()) {
-            options
-        } else {
-            options.filter { optionText(it).contains(trimmedQuery, ignoreCase = true) }
-        }
+        fuzzyFilter(options, query, optionText)
     }
 
     LaunchedEffect(Unit) {

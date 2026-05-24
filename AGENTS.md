@@ -71,6 +71,7 @@ org.m0skit0.android.emtmadridalarms
 - `EmtTheme.kt` — `EmtTheme` wrapper
 - `LineLoader.kt` — `LineLoader` + `lineLoader(...)` factory
 - `MainActivity.kt` — `ComponentActivity`; requests `POST_NOTIFICATIONS` on Android 13+
+- `FuzzySearch.kt` — `fuzzyScore(query, target)` + `fuzzyFilter(options, query, text)` top-level pure functions
 - `Routes.kt` — internal `object` with route constants + `ALARM_ROUTES` set
 - `ScreenLayout.kt` — `ScreenColumn()` helper composable
 - `SelectionScreens.kt` — `LineSelectionScreen`, `StopSelectionScreen` composables
@@ -248,6 +249,7 @@ fun `given valid inputs when building request then returns success`() { ... }
 | `LineLoader`, `StopLoader` | `ApiLoggingInterceptor`, `EmtDateProvider` |
 | `AlarmViewModel` | `AlarmServiceIntents`, `AlarmServiceCommands` |
 | `BusAlarmModels` (computed properties) | |
+| `FuzzySearch` (`fuzzyScore`, `fuzzyFilter`) | |
 
 ### `fun interface` mocking rule
 
