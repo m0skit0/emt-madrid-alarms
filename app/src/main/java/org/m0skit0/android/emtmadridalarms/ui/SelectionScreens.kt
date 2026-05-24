@@ -23,8 +23,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.m0skit0.android.emtmadridalarms.R
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
 
@@ -35,12 +37,12 @@ internal fun LineSelectionScreen(
     onBack: () -> Unit,
 ) {
     SearchSelectionScreen(
-        title = "Select bus line",
-        placeholder = "Search line or destination",
+        title = stringResource(R.string.title_select_line),
+        placeholder = stringResource(R.string.placeholder_search_line),
         isLoading = state.isLoadingLines,
         options = state.lines,
         optionText = BusLine::displayName,
-        emptyText = "No lines found",
+        emptyText = stringResource(R.string.empty_text_no_lines),
         onBack = onBack,
         onOptionSelected = {
             dispatch(AlarmIntent.LineSelected(it))
@@ -56,12 +58,12 @@ internal fun StopSelectionScreen(
     onBack: () -> Unit,
 ) {
     SearchSelectionScreen(
-        title = "Select bus stop",
-        placeholder = "Search stop number or name",
+        title = stringResource(R.string.title_select_stop),
+        placeholder = stringResource(R.string.placeholder_search_stop),
         isLoading = state.isLoadingStops,
         options = state.stops,
         optionText = BusStop::displayName,
-        emptyText = if (state.selectedLine == null) "Select a line first" else "No stops found",
+        emptyText = if (state.selectedLine == null) stringResource(R.string.empty_text_no_stops_loaded) else stringResource(R.string.empty_text_no_stops),
         onBack = onBack,
         onOptionSelected = {
             dispatch(AlarmIntent.StopSelected(it))
@@ -100,22 +102,22 @@ private fun <T> SearchSelectionScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        Text(text = title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-            Text("Back")
-        }
-        OutlinedTextField(
-            value = query,
-            onValueChange = { query = it },
-            placeholder = { Text(placeholder) },
-            singleLine = true,
-            modifier = Modifier
-                .fillMaxWidth()
-                .focusRequester(focusRequester),
-        )
-        when {
-            isLoading -> SearchResultRow(text = "Loading...")
-            filteredOptions.isEmpty() -> SearchResultRow(text = emptyText)
+         Text(text = title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+         OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+             Text(stringResource(R.string.button_back))
+         }
+         OutlinedTextField(
+             value = query,
+             onValueChange = { query = it },
+             placeholder = { Text(placeholder) },
+             singleLine = true,
+             modifier = Modifier
+                 .fillMaxWidth()
+                 .focusRequester(focusRequester),
+         )
+         when {
+             isLoading -> SearchResultRow(text = stringResource(R.string.text_loading))
+             filteredOptions.isEmpty() -> SearchResultRow(text = emptyText)
             else -> LazyColumn(modifier = Modifier.fillMaxSize()) {
                 items(filteredOptions) { option ->
                     SearchResultRow(

@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -32,18 +33,18 @@ internal fun SetupScreen(
         SetupHeader()
         PickerField(
             value = state.selectedLine?.displayName.orEmpty(),
-            label = "Bus line",
-            placeholder = if (state.isLoadingLines) "Loading lines..." else "Select bus line",
+            label = stringResource(R.string.label_bus_line),
+            placeholder = if (state.isLoadingLines) stringResource(R.string.placeholder_loading_lines) else stringResource(R.string.placeholder_select_line),
             enabled = !state.isLoadingLines,
             onClick = onSelectLine,
         )
         PickerField(
             value = state.selectedStop?.displayName.orEmpty(),
-            label = "Bus stop",
+            label = stringResource(R.string.label_bus_stop),
             placeholder = when {
-                state.selectedLine == null -> "Select a line first"
-                state.isLoadingStops -> "Loading stops..."
-                else -> "Select bus stop"
+                state.selectedLine == null -> stringResource(R.string.placeholder_select_line_first)
+                state.isLoadingStops -> stringResource(R.string.placeholder_loading_stops)
+                else -> stringResource(R.string.placeholder_select_stop)
             },
             enabled = state.selectedLine != null,
             onClick = onSelectStop,
@@ -60,12 +61,12 @@ private fun SetupHeader() {
         modifier = Modifier.size(96.dp),
     )
     Text(
-        text = "Wake me when my bus is close",
+        text = stringResource(R.string.setup_title),
         style = MaterialTheme.typography.headlineMedium,
         fontWeight = FontWeight.Bold,
     )
     Text(
-        text = "Search for a line, then pick one of the stops served by that line.",
+        text = stringResource(R.string.setup_description),
         style = MaterialTheme.typography.bodyLarge,
     )
     Spacer(Modifier.height(12.dp))
@@ -78,13 +79,13 @@ private fun AlarmInputControls(state: AlarmState, dispatch: (AlarmIntent) -> Uni
             onClick = { dispatch(AlarmIntent.RefreshLinesClicked) },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Reload bus lines")
+            Text(stringResource(R.string.button_reload_lines))
         }
     }
     OutlinedTextField(
         value = state.minutesInput,
         onValueChange = { dispatch(AlarmIntent.MinutesChanged(it)) },
-        label = { Text("Trigger at minutes before arrival") },
+        label = { Text(stringResource(R.string.label_trigger_minutes)) },
         singleLine = true,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = Modifier.fillMaxWidth(),
@@ -94,7 +95,7 @@ private fun AlarmInputControls(state: AlarmState, dispatch: (AlarmIntent) -> Uni
         enabled = !state.isLoading && !state.isLoadingStops && state.selectedLine != null && state.selectedStop != null,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Text(if (state.isLoading) "Starting..." else "Start alarm")
+        Text(if (state.isLoading) stringResource(R.string.button_starting) else stringResource(R.string.button_start_alarm))
     }
 }
 

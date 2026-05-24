@@ -11,20 +11,22 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.m0skit0.android.emtmadridalarms.R
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 
 @Composable
 internal fun MonitoringScreen(state: AlarmState, dispatch: (AlarmIntent) -> Unit) {
     ScreenColumn {
         Text(
-            text = "Monitoring",
+            text = stringResource(R.string.title_monitoring),
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
         )
         if (state.activeAlarm == null) {
-            Text("No active alarm.")
+            Text(stringResource(R.string.text_no_active_alarm))
         } else {
             AlarmDetailsCard(state.activeAlarm)
         }
@@ -33,7 +35,7 @@ internal fun MonitoringScreen(state: AlarmState, dispatch: (AlarmIntent) -> Unit
             onClick = { dispatch(AlarmIntent.CancelClicked) },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Cancel alarm")
+            Text(stringResource(R.string.button_cancel_alarm))
         }
     }
 }
@@ -42,9 +44,9 @@ internal fun MonitoringScreen(state: AlarmState, dispatch: (AlarmIntent) -> Unit
 private fun AlarmDetailsCard(alarm: BusAlarmRequest) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Line ${alarm.line}", style = MaterialTheme.typography.titleLarge)
-            Text("Stop ${alarm.stopId}")
-            Text("Alarm triggers at ${alarm.targetMinutes} minutes or less")
+            Text(stringResource(R.string.text_line, alarm.line), style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(R.string.text_stop, alarm.stopId))
+            Text(stringResource(R.string.text_alarm_triggers, alarm.targetMinutes))
         }
     }
 }
@@ -53,10 +55,10 @@ private fun AlarmDetailsCard(alarm: BusAlarmRequest) {
 private fun EtaStatusCard(state: AlarmState) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text("Latest EMT estimate", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.text_latest_estimate), style = MaterialTheme.typography.titleMedium)
             val eta = state.latestEtaSeconds
-            Text(if (eta == null) "Waiting for a matching arrival..." else "${eta / 60} min ${eta % 60} sec")
-            if (state.latestDestination.isNotBlank()) Text("Destination: ${state.latestDestination}")
+            Text(if (eta == null) stringResource(R.string.text_waiting_arrival) else stringResource(R.string.text_eta_format, eta / 60, eta % 60))
+            if (state.latestDestination.isNotBlank()) Text(stringResource(R.string.text_destination, state.latestDestination))
             if (state.statusMessage.isNotBlank()) Text(
                 state.statusMessage,
                 style = MaterialTheme.typography.bodySmall
@@ -69,22 +71,22 @@ private fun EtaStatusCard(state: AlarmState) {
 internal fun RingingScreen(state: AlarmState, dispatch: (AlarmIntent) -> Unit) {
     ScreenColumn {
         Text(
-            text = "Bus arriving",
+            text = stringResource(R.string.title_ringing),
             style = MaterialTheme.typography.headlineLarge,
             fontWeight = FontWeight.Bold,
         )
         Text(
-            text = "The monitored bus is within your configured arrival window.",
+            text = stringResource(R.string.text_bus_arriving),
             style = MaterialTheme.typography.bodyLarge,
         )
         if (state.latestEtaSeconds != null) {
-            Text("Last estimate: ${state.latestEtaSeconds / 60} min ${state.latestEtaSeconds % 60} sec")
+            Text(stringResource(R.string.text_last_estimate, state.latestEtaSeconds / 60, state.latestEtaSeconds % 60))
         }
         Button(
             onClick = { dispatch(AlarmIntent.StopRingingClicked) },
             modifier = Modifier.fillMaxWidth(),
         ) {
-            Text("Stop alarm")
+            Text(stringResource(R.string.button_stop_alarm))
         }
     }
 }

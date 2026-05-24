@@ -1,0 +1,55 @@
+<resources>
+    <string name="app_name">Alarmas EMT Madrid</string>
+    
+    <!-- Header strings -->
+    <string name="app_title">Alarmas EMT Madrid</string>
+    
+    <!-- Setup Screen -->
+    <string name="setup_title">Despiértame cuando mi autobús esté cerca</string>
+    <string name="setup_description">Busca una línea y elige una de las paradas que sirve.</string>
+    <string name="label_bus_line">Línea de autobús</string>
+    <string name="label_bus_stop">Parada de autobús</string>
+    <string name="placeholder_select_line">Selecciona línea de autobús</string>
+    <string name="placeholder_loading_lines">Cargando líneas...</string>
+    <string name="placeholder_select_line_first">Selecciona primero una línea</string>
+    <string name="placeholder_select_stop">Selecciona parada de autobús</string>
+    <string name="placeholder_loading_stops">Cargando paradas...</string>
+    <string name="label_trigger_minutes">Activar minutos antes de la llegada</string>
+    <string name="button_reload_lines">Recargar líneas de autobús</string>
+    <string name="button_start_alarm">Iniciar alarma</string>
+    <string name="button_starting">Iniciando...</string>
+    
+    <!-- Line Selection Screen -->
+    <string name="title_select_line">Selecciona línea de autobús</string>
+    <string name="placeholder_search_line">Busca línea o destino</string>
+    <string name="empty_text_no_lines">No se encontraron líneas</string>
+    
+    <!-- Stop Selection Screen -->
+    <string name="title_select_stop">Selecciona parada de autobús</string>
+    <string name="placeholder_search_stop">Busca número de parada o nombre</string>
+    <string name="empty_text_no_stops_loaded">Selecciona primero una línea</string>
+    <string name="empty_text_no_stops">No se encontraron paradas</string>
+    
+    <!-- Common UI -->
+    <string name="button_back">Atrás</string>
+    <string name="text_loading">Cargando...</string>
+    <string name="empty_results">Sin resultados</string>
+    
+    <!-- Monitoring Screen -->
+    <string name="title_monitoring">Monitoreando</string>
+    <string name="text_no_active_alarm">Sin alarma activa.</string>
+    <string name="text_line">Línea %s</string>
+    <string name="text_stop">Parada %s</string>
+    <string name="text_alarm_triggers">La alarma se activará en %d minutos o menos</string>
+    <string name="text_latest_estimate">Última estimación EMT</string>
+    <string name="text_waiting_arrival">Esperando una llegada coincidente...</string>
+    <string name="text_eta_format">%d min %d seg</string>
+    <string name="text_destination">Destino: %s</string>
+    <string name="button_cancel_alarm">Cancelar alarma</string>
+    
+    <!-- Ringing Screen -->
+    <string name="title_ringing">Autobús llegando</string>
+    <string name="text_bus_arriving">El autobús monitoreado está dentro de tu ventana de llegada configurada.</string>
+    <string name="text_last_estimate">Última estimación: %d min %d seg</string>
+    <string name="button_stop_alarm">Detener alarma</string>
+</resources>

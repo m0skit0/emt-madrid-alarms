@@ -1,3 +1,55 @@
 <resources>
     <string name="app_name">EMT Madrid Alarms</string>
+    
+    <!-- Header strings -->
+    <string name="app_title">EMT Madrid Alarms</string>
+    
+    <!-- Setup Screen -->
+    <string name="setup_title">Wake me when my bus is close</string>
+    <string name="setup_description">Search for a line, then pick one of the stops served by that line.</string>
+    <string name="label_bus_line">Bus line</string>
+    <string name="label_bus_stop">Bus stop</string>
+    <string name="placeholder_select_line">Select bus line</string>
+    <string name="placeholder_loading_lines">Loading lines...</string>
+    <string name="placeholder_select_line_first">Select a line first</string>
+    <string name="placeholder_select_stop">Select bus stop</string>
+    <string name="placeholder_loading_stops">Loading stops...</string>
+    <string name="label_trigger_minutes">Trigger at minutes before arrival</string>
+    <string name="button_reload_lines">Reload bus lines</string>
+    <string name="button_start_alarm">Start alarm</string>
+    <string name="button_starting">Starting...</string>
+    
+    <!-- Line Selection Screen -->
+    <string name="title_select_line">Select bus line</string>
+    <string name="placeholder_search_line">Search line or destination</string>
+    <string name="empty_text_no_lines">No lines found</string>
+    
+    <!-- Stop Selection Screen -->
+    <string name="title_select_stop">Select bus stop</string>
+    <string name="placeholder_search_stop">Search stop number or name</string>
+    <string name="empty_text_no_stops_loaded">Select a line first</string>
+    <string name="empty_text_no_stops">No stops found</string>
+    
+    <!-- Common UI -->
+    <string name="button_back">Back</string>
+    <string name="text_loading">Loading...</string>
+    <string name="empty_results">No results</string>
+    
+    <!-- Monitoring Screen -->
+    <string name="title_monitoring">Monitoring</string>
+    <string name="text_no_active_alarm">No active alarm.</string>
+    <string name="text_line">Line %s</string>
+    <string name="text_stop">Stop %s</string>
+    <string name="text_alarm_triggers">Alarm triggers at %d minutes or less</string>
+    <string name="text_latest_estimate">Latest EMT estimate</string>
+    <string name="text_waiting_arrival">Waiting for a matching arrival...</string>
+    <string name="text_eta_format">%d min %d sec</string>
+    <string name="text_destination">Destination: %s</string>
+    <string name="button_cancel_alarm">Cancel alarm</string>
+    
+    <!-- Ringing Screen -->
+    <string name="title_ringing">Bus arriving</string>
+    <string name="text_bus_arriving">The monitored bus is within your configured arrival window.</string>
+    <string name="text_last_estimate">Last estimate: %d min %d sec</string>
+    <string name="button_stop_alarm">Stop alarm</string>
 </resources>
