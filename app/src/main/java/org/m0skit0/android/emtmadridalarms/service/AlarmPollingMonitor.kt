@@ -14,7 +14,6 @@ import kotlin.time.Duration.Companion.seconds
 
 fun interface AlarmPollingMonitor : suspend (BusAlarmRequest, suspend (BusArrival) -> Unit) -> Unit
 
-private const val TAG = "BusAlarm"
 private val POLL_INTERVAL = 30.seconds
 
 internal fun pollAlarm(
@@ -44,7 +43,7 @@ private suspend fun runPollLoop(
         val triggered = try {
             processPoll(pollNumber, request, loadBusArrivals, saveLatestArrival, setRinging, clearActiveAlarm, onTriggered)
         } catch (error: Exception) {
-            Timber.e("Poll #$pollNumber failed: ${error.message}", error)
+            Timber.e(error, "Poll #$pollNumber failed: ${error.message}")
             saveStatus(error.message ?: "Could not refresh EMT arrivals.")
             false
         }

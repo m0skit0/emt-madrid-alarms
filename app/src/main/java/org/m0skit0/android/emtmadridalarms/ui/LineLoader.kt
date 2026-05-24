@@ -7,8 +7,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusLinesUseCase
 
-private const val TAG = "LineLoader"
-
 fun interface LineLoader : () -> Unit
 
 internal fun lineLoader(
@@ -25,7 +23,7 @@ internal fun lineLoader(
                 state.update { it.copy(lines = lines, isLoadingLines = false) }
             }
             .onFailure { error ->
-                Timber.e("Failed to load bus lines: ${error.message}", error)
+                Timber.e(error, "Failed to load bus lines: ${error.message}")
                 state.update {
                     it.copy(
                         isLoadingLines = false,

@@ -8,8 +8,6 @@ import kotlinx.coroutines.launch
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusStopsUseCase
 
-private const val TAG = "StopLoader"
-
 fun interface StopLoader : (BusLine) -> Unit
 
 internal fun stopLoader(
@@ -25,7 +23,7 @@ internal fun stopLoader(
                 state.update { it.copy(stops = stops, isLoadingStops = false) }
             }
             .onFailure { error ->
-                Timber.e("Failed to load stops for line=${line.label}: ${error.message}", error)
+                Timber.e(error, "Failed to load stops for line=${line.label}: ${error.message}")
                 state.update {
                     it.copy(
                         isLoadingStops = false,
