@@ -39,6 +39,6 @@ interface EmtApi {
     @POST("v1/transport/busemtmad/stops/list/")
     suspend fun stopsList(
         @Header("accessToken") accessToken: String,
-        @Body body: StopsListRequestBody = StopsListRequestBody(),
+        @Body body: List<String> = emptyList(),
     ): EmtStopsListResponse
 }

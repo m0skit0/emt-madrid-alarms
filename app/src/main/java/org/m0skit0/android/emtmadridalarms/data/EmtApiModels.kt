@@ -80,9 +80,6 @@ data class EmtLineStopsResponse(
 )
 
 @Serializable
-class StopsListRequestBody
-
-@Serializable
 data class EmtStopsListResponse(
     val code: String? = null,
     val description: String? = null,
