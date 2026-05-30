@@ -49,17 +49,9 @@ private suspend fun fetchAndStoreToken(
     credentials: EmtCredentials,
     globalState: GlobalStateHolder,
 ): String {
-    requireCredentials(credentials)
     val (token, expiresAtMillis) = fetchToken(api, credentials)
     storeToken(globalState, token, expiresAtMillis)
     return token
-}
-
-private fun requireCredentials(credentials: EmtCredentials) {
-    if (!credentials.hasUsableCredentials) {
-        Timber.w("Missing EMT credentials")
-        throw IOException("Missing EMT credentials. Add EMT_EMAIL and EMT_PASSWORD, or EMT_CLIENT_ID and EMT_PASS_KEY, to local.properties.")
-    }
 }
 
 private suspend fun fetchToken(api: EmtApi, credentials: EmtCredentials): Pair<String, Long> {

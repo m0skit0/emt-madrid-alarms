@@ -16,7 +16,19 @@ val localProperties = Properties().apply {
 
 fun localSecret(name: String): String = localProperties.getProperty(name).orEmpty()
 
+fun requireEmtCredentials() {
+    val hasEmailCredentials = localSecret("EMT_EMAIL").isNotBlank() && localSecret("EMT_PASSWORD").isNotBlank()
+    val hasPassKeyCredentials = localSecret("EMT_CLIENT_ID").isNotBlank() && localSecret("EMT_PASS_KEY").isNotBlank()
+    if (!hasEmailCredentials && !hasPassKeyCredentials) {
+        throw GradleException(
+            "Missing EMT credentials. Add EMT_EMAIL and EMT_PASSWORD, or EMT_CLIENT_ID and EMT_PASS_KEY, to local.properties."
+        )
+    }
+}
+
 fun String.asBuildConfigString(): String = "\"${replace("\\", "\\\\").replace("\"", "\\\"")}\""
+
+requireEmtCredentials()
 
 android {
     namespace = "org.m0skit0.android.emtmadridalarms"
