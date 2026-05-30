@@ -8,9 +8,6 @@ data class EmtCredentials(
     val clientId: String,
     val passKey: String,
 ) {
-    val hasUsableCredentials: Boolean =
-        (email.isNotBlank() && password.isNotBlank()) || (clientId.isNotBlank() && passKey.isNotBlank())
-
     companion object {
         fun fromBuildConfig(): EmtCredentials = EmtCredentials(
             email = BuildConfig.EMT_EMAIL,

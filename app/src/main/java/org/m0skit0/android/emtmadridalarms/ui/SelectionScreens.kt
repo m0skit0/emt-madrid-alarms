@@ -63,7 +63,7 @@ internal fun StopSelectionScreen(
         isLoading = state.isLoadingStops,
         options = state.stops,
         optionText = BusStop::displayName,
-        emptyText = if (state.selectedLine == null) stringResource(R.string.empty_text_no_stops_loaded) else stringResource(R.string.empty_text_no_stops),
+        emptyText = stringResource(R.string.empty_text_no_stops),
         onBack = onBack,
         onOptionSelected = {
             dispatch(AlarmIntent.StopSelected(it))

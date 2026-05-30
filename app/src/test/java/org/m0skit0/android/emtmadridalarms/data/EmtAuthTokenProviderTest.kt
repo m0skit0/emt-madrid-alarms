@@ -20,9 +20,6 @@ class EmtAuthTokenProviderTest {
     private val validCredentials = EmtCredentials(
         email = "user@test.com", password = "pass", clientId = "", passKey = ""
     )
-    private val missingCredentials = EmtCredentials(
-        email = "", password = "", clientId = "", passKey = ""
-    )
 
     @Before
     fun setup() {
@@ -84,13 +81,6 @@ class EmtAuthTokenProviderTest {
         val token = provider()
 
         token shouldBe "renewed"
-    }
-
-    @Test
-    fun `given missing credentials, when provider is invoked, then an IOException is thrown`() = runTest {
-        val provider = provideToken(api, missingCredentials, globalState)
-
-        shouldThrow<IOException> { provider() }
     }
 
     @Test

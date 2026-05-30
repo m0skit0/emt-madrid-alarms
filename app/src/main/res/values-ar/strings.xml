@@ -6,7 +6,7 @@
     
     <!-- Setup Screen -->
     <string name="setup_title">نبّهني عندما تقترب حافلتي</string>
-    <string name="setup_description">ابحث عن خط، ثم اختر إحدى المحطات التي يخدمها هذا الخط.</string>
+    <string name="setup_description">اختر خطًا أو محطة أولًا، ثم اختر الخيار المطابق.</string>
     <string name="label_bus_line">خط الحافلة</string>
     <string name="label_bus_stop">محطة الحافلة</string>
     <string name="placeholder_select_line">اختر خط الحافلة</string>

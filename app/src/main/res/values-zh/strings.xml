@@ -6,7 +6,7 @@
     
     <!-- Setup Screen -->
     <string name="setup_title">公交车快到时提醒我</string>
-    <string name="setup_description">搜索线路，然后选择该线路经过的一个车站。</string>
+    <string name="setup_description">先选择公交线路或车站，然后选择匹配的另一项。</string>
     <string name="label_bus_line">公交线路</string>
     <string name="label_bus_stop">公交车站</string>
     <string name="placeholder_select_line">选择公交线路</string>

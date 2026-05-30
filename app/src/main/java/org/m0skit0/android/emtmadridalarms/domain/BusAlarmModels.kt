@@ -33,6 +33,7 @@ data class BusStop(
     val id: String,
     val name: String,
     val address: String,
+    val lineLabels: Set<String> = emptySet(),
 ) {
     val displayName: String = buildString {
         append(id)

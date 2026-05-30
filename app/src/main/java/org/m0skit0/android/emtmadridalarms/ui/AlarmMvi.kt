@@ -11,6 +11,8 @@ data class AlarmState(
     val isLoading: Boolean = false,
     val isLoadingLines: Boolean = false,
     val isLoadingStops: Boolean = false,
+    val allLines: List<BusLine> = emptyList(),
+    val allStops: List<BusStop> = emptyList(),
     val lines: List<BusLine> = emptyList(),
     val stops: List<BusStop> = emptyList(),
     val selectedLine: BusLine? = null,
@@ -30,6 +32,7 @@ sealed interface AlarmIntent {
     data class StopSelected(val value: BusStop) : AlarmIntent
     data class MinutesChanged(val value: String) : AlarmIntent
     data object RefreshLinesClicked : AlarmIntent
+    data object StopPickerOpened : AlarmIntent
     data object StartClicked : AlarmIntent
     data object CancelClicked : AlarmIntent
     data object StopRingingClicked : AlarmIntent

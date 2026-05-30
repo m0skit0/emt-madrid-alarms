@@ -20,6 +20,7 @@ import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.MinutesChanged
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.RefreshLinesClicked
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.StartClicked
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.StopChanged
+import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.StopPickerOpened
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.StopRingingClicked
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.StopSelected
 
@@ -30,6 +31,7 @@ class AlarmViewModel(
     private val scope: CoroutineScope,
     private val alarmStateReader: AlarmStateReader,
     private val loadLines: LineLoader,
+    private val loadAllStops: AllStopLoader,
     private val loadStops: StopLoader,
     private val buildRequest: AlarmRequestBuilder,
     private val startAlarm: AlarmStarter,
@@ -68,6 +70,7 @@ class AlarmViewModel(
                 it.copy(
                     stopInput = intent.value,
                     selectedStop = null,
+                    lines = if (it.selectedLine == null) it.allLines else it.lines,
                     errorMessage = null
                 )
             }
@@ -81,6 +84,7 @@ class AlarmViewModel(
             }
 
             RefreshLinesClicked -> loadLines()
+            StopPickerOpened -> onStopPickerOpened()
             StartClicked -> onStartClicked()
             CancelClicked -> cancelAlarm()
             StopRingingClicked -> stopRinging()
@@ -93,6 +97,7 @@ class AlarmViewModel(
             it.copy(
                 lineInput = value,
                 stopInput = "",
+                lines = it.allLines,
                 selectedLine = null,
                 selectedStop = null,
                 stops = emptyList(),
@@ -103,12 +108,14 @@ class AlarmViewModel(
 
     private fun onLineSelected(line: BusLine) {
         Timber.d("Line selected label=${line.label}")
+        val current = _state.value
+        val selectedStop = current.selectedStop?.takeIf { it.lineLabels.isEmpty() || stopServesLine(it, line) }
         _state.update {
             it.copy(
                 selectedLine = line,
                 lineInput = line.displayName,
-                selectedStop = null,
-                stopInput = "",
+                selectedStop = selectedStop,
+                stopInput = selectedStop?.displayName.orEmpty(),
                 stops = emptyList(),
                 isLoadingStops = true,
                 errorMessage = null
@@ -119,12 +126,30 @@ class AlarmViewModel(
 
     private fun onStopSelected(stop: BusStop) {
         Timber.d("Stop selected id=${stop.id} name=${stop.name}")
+        val current = _state.value
+        val selectedLine = current.selectedLine?.takeIf { stop.lineLabels.isEmpty() || stopServesLine(stop, it) }
+        val candidateLines = current.allLines.ifEmpty { current.lines }
+        val relatedLines = linesForStop(candidateLines, stop).ifEmpty { candidateLines }
         _state.update {
             it.copy(
                 selectedStop = stop,
                 stopInput = stop.displayName,
+                selectedLine = selectedLine,
+                lineInput = selectedLine?.displayName.orEmpty(),
+                lines = relatedLines,
                 errorMessage = null
             )
+        }
+    }
+
+    private fun onStopPickerOpened() {
+        val current = _state.value
+        when {
+            current.selectedLine == null && current.allStops.isNotEmpty() -> {
+                _state.update { it.copy(stops = it.allStops, errorMessage = null) }
+            }
+
+            current.selectedLine == null && !current.isLoadingStops -> loadAllStops()
         }
     }
 

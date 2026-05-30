@@ -80,6 +80,22 @@ data class EmtLineStopsResponse(
 )
 
 @Serializable
+data class EmtStopsListResponse(
+    val code: String? = null,
+    val description: String? = null,
+    val data: List<EmtStopListDto> = emptyList(),
+)
+
+@Serializable
+data class EmtStopListDto(
+    @Serializable(with = FlexibleStringSerializer::class)
+    val node: String = "",
+    @Serializable(with = FlexibleStringSerializer::class)
+    val name: String = "",
+    val lines: List<String> = emptyList(),
+)
+
+@Serializable
 data class EmtLineStopsData(
     val stops: List<EmtStopDto> = emptyList(),
 )

@@ -6,7 +6,7 @@
     
     <!-- Setup Screen -->
     <string name="setup_title">Préviens-moi quand mon bus approche</string>
-    <string name="setup_description">Recherchez une ligne, puis choisissez l\'un des arrêts desservis par cette ligne.</string>
+    <string name="setup_description">Sélectionnez d\'abord une ligne ou un arrêt de bus, puis choisissez l\'option correspondante.</string>
     <string name="label_bus_line">Ligne de bus</string>
     <string name="label_bus_stop">Arrêt de bus</string>
     <string name="placeholder_select_line">Sélectionner une ligne de bus</string>

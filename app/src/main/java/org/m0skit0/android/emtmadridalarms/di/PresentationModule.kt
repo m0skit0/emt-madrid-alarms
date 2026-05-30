@@ -11,6 +11,7 @@ import org.m0skit0.android.emtmadridalarms.ui.alarmCanceller
 import org.m0skit0.android.emtmadridalarms.ui.alarmRequestBuilder
 import org.m0skit0.android.emtmadridalarms.ui.alarmRequestValidator
 import org.m0skit0.android.emtmadridalarms.ui.alarmStarter
+import org.m0skit0.android.emtmadridalarms.ui.allStopLoader
 import org.m0skit0.android.emtmadridalarms.ui.lineLoader
 import org.m0skit0.android.emtmadridalarms.ui.ringingStop
 import org.m0skit0.android.emtmadridalarms.ui.stopLoader
@@ -24,6 +25,7 @@ val presentationModule = module {
             scope = scope,
             alarmStateReader = get(),
             loadLines = lineLoader(get(), state, scope),
+            loadAllStops = allStopLoader(get(), state, scope),
             loadStops = stopLoader(get(), state, scope),
             buildRequest = alarmRequestBuilder(alarmRequestValidator()),
             startAlarm = alarmStarter(androidContext(), get(), state, scope),

@@ -6,7 +6,7 @@
     
     <!-- Setup Screen -->
     <string name="setup_title">Avísame cuando mi autobús esté cerca</string>
-    <string name="setup_description">Busca una línea y elige una de las paradas de esa línea.</string>
+    <string name="setup_description">Selecciona primero una línea o una parada y luego elige la opción correspondiente.</string>
     <string name="label_bus_line">Línea de autobús</string>
     <string name="label_bus_stop">Parada de autobús</string>
     <string name="placeholder_select_line">Selecciona línea de autobús</string>

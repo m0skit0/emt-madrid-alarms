@@ -20,7 +20,13 @@ internal fun lineLoader(
         runCatching { loadBusLines() }
             .onSuccess { lines ->
                 Timber.d("Loaded ${lines.size} bus lines")
-                state.update { it.copy(lines = lines, isLoadingLines = false) }
+                state.update {
+                    it.copy(
+                        allLines = lines,
+                        lines = it.selectedStop?.let { stop -> linesForStop(lines, stop) } ?: lines,
+                        isLoadingLines = false,
+                    )
+                }
             }
             .onFailure { error ->
                 Timber.e(error, "Failed to load bus lines: ${error.message}")

@@ -42,11 +42,10 @@ internal fun SetupScreen(
             value = state.selectedStop?.displayName.orEmpty(),
             label = stringResource(R.string.label_bus_stop),
             placeholder = when {
-                state.selectedLine == null -> stringResource(R.string.placeholder_select_line_first)
                 state.isLoadingStops -> stringResource(R.string.placeholder_loading_stops)
                 else -> stringResource(R.string.placeholder_select_stop)
             },
-            enabled = state.selectedLine != null,
+            enabled = !state.isLoadingStops,
             onClick = onSelectStop,
         )
         AlarmInputControls(state, dispatch)
@@ -92,7 +91,7 @@ private fun AlarmInputControls(state: AlarmState, dispatch: (AlarmIntent) -> Uni
     )
     Button(
         onClick = { dispatch(AlarmIntent.StartClicked) },
-        enabled = !state.isLoading && !state.isLoadingStops && state.selectedLine != null && state.selectedStop != null,
+        enabled = !state.isLoading && !state.isLoadingLines && !state.isLoadingStops && state.selectedLine != null && state.selectedStop != null,
         modifier = Modifier.fillMaxWidth(),
     ) {
         Text(if (state.isLoading) stringResource(R.string.button_starting) else stringResource(R.string.button_start_alarm))
