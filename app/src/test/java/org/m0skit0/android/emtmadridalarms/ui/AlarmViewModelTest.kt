@@ -22,6 +22,7 @@ class AlarmViewModelTest {
     private lateinit var vm: AlarmViewModel
 
     private var loadLinesCallCount = 0
+    private var loadAllStopsCallCount = 0
     private var lastLoadStopsArg: BusLine? = null
     private var startAlarmArg: BusAlarmRequest? = null
     private var cancelAlarmCalled = false
@@ -29,6 +30,7 @@ class AlarmViewModelTest {
     private var buildRequestResult: Result<BusAlarmRequest> = Result.success(BusAlarmRequest("", "", 0))
 
     private val loadLines = LineLoader { loadLinesCallCount++ }
+    private val loadAllStops = AllStopLoader { loadAllStopsCallCount++ }
     private val loadStops = StopLoader { lastLoadStopsArg = it }
     private val startAlarm = AlarmStarter { startAlarmArg = it }
     private val cancelAlarm = AlarmCanceller { cancelAlarmCalled = true }
@@ -44,6 +46,7 @@ class AlarmViewModelTest {
     @Before
     fun setup() {
         loadLinesCallCount = 0
+        loadAllStopsCallCount = 0
         lastLoadStopsArg = null
         startAlarmArg = null
         cancelAlarmCalled = false
@@ -57,6 +60,7 @@ class AlarmViewModelTest {
             scope = scope,
             alarmStateReader = AlarmStateReader { flowOf(emptyPersisted()) },
             loadLines = loadLines,
+            loadAllStops = loadAllStops,
             loadStops = loadStops,
             buildRequest = buildRequest,
             startAlarm = startAlarm,
@@ -81,7 +85,7 @@ class AlarmViewModelTest {
         AlarmViewModel(
             _state = freshState, scope = scope,
             alarmStateReader = AlarmStateReader { flowOf(persisted) },
-            loadLines = loadLines, loadStops = loadStops, buildRequest = buildRequest,
+            loadLines = loadLines, loadAllStops = loadAllStops, loadStops = loadStops, buildRequest = buildRequest,
             startAlarm = startAlarm, cancelAlarm = cancelAlarm, stopRinging = stopRinging,
         )
         dispatcher.scheduler.advanceUntilIdle()
@@ -131,6 +135,52 @@ class AlarmViewModelTest {
         state.value.selectedStop shouldBe stop
         state.value.stopInput shouldBe stop.displayName
         state.value.errorMessage shouldBe null
+    }
+
+    @Test
+    fun `given a bus stop selected first, when StopSelected is dispatched, then lines are filtered to matching lines`() {
+        val line27 = BusLine("027", "27", "A", "B")
+        val line34 = BusLine("034", "34", "C", "D")
+        val stop = BusStop("62", "Gran Via", "Calle 1", lineLabels = setOf("27"))
+        state.value = AlarmState(allLines = listOf(line27, line34), lines = listOf(line27, line34))
+
+        vm.dispatch(AlarmIntent.StopSelected(stop))
+
+        state.value.selectedStop shouldBe stop
+        state.value.selectedLine shouldBe null
+        state.value.lineInput shouldBe ""
+        state.value.lines shouldBe listOf(line27)
+    }
+
+    @Test
+    fun `given a selected line and compatible stop, when StopSelected is dispatched, then line selection is kept`() {
+        val line = BusLine("027", "27", "A", "B")
+        val stop = BusStop("62", "Gran Via", "Calle 1", lineLabels = setOf("27"))
+        state.value = AlarmState(selectedLine = line, lineInput = line.displayName, allLines = listOf(line), lines = listOf(line))
+
+        vm.dispatch(AlarmIntent.StopSelected(stop))
+
+        state.value.selectedLine shouldBe line
+        state.value.lineInput shouldBe line.displayName
+        state.value.selectedStop shouldBe stop
+    }
+
+    @Test
+    fun `given a cached all stops list, when StopPickerOpened is dispatched without a selected line, then stops are shown`() {
+        val stop = BusStop("62", "Gran Via", "Calle 1")
+        state.value = AlarmState(allStops = listOf(stop))
+
+        vm.dispatch(AlarmIntent.StopPickerOpened)
+
+        state.value.stops shouldBe listOf(stop)
+        loadAllStopsCallCount shouldBe 0
+    }
+
+    @Test
+    fun `given no cached all stops list, when StopPickerOpened is dispatched without a selected line, then all stops are loaded`() {
+        vm.dispatch(AlarmIntent.StopPickerOpened)
+
+        loadAllStopsCallCount shouldBe 1
     }
 
     @Test

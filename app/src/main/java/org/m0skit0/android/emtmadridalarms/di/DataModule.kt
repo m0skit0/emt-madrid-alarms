@@ -13,6 +13,7 @@ import org.koin.dsl.module
 import org.m0skit0.android.emtmadridalarms.data.EmtApi
 import org.m0skit0.android.emtmadridalarms.data.EmtCredentials
 import org.m0skit0.android.emtmadridalarms.data.alarmStateReader
+import org.m0skit0.android.emtmadridalarms.data.allStops
 import org.m0skit0.android.emtmadridalarms.data.arrivalsFor
 import org.m0skit0.android.emtmadridalarms.data.clearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.linesForToday
@@ -62,6 +63,7 @@ val dataModule = module {
     single { todayDateRef() }
     single { requireEmtSuccess() }
     single { linesForToday(get(), get(), get(), get()) }
+    single { allStops(get(), get(), get()) }
     single { stopsForLine(get(), get(), get()) }
     single { arrivalsFor(get(), get(), get(), get()) }
     single<DataStore<Preferences>> { androidContext().alarmDataStore }

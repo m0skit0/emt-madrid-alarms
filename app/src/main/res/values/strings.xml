@@ -6,7 +6,7 @@
     
     <!-- Setup Screen -->
     <string name="setup_title">Wake me when my bus is close</string>
-    <string name="setup_description">Search for a line, then pick one of the stops served by that line.</string>
+    <string name="setup_description">Select a bus line or stop first, then choose the matching option.</string>
     <string name="label_bus_line">Bus line</string>
     <string name="label_bus_stop">Bus stop</string>
     <string name="placeholder_select_line">Select bus line</string>

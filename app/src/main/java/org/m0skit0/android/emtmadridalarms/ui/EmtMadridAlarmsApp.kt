@@ -91,7 +91,10 @@ private fun AlarmNavHost(
                 state = state,
                 dispatch = dispatch,
                 onSelectLine = { navController.navigate(Routes.SELECT_LINE) },
-                onSelectStop = { navController.navigate(Routes.SELECT_STOP) },
+                onSelectStop = {
+                    dispatch(AlarmIntent.StopPickerOpened)
+                    navController.navigate(Routes.SELECT_STOP)
+                },
             )
         }
         composable(Routes.SELECT_LINE) {
