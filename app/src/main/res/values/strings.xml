@@ -43,13 +43,13 @@
     <string name="text_alarm_triggers">Alarm triggers at %d minutes or less</string>
     <string name="text_latest_estimate">Latest EMT estimate</string>
     <string name="text_waiting_arrival">Waiting for a matching arrival...</string>
-    <string name="text_eta_format">%d min %d sec</string>
+    <string name="text_eta_format">%1$d min %2$d sec</string>
     <string name="text_destination">Destination: %s</string>
     <string name="button_cancel_alarm">Cancel alarm</string>
     
     <!-- Ringing Screen -->
     <string name="title_ringing">Bus arriving</string>
     <string name="text_bus_arriving">The monitored bus is within your configured arrival window.</string>
-    <string name="text_last_estimate">Last estimate: %d min %d sec</string>
+    <string name="text_last_estimate">Last estimate: %1$d min %2$d sec</string>
     <string name="button_stop_alarm">Stop alarm</string>
 </resources>

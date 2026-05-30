@@ -1,12 +1,12 @@
 <resources>
-    <string name="app_name">EMT 马德里报警</string>
+    <string name="app_name">EMT 马德里提醒</string>
     
     <!-- Header strings -->
-    <string name="app_title">EMT 马德里报警</string>
+    <string name="app_title">EMT 马德里提醒</string>
     
     <!-- Setup Screen -->
-    <string name="setup_title">当我的公交车靠近时唤醒我</string>
-    <string name="setup_description">搜索一条线路，然后选择该线路服务的停靠站之一。</string>
+    <string name="setup_title">公交车快到时提醒我</string>
+    <string name="setup_description">搜索线路，然后选择该线路经过的一个车站。</string>
     <string name="label_bus_line">公交线路</string>
     <string name="label_bus_stop">公交车站</string>
     <string name="placeholder_select_line">选择公交线路</string>
@@ -14,9 +14,9 @@
     <string name="placeholder_select_line_first">先选择一条线路</string>
     <string name="placeholder_select_stop">选择公交车站</string>
     <string name="placeholder_loading_stops">正在加载车站...</string>
-    <string name="label_trigger_minutes">到达前几分钟启动</string>
+    <string name="label_trigger_minutes">到达前多少分钟提醒</string>
     <string name="button_reload_lines">重新加载公交线路</string>
-    <string name="button_start_alarm">启动报警</string>
+    <string name="button_start_alarm">启动提醒</string>
     <string name="button_starting">启动中...</string>
     
     <!-- Line Selection Screen -->
@@ -37,19 +37,19 @@
     
     <!-- Monitoring Screen -->
     <string name="title_monitoring">正在监控</string>
-    <string name="text_no_active_alarm">没有活动的报警。</string>
+    <string name="text_no_active_alarm">没有正在运行的提醒。</string>
     <string name="text_line">线路 %s</string>
     <string name="text_stop">车站 %s</string>
-    <string name="text_alarm_triggers">报警将在 %d 分钟或更少时间后启动</string>
-    <string name="text_latest_estimate">最新的 EMT 预计</string>
-    <string name="text_waiting_arrival">等待匹配到达...</string>
-    <string name="text_eta_format">%d 分钟 %d 秒</string>
+    <string name="text_alarm_triggers">剩余 %d 分钟或更少时提醒</string>
+    <string name="text_latest_estimate">EMT 最新预计时间</string>
+    <string name="text_waiting_arrival">正在等待匹配的到站信息...</string>
+    <string name="text_eta_format">%1$d 分钟 %2$d 秒</string>
     <string name="text_destination">目的地：%s</string>
-    <string name="button_cancel_alarm">取消报警</string>
+    <string name="button_cancel_alarm">取消提醒</string>
     
     <!-- Ringing Screen -->
-    <string name="title_ringing">公交车到达</string>
-    <string name="text_bus_arriving">监控的公交车在您配置的到达窗口内。</string>
-    <string name="text_last_estimate">最后预计：%d 分钟 %d 秒</string>
-    <string name="button_stop_alarm">停止报警</string>
+    <string name="title_ringing">公交车快到了</string>
+    <string name="text_bus_arriving">你关注的公交车已进入设置的到达时间范围。</string>
+    <string name="text_last_estimate">最后预计：%1$d 分钟 %2$d 秒</string>
+    <string name="button_stop_alarm">停止提醒</string>
 </resources>
