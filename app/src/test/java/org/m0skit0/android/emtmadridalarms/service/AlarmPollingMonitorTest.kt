@@ -16,10 +16,12 @@ import org.m0skit0.android.emtmadridalarms.domain.BusArrival
 class AlarmPollingMonitorTest {
     private val request = BusAlarmRequest(line = "1", stopId = "62", targetMinutes = 10)
     private val arrivalWithinWindow = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 300, distanceMeters = 0)
+    private val arrivalAtTarget = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 600, distanceMeters = 0)
+    private val arrivalOutsideWindow = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 900, distanceMeters = 0)
     private val unavailableArrival = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 999999, distanceMeters = 0)
 
     @Test
-    fun `given an arrival within the target window, when polled, then the alarm is triggered and ringing is set`() = runTest {
+    fun `given an arrival at the target window, when polled, then the alarm is triggered and ringing is set`() = runTest {
         val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
         val saveStatus = mockk<SaveStatus>(relaxed = true)
         val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
@@ -28,7 +30,7 @@ class AlarmPollingMonitorTest {
         var triggeredWith: BusArrival? = null
 
         val monitor = pollAlarm(
-            loadBusArrivals = { listOf(arrivalWithinWindow) },
+            loadBusArrivals = { listOf(arrivalAtTarget) },
             saveActiveAlarm = saveActiveAlarm,
             saveStatus = saveStatus,
             saveLatestArrival = saveLatestArrival,
@@ -38,9 +40,38 @@ class AlarmPollingMonitorTest {
 
         monitor(request) { triggeredWith = it }
 
-        triggeredWith shouldBe arrivalWithinWindow
+        triggeredWith shouldBe arrivalAtTarget
         coVerify { setRinging(true) }
         coVerify { clearActiveAlarm() }
+    }
+
+    @Test
+    fun `given an arrival already inside the target window, when a later bus reaches the target, then the later bus triggers the alarm`() = runTest {
+        val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
+        val saveStatus = mockk<SaveStatus>(relaxed = true)
+        val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
+        val setRinging = mockk<SetRinging>(relaxed = true)
+        val clearActiveAlarm = mockk<ClearActiveAlarm>(relaxed = true)
+        var callCount = 0
+        var triggeredWith: BusArrival? = null
+
+        val monitor = pollAlarm(
+            loadBusArrivals = {
+                callCount++
+                if (callCount == 1) listOf(arrivalWithinWindow, arrivalOutsideWindow)
+                else listOf(arrivalWithinWindow.copy(estimateSeconds = 240), arrivalAtTarget)
+            },
+            saveActiveAlarm = saveActiveAlarm,
+            saveStatus = saveStatus,
+            saveLatestArrival = saveLatestArrival,
+            setRinging = setRinging,
+            clearActiveAlarm = clearActiveAlarm,
+        )
+
+        monitor(request) { triggeredWith = it }
+
+        callCount shouldBe 2
+        triggeredWith shouldBe arrivalAtTarget
     }
 
     @Test
@@ -56,7 +87,7 @@ class AlarmPollingMonitorTest {
             loadBusArrivals = {
                 callCount++
                 if (callCount == 1) throw RuntimeException("server error")
-                else listOf(arrivalWithinWindow)
+                else listOf(arrivalAtTarget)
             },
             saveActiveAlarm = saveActiveAlarm,
             saveStatus = saveStatus,
@@ -71,7 +102,7 @@ class AlarmPollingMonitorTest {
     }
 
     @Test
-    fun `given a sentinel arrival on the first poll, when polled again, then the arrival is skipped and alarm triggers on second poll`() = runTest {
+    fun `given a sentinel arrival on the first poll, when polled again, then the arrival is skipped and alarm triggers later`() = runTest {
         val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
         val saveStatus = mockk<SaveStatus>(relaxed = true)
         val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
@@ -83,8 +114,11 @@ class AlarmPollingMonitorTest {
         val monitor = pollAlarm(
             loadBusArrivals = {
                 callCount++
-                if (callCount == 1) listOf(unavailableArrival)
-                else listOf(arrivalWithinWindow)
+                when (callCount) {
+                    1 -> listOf(unavailableArrival)
+                    2 -> listOf(arrivalOutsideWindow)
+                    else -> listOf(arrivalAtTarget)
+                }
             },
             saveActiveAlarm = saveActiveAlarm,
             saveStatus = saveStatus,
@@ -96,7 +130,7 @@ class AlarmPollingMonitorTest {
         monitor(request) { triggered = true }
 
         triggered shouldBe true
-        callCount shouldBe 2
+        callCount shouldBe 3
     }
 
     @Test
@@ -108,7 +142,7 @@ class AlarmPollingMonitorTest {
         val clearActiveAlarm = mockk<ClearActiveAlarm>(relaxed = true)
 
         val monitor = pollAlarm(
-            loadBusArrivals = { listOf(arrivalWithinWindow) },
+            loadBusArrivals = { listOf(arrivalAtTarget) },
             saveActiveAlarm = saveActiveAlarm,
             saveStatus = saveStatus,
             saveLatestArrival = saveLatestArrival,
