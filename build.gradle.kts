@@ -1,5 +1,6 @@
 plugins {
     id("com.android.application") version "9.2.0" apply false
+    id("com.github.triplet.play") version "4.0.0" apply false
     id("org.jetbrains.kotlin.android") version "2.2.21" apply false
     id("org.jetbrains.kotlin.plugin.compose") version "2.2.21" apply false
     id("org.jetbrains.kotlin.plugin.serialization") version "2.2.21" apply false
@@ -60,4 +61,16 @@ tasks.register("bumpVersionMinor") {
     doLast {
         bumpAppVersion(bumpMajor = false)
     }
+}
+
+tasks.register("deployInternalTesting") {
+    group = "publishing"
+    description = "Build and publish the release App Bundle to the Google Play internal testing track."
+    dependsOn(":app:publishReleaseBundle")
+}
+
+tasks.register("promoteInternalTestingToProduction") {
+    group = "publishing"
+    description = "Promote the current Google Play internal testing release to production."
+    dependsOn(":app:promoteArtifact")
 }

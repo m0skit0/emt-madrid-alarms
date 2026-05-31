@@ -2,7 +2,12 @@
 .kotlin/
 .idea/
 local.properties
+play-service-account*.json
+play-account*.json
+*.jks
+*.keystore
 build/
 app/build/
 captures/
 .DS_Store
+release/

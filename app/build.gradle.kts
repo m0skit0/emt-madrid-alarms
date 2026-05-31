@@ -1,7 +1,9 @@
+import com.github.triplet.gradle.androidpublisher.ReleaseStatus
 import java.util.Properties
 
 plugins {
     id("com.android.application")
+    id("com.github.triplet.play")
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("jacoco")
@@ -28,6 +30,15 @@ fun requireEmtCredentials() {
 
 fun String.asBuildConfigString(): String = "\"${replace("\\", "\\\\").replace("\"", "\\\"")}\""
 
+fun secret(name: String): String = localSecret(name).ifBlank { System.getenv(name).orEmpty() }
+
+fun hasReleaseSigningSecrets(): Boolean = listOf(
+    "RELEASE_STORE_FILE",
+    "RELEASE_STORE_PASSWORD",
+    "RELEASE_KEY_ALIAS",
+    "RELEASE_KEY_PASSWORD",
+).all { secret(it).isNotBlank() }
+
 requireEmtCredentials()
 
 android {
@@ -49,8 +60,22 @@ android {
         buildConfigField("String", "EMT_PASS_KEY", localSecret("EMT_PASS_KEY").asBuildConfigString())
     }
 
+    signingConfigs {
+        if (hasReleaseSigningSecrets()) {
+            create("release") {
+                storeFile = rootProject.file(secret("RELEASE_STORE_FILE"))
+                storePassword = secret("RELEASE_STORE_PASSWORD")
+                keyAlias = secret("RELEASE_KEY_ALIAS")
+                keyPassword = secret("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (hasReleaseSigningSecrets()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -74,6 +99,46 @@ android {
             enableUnitTestCoverage = true
         }
     }
+}
+
+play {
+    defaultToAppBundles.set(true)
+    track.set("internal")
+    fromTrack.set("internal")
+    promoteTrack.set("production")
+    releaseStatus.set(ReleaseStatus.COMPLETED)
+
+    val credentialsFile = secret("PLAY_SERVICE_ACCOUNT_JSON")
+    if (credentialsFile.isNotBlank()) {
+        serviceAccountCredentials.set(rootProject.file(credentialsFile))
+    }
+}
+
+tasks.register("checkReleaseSigning") {
+    group = "verification"
+    description = "Verify release signing secrets are configured before publishing to Google Play."
+
+    doLast {
+        val missing = listOf(
+            "RELEASE_STORE_FILE",
+            "RELEASE_STORE_PASSWORD",
+            "RELEASE_KEY_ALIAS",
+            "RELEASE_KEY_PASSWORD",
+        ).filter { secret(it).isBlank() }
+
+        if (missing.isNotEmpty()) {
+            throw GradleException("Missing release signing values: ${missing.joinToString()}")
+        }
+
+        val keystore = rootProject.file(secret("RELEASE_STORE_FILE"))
+        if (!keystore.isFile) {
+            throw GradleException("Release keystore not found: ${keystore.path}")
+        }
+    }
+}
+
+tasks.matching { it.name == "publishReleaseBundle" }.configureEach {
+    dependsOn("checkReleaseSigning")
 }
 
 tasks.register<JacocoReport>("jacocoUnitTestReport") {
