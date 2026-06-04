@@ -57,7 +57,7 @@ internal fun startMonitoring(
     service.startForeground(
         NOTIFICATION_ID,
         monitoringNotification(
-            request,
+            (globalState.state.alarmMonitor.monitorJobs.keys + request).distinct(),
             "Waiting for EMT arrivals...",
             service.servicePendingIntent(ACTION_CANCEL, 2)
         ),
@@ -187,13 +187,13 @@ internal fun monitorNotificationUpdater(
 ): MonitorNotificationUpdater = MonitorNotificationUpdater { scope ->
     scope.launch {
         alarmStateReader().collect { state ->
-            if (state.activeAlarm == null) return@collect
+            if (state.activeAlarms.isEmpty()) return@collect
             if (state.isRinging) return@collect
             val text = state.latestEtaSeconds
                 ?.let { "Next bus: ${it.floorDiv(60)} min" }
                 .orDefault { state.statusMessage.ifBlank { "Waiting for EMT arrivals..." } }
             val notification = monitoringNotification(
-                state.activeAlarm,
+                state.activeAlarms,
                 text,
                 service.servicePendingIntent(ACTION_CANCEL, 2)
             )

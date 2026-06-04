@@ -13,7 +13,7 @@ import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.ui.MainActivity
 
 fun interface MonitoringNotificationProvider :
-        (BusAlarmRequest, String, PendingIntent) -> Notification
+        (List<BusAlarmRequest>, String, PendingIntent) -> Notification
 
 fun interface RingingNotificationProvider : (BusAlarmRequest, PendingIntent) -> Notification
 
@@ -24,15 +24,30 @@ private const val CHANNEL_MONITORING = "bus_alarm_monitoring"
 private const val CHANNEL_ALARM = "bus_alarm_ringing"
 
 internal fun monitoringNotification(context: Context): MonitoringNotificationProvider =
-    MonitoringNotificationProvider { request, text, cancelIntent ->
+    MonitoringNotificationProvider { alarms, text, cancelIntent ->
+        val title = "Monitoring ${alarms.size} ${if (alarms.size == 1) "alarm" else "alarms"}"
         baseNotification(context, CHANNEL_MONITORING)
-            .setContentTitle("Monitoring bus ${request.line}")
-            .setContentText("Stop ${request.stopId}, alarm at ${request.targetMinutes} min. $text")
+            .setContentTitle(title)
+            .setContentText(collapsedAlarmText(alarms, text))
+            .setStyle(
+                NotificationCompat.InboxStyle()
+                    .setBigContentTitle(title)
+                    .setSummaryText(text)
+                    .also { style -> alarms.forEach { style.addLine(it.notificationText()) } }
+            )
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setOngoing(true)
             .addAction(0, "Cancel", cancelIntent)
             .build()
     }
+
+private fun collapsedAlarmText(alarms: List<BusAlarmRequest>, text: String): String = when {
+    alarms.isEmpty() -> text
+    alarms.size <= 2 -> alarms.joinToString(separator = "; ") { it.notificationText() }
+    else -> "${alarms.first().notificationText()}; +${alarms.size - 1} more"
+}
+
+private fun BusAlarmRequest.notificationText(): String = "Line $line - Stop $stopId - $targetMinutes min"
 
 internal fun ringingNotification(context: Context): RingingNotificationProvider =
     RingingNotificationProvider { request, stopIntent ->
