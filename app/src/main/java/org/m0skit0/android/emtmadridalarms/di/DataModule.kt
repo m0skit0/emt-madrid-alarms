@@ -19,6 +19,7 @@ import org.m0skit0.android.emtmadridalarms.data.clearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.linesForToday
 import org.m0skit0.android.emtmadridalarms.data.loggingInterceptor
 import org.m0skit0.android.emtmadridalarms.data.provideToken
+import org.m0skit0.android.emtmadridalarms.data.removeActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.requireEmtSuccess
 import org.m0skit0.android.emtmadridalarms.data.saveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.saveLatestArrival
@@ -69,6 +70,7 @@ val dataModule = module {
     single<DataStore<Preferences>> { androidContext().alarmDataStore }
     single { alarmStateReader(get()) }
     single { saveActiveAlarm(get()) }
+    single { removeActiveAlarm(get()) }
     single { clearActiveAlarm(get()) }
     single { saveLatestArrival(get()) }
     single { saveStatus(get()) }

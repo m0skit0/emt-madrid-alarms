@@ -2,17 +2,19 @@ package org.m0skit0.android.emtmadridalarms.service
 
 import android.app.Service
 import timber.log.Timber
+import android.app.NotificationManager
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.invoke
 import kotlinx.coroutines.launch
+import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
 import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.RemoveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
-import android.app.NotificationManager
-import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
 import org.m0skit0.android.emtmadridalarms.utils.orDefault
 
 private const val TAG = "BusAlarm"
@@ -22,11 +24,12 @@ internal const val NOTIFICATION_ID = 1001
  * Data class representing the state for the alarm monitoring job.
  */
 data class AlarmMonitorState(
-    val monitorJob: Job? = null
+    val monitorJobs: Map<BusAlarmRequest, Job> = emptyMap()
 )
 
 fun interface StartMonitoring : (BusAlarmRequest?) -> Unit
 fun interface CancelMonitoring : () -> Unit
+fun interface CancelSingleMonitoring : (BusAlarmRequest?) -> Unit
 fun interface StartRinging : (BusAlarmRequest) -> Unit
 fun interface StopRingingAndSelf : () -> Unit
 fun interface StopSignal : () -> Unit
@@ -47,7 +50,10 @@ internal fun startMonitoring(
         return@StartMonitoring
     }
     Timber.d("Starting monitoring line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
-    globalState.state.alarmMonitor.monitorJob?.cancel()
+    if (globalState.state.alarmMonitor.monitorJobs.containsKey(request)) {
+        Timber.d("Monitoring already active for line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
+        return@StartMonitoring
+    }
     service.startForeground(
         NOTIFICATION_ID,
         monitoringNotification(
@@ -67,17 +73,29 @@ private fun launchMonitorJob(
     request: BusAlarmRequest,
     startRinging: StartRinging,
 ) {
+    val job = scope.launch(start = CoroutineStart.LAZY) {
+        try {
+            pollingMonitor(request) {
+                Dispatchers.Main { startRinging(request) }
+            }
+        } finally {
+            globalState.update { appState ->
+                appState.copy(
+                    alarmMonitor = appState.alarmMonitor.copy(
+                        monitorJobs = appState.alarmMonitor.monitorJobs - request
+                    )
+                )
+            }
+        }
+    }
     globalState.update { appState ->
         appState.copy(
             alarmMonitor = appState.alarmMonitor.copy(
-                monitorJob = scope.launch {
-                    pollingMonitor(request) {
-                        Dispatchers.Main { startRinging(request) }
-                    }
-                }
+                monitorJobs = appState.alarmMonitor.monitorJobs + (request to job)
             )
         )
     }
+    job.start()
 }
 
 internal fun startRinging(
@@ -96,17 +114,18 @@ internal fun stopRingingAndSelf(
     service: Service,
     scope: CoroutineScope,
     setRinging: SetRinging,
-    clearActiveAlarm: ClearActiveAlarm,
-    stopSignal: StopSignal
+    stopSignal: StopSignal,
+    globalState: GlobalStateHolder,
 ): StopRingingAndSelf = StopRingingAndSelf {
-    Timber.d("Stopping ringing and service")
+    Timber.d("Stopping ringing")
     scope.launch {
         setRinging(false)
-        clearActiveAlarm()
     }
     stopSignal()
-    service.stopForeground(Service.STOP_FOREGROUND_REMOVE)
-    service.stopSelf()
+    if (globalState.state.alarmMonitor.monitorJobs.isEmpty()) {
+        service.stopForeground(Service.STOP_FOREGROUND_REMOVE)
+        service.stopSelf()
+    }
 }
 
 internal fun cancelMonitoring(
@@ -118,9 +137,9 @@ internal fun cancelMonitoring(
     globalState: GlobalStateHolder
 ): CancelMonitoring = CancelMonitoring {
     Timber.d("Cancelling monitoring")
-    globalState.state.alarmMonitor.monitorJob?.cancel()
+    globalState.state.alarmMonitor.monitorJobs.values.forEach { it.cancel() }
     globalState.update { appState ->
-        appState.copy(alarmMonitor = appState.alarmMonitor.copy(monitorJob = null))
+        appState.copy(alarmMonitor = appState.alarmMonitor.copy(monitorJobs = emptyMap()))
     }
     scope.launch {
         clearActiveAlarm()
@@ -131,8 +150,34 @@ internal fun cancelMonitoring(
     service.stopSelf()
 }
 
+internal fun cancelSingleMonitoring(
+    service: Service,
+    scope: CoroutineScope,
+    removeActiveAlarm: RemoveActiveAlarm,
+    globalState: GlobalStateHolder,
+): CancelSingleMonitoring = CancelSingleMonitoring { request ->
+    if (request == null) {
+        Timber.w("Cannot cancel monitoring: invalid or missing alarm request")
+        return@CancelSingleMonitoring
+    }
+    Timber.d("Cancelling monitoring line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
+    globalState.state.alarmMonitor.monitorJobs[request]?.cancel()
+    globalState.update { appState ->
+        appState.copy(
+            alarmMonitor = appState.alarmMonitor.copy(
+                monitorJobs = appState.alarmMonitor.monitorJobs - request
+            )
+        )
+    }
+    scope.launch { removeActiveAlarm(request) }
+    if (globalState.state.alarmMonitor.monitorJobs.isEmpty()) {
+        service.stopForeground(Service.STOP_FOREGROUND_REMOVE)
+        service.stopSelf()
+    }
+}
+
 internal fun cancelJob(globalState: GlobalStateHolder): CancelJob = CancelJob {
-    globalState.state.alarmMonitor.monitorJob?.cancel()
+    globalState.state.alarmMonitor.monitorJobs.values.forEach { it.cancel() }
 }
 
 internal fun monitorNotificationUpdater(

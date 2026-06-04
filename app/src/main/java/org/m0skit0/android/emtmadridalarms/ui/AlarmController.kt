@@ -7,9 +7,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.RemoveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
+import org.m0skit0.android.emtmadridalarms.domain.MAX_ACTIVE_ALARMS
 import org.m0skit0.android.emtmadridalarms.service.cancelAlarmService
 import org.m0skit0.android.emtmadridalarms.service.startAlarmService
 import org.m0skit0.android.emtmadridalarms.service.stopAlarmRinging
@@ -18,6 +20,7 @@ private const val TAG = "AlarmController"
 
 fun interface AlarmStarter : (BusAlarmRequest) -> Unit
 fun interface AlarmCanceller : () -> Unit
+fun interface SingleAlarmCanceller : (BusAlarmRequest) -> Unit
 fun interface RingingStop : () -> Unit
 
 internal fun alarmStarter(
@@ -31,7 +34,20 @@ internal fun alarmStarter(
         state.update { it.copy(isLoading = true, errorMessage = null) }
         saveActiveAlarm(request)
         startAlarmService(context, request)
-        state.update { it.copy(isLoading = false, activeAlarm = request) }
+        state.update {
+            val activeAlarms = (it.activeAlarms + request).distinct().take(MAX_ACTIVE_ALARMS)
+            it.copy(
+                isLoading = false,
+                activeAlarm = activeAlarms.firstOrNull(),
+                activeAlarms = activeAlarms,
+                selectedLine = null,
+                selectedStop = null,
+                lineInput = "",
+                stopInput = "",
+                lines = it.allLines,
+                stops = emptyList(),
+            )
+        }
         Timber.d("Alarm start requested")
     }
 }
@@ -48,13 +64,43 @@ internal fun alarmCanceller(
         cancelAlarmService(context)
         clearActiveAlarm()
         setRinging(false)
-        state.update { it.copy(activeAlarm = null, latestEtaSeconds = null, latestDestination = "", statusMessage = "") }
+        state.update {
+            it.copy(
+                activeAlarm = null,
+                activeAlarms = emptyList(),
+                latestEtaSeconds = null,
+                latestDestination = "",
+                statusMessage = ""
+            )
+        }
+    }
+}
+
+internal fun singleAlarmCanceller(
+    context: Context,
+    removeActiveAlarm: RemoveActiveAlarm,
+    state: MutableStateFlow<AlarmState>,
+    scope: CoroutineScope,
+): SingleAlarmCanceller = SingleAlarmCanceller { request ->
+    scope.launch {
+        Timber.d("Cancelling alarm line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
+        cancelAlarmService(context, request)
+        removeActiveAlarm(request)
+        state.update {
+            val activeAlarms = it.activeAlarms - request
+            it.copy(
+                activeAlarm = activeAlarms.firstOrNull(),
+                activeAlarms = activeAlarms,
+                latestEtaSeconds = it.latestEtaSeconds.takeIf { activeAlarms.isNotEmpty() },
+                latestDestination = it.latestDestination.takeIf { activeAlarms.isNotEmpty() }.orEmpty(),
+                statusMessage = it.statusMessage.takeIf { activeAlarms.isNotEmpty() }.orEmpty(),
+            )
+        }
     }
 }
 
 internal fun ringingStop(
     context: Context,
-    clearActiveAlarm: ClearActiveAlarm,
     setRinging: SetRinging,
     state: MutableStateFlow<AlarmState>,
     scope: CoroutineScope,
@@ -63,7 +109,6 @@ internal fun ringingStop(
         Timber.d("Stopping ringing")
         stopAlarmRinging(context)
         setRinging(false)
-        clearActiveAlarm()
-        state.update { it.copy(isRinging = false, activeAlarm = null) }
+        state.update { it.copy(isRinging = false) }
     }
 }

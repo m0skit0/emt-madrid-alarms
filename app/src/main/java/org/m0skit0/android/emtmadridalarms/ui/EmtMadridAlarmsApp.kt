@@ -58,10 +58,9 @@ private fun ErrorSnackbarEffect(
 @Composable
 private fun NavigationEffect(state: AlarmState, navController: NavHostController) {
     val backStackEntry by navController.currentBackStackEntryAsState()
-    LaunchedEffect(state.isRinging, state.activeAlarm) {
+    LaunchedEffect(state.isRinging) {
         val targetRoute = when {
             state.isRinging -> Routes.RINGING
-            state.activeAlarm != null -> Routes.MONITORING
             else -> Routes.SETUP
         }
         val currentRoute = backStackEntry?.destination?.route

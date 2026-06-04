@@ -17,7 +17,11 @@
     <string name="label_trigger_minutes">Trigger at minutes before arrival</string>
     <string name="button_reload_lines">Reload bus lines</string>
     <string name="button_start_alarm">Start alarm</string>
+    <string name="button_add_alarm">Add alarm</string>
     <string name="button_starting">Starting...</string>
+    <string name="title_active_alarms">Active alarms: %1$d/%2$d</string>
+    <string name="text_active_alarm_item">Line %1$s · Stop %2$s · %3$d min</string>
+    <string name="button_cancel_all_alarms">Cancel all alarms</string>
     
     <!-- Line Selection Screen -->
     <string name="title_select_line">Select bus line</string>

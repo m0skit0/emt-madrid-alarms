@@ -9,13 +9,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import org.koin.android.ext.android.inject
-import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
-import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
+import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.RemoveActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
-import android.app.NotificationManager
-import android.content.Context
-import kotlinx.coroutines.launch
 
 private const val TAG = "BusAlarm"
 
@@ -23,6 +21,7 @@ class AlarmMonitorService : Service() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val clearActiveAlarm: ClearActiveAlarm by inject()
+    private val removeActiveAlarm: RemoveActiveAlarm by inject()
     private val setRinging: SetRinging by inject()
     private val pollingMonitor: AlarmPollingMonitor by inject()
     private val monitoringNotification: MonitoringNotificationProvider by inject()
@@ -35,6 +34,7 @@ class AlarmMonitorService : Service() {
 
     private lateinit var startMonitoring: StartMonitoring
     private lateinit var cancelMonitoring: CancelMonitoring
+    private lateinit var cancelSingleMonitoring: CancelSingleMonitoring
     private lateinit var startRinging: StartRinging
     private lateinit var stopRingingAndSelf: StopRingingAndSelf
     private lateinit var cancelJob: CancelJob
@@ -46,8 +46,9 @@ class AlarmMonitorService : Service() {
         channelsEnsurer()
 
         cancelJob = cancelJob(globalState)
-        stopRingingAndSelf = stopRingingAndSelf(this, scope, setRinging, clearActiveAlarm, stopSignal)
+        stopRingingAndSelf = stopRingingAndSelf(this, scope, setRinging, stopSignal, globalState)
         cancelMonitoring = cancelMonitoring(this, scope, clearActiveAlarm, setRinging, stopSignal, globalState)
+        cancelSingleMonitoring = cancelSingleMonitoring(this, scope, removeActiveAlarm, globalState)
         startRinging = startRinging(this, ringingNotification, startSignal)
         startMonitoring = startMonitoring(this, scope, pollingMonitor, monitoringNotification, startRinging, globalState)
         monitorNotificationUpdater = monitorNotificationUpdater(this, alarmStateReader, monitoringNotification)
@@ -59,6 +60,7 @@ class AlarmMonitorService : Service() {
         Timber.d("onStartCommand action=${intent?.action} startId=$startId flags=$flags")
         when (intent?.action) {
             ACTION_CANCEL -> cancelMonitoring()
+            ACTION_CANCEL_ALARM -> cancelSingleMonitoring(intent.alarmRequest())
             ACTION_STOP_RINGING -> stopRingingAndSelf()
             ACTION_START -> startMonitoring(intent.alarmRequest())
             null -> Timber.w("Service restarted without action; no alarm restored yet")

@@ -2,13 +2,17 @@ package org.m0skit0.android.emtmadridalarms.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -21,6 +25,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import org.m0skit0.android.emtmadridalarms.R
+import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
+import org.m0skit0.android.emtmadridalarms.domain.MAX_ACTIVE_ALARMS
 
 @Composable
 internal fun SetupScreen(
@@ -31,6 +37,7 @@ internal fun SetupScreen(
 ) {
     ScreenColumn {
         SetupHeader()
+        ActiveAlarmsCard(state.activeAlarms, dispatch)
         PickerField(
             value = state.selectedLine?.displayName.orEmpty(),
             label = stringResource(R.string.label_bus_line),
@@ -49,6 +56,40 @@ internal fun SetupScreen(
             onClick = onSelectStop,
         )
         AlarmInputControls(state, dispatch)
+    }
+}
+
+@Composable
+private fun ActiveAlarmsCard(activeAlarms: List<BusAlarmRequest>, dispatch: (AlarmIntent) -> Unit) {
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                text = stringResource(R.string.title_active_alarms, activeAlarms.size, MAX_ACTIVE_ALARMS),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+            )
+            if (activeAlarms.isEmpty()) {
+                Text(stringResource(R.string.text_no_active_alarm))
+            } else {
+                activeAlarms.forEach { alarm ->
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(stringResource(R.string.text_active_alarm_item, alarm.line, alarm.stopId, alarm.targetMinutes))
+                        OutlinedButton(
+                            onClick = { dispatch(AlarmIntent.CancelAlarmClicked(alarm)) },
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Text(stringResource(R.string.button_cancel_alarm))
+                        }
+                    }
+                }
+                OutlinedButton(
+                    onClick = { dispatch(AlarmIntent.CancelClicked) },
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(stringResource(R.string.button_cancel_all_alarms))
+                }
+            }
+        }
     }
 }
 
@@ -91,10 +132,15 @@ private fun AlarmInputControls(state: AlarmState, dispatch: (AlarmIntent) -> Uni
     )
     Button(
         onClick = { dispatch(AlarmIntent.StartClicked) },
-        enabled = !state.isLoading && !state.isLoadingLines && !state.isLoadingStops && state.selectedLine != null && state.selectedStop != null,
+        enabled = !state.isLoading &&
+                !state.isLoadingLines &&
+                !state.isLoadingStops &&
+                state.selectedLine != null &&
+                state.selectedStop != null &&
+                state.activeAlarms.size < MAX_ACTIVE_ALARMS,
         modifier = Modifier.fillMaxWidth(),
     ) {
-        Text(if (state.isLoading) stringResource(R.string.button_starting) else stringResource(R.string.button_start_alarm))
+        Text(if (state.isLoading) stringResource(R.string.button_starting) else stringResource(R.string.button_add_alarm))
     }
 }
 

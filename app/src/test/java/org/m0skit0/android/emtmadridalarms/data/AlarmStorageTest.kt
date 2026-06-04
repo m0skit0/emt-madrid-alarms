@@ -9,6 +9,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
+import org.m0skit0.android.emtmadridalarms.domain.MAX_ACTIVE_ALARMS
 
 class AlarmStorageTest {
 
@@ -25,6 +26,7 @@ class AlarmStorageTest {
         val ds = makeDataStore(this)
         val result = alarmStateReader(ds)().first()
         result.activeAlarm shouldBe null
+        result.activeAlarms shouldBe emptyList()
         result.isRinging shouldBe false
         result.statusMessage shouldBe ""
     }
@@ -46,6 +48,7 @@ class AlarmStorageTest {
 
         val result = alarmStateReader(ds)().first()
         result.activeAlarm shouldBe request
+        result.activeAlarms shouldBe listOf(request)
         result.isRinging shouldBe false
         result.statusMessage shouldBe "Monitoring arrivals..."
         result.latestEtaSeconds shouldBe null
@@ -61,7 +64,49 @@ class AlarmStorageTest {
 
         val result = alarmStateReader(ds)().first()
         result.activeAlarm shouldBe null
+        result.activeAlarms shouldBe emptyList()
         result.statusMessage shouldBe ""
+    }
+
+    @Test
+    fun `given multiple valid alarm requests, when saveActiveAlarm is called, then all requests are persisted`() = runTest {
+        val ds = makeDataStore(this)
+        val first = BusAlarmRequest("27", "100", 5)
+        val second = BusAlarmRequest("34", "200", 10)
+
+        saveActiveAlarm(ds)(first)
+        saveActiveAlarm(ds)(second)
+
+        val result = alarmStateReader(ds)().first()
+        result.activeAlarm shouldBe first
+        result.activeAlarms shouldBe listOf(first, second)
+    }
+
+    @Test
+    fun `given five active alarms, when another alarm is saved, then active alarms remain capped`() = runTest {
+        val ds = makeDataStore(this)
+        val alarms = (1..MAX_ACTIVE_ALARMS).map { BusAlarmRequest(it.toString(), "100", 5) }
+        val extra = BusAlarmRequest("99", "200", 10)
+
+        alarms.forEach { saveActiveAlarm(ds)(it) }
+        saveActiveAlarm(ds)(extra)
+
+        alarmStateReader(ds)().first().activeAlarms shouldBe alarms
+    }
+
+    @Test
+    fun `given multiple active alarms, when removeActiveAlarm is called, then only that request is removed`() = runTest {
+        val ds = makeDataStore(this)
+        val first = BusAlarmRequest("27", "100", 5)
+        val second = BusAlarmRequest("34", "200", 10)
+        saveActiveAlarm(ds)(first)
+        saveActiveAlarm(ds)(second)
+
+        removeActiveAlarm(ds)(first)
+
+        val result = alarmStateReader(ds)().first()
+        result.activeAlarm shouldBe second
+        result.activeAlarms shouldBe listOf(second)
     }
 
     @Test

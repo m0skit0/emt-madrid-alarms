@@ -12,6 +12,7 @@ import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
+import org.m0skit0.android.emtmadridalarms.domain.MAX_ACTIVE_ALARMS
 import org.m0skit0.android.emtmadridalarms.domain.PersistedAlarmState
 
 class AlarmViewModelTest {
@@ -25,6 +26,7 @@ class AlarmViewModelTest {
     private var loadAllStopsCallCount = 0
     private var lastLoadStopsArg: BusLine? = null
     private var startAlarmArg: BusAlarmRequest? = null
+    private var cancelSingleAlarmArg: BusAlarmRequest? = null
     private var cancelAlarmCalled = false
     private var stopRingingCalled = false
     private var buildRequestResult: Result<BusAlarmRequest> = Result.success(BusAlarmRequest("", "", 0))
@@ -33,6 +35,7 @@ class AlarmViewModelTest {
     private val loadAllStops = AllStopLoader { loadAllStopsCallCount++ }
     private val loadStops = StopLoader { lastLoadStopsArg = it }
     private val startAlarm = AlarmStarter { startAlarmArg = it }
+    private val cancelSingleAlarm = SingleAlarmCanceller { cancelSingleAlarmArg = it }
     private val cancelAlarm = AlarmCanceller { cancelAlarmCalled = true }
     private val stopRinging = RingingStop { stopRingingCalled = true }
     private val buildRequest = AlarmRequestBuilder { buildRequestResult }
@@ -49,6 +52,7 @@ class AlarmViewModelTest {
         loadAllStopsCallCount = 0
         lastLoadStopsArg = null
         startAlarmArg = null
+        cancelSingleAlarmArg = null
         cancelAlarmCalled = false
         stopRingingCalled = false
         buildRequestResult = Result.success(BusAlarmRequest("", "", 0))
@@ -64,6 +68,7 @@ class AlarmViewModelTest {
             loadStops = loadStops,
             buildRequest = buildRequest,
             startAlarm = startAlarm,
+            cancelSingleAlarm = cancelSingleAlarm,
             cancelAlarm = cancelAlarm,
             stopRinging = stopRinging,
         )
@@ -80,17 +85,19 @@ class AlarmViewModelTest {
         val persisted = PersistedAlarmState(
             activeAlarm = request, latestEtaSeconds = 120,
             latestDestination = "Centro", statusMessage = "On time", isRinging = true,
+            activeAlarms = listOf(request),
         )
         val freshState = MutableStateFlow(AlarmState())
         AlarmViewModel(
             _state = freshState, scope = scope,
             alarmStateReader = AlarmStateReader { flowOf(persisted) },
             loadLines = loadLines, loadAllStops = loadAllStops, loadStops = loadStops, buildRequest = buildRequest,
-            startAlarm = startAlarm, cancelAlarm = cancelAlarm, stopRinging = stopRinging,
+            startAlarm = startAlarm, cancelSingleAlarm = cancelSingleAlarm, cancelAlarm = cancelAlarm, stopRinging = stopRinging,
         )
         dispatcher.scheduler.advanceUntilIdle()
 
         freshState.value.activeAlarm shouldBe request
+        freshState.value.activeAlarms shouldBe listOf(request)
         freshState.value.latestEtaSeconds shouldBe 120
         freshState.value.latestDestination shouldBe "Centro"
         freshState.value.statusMessage shouldBe "On time"
@@ -202,6 +209,15 @@ class AlarmViewModelTest {
     }
 
     @Test
+    fun `given an active alarm, when CancelAlarmClicked is dispatched, then cancelSingleAlarm is called`() {
+        val request = BusAlarmRequest("1", "100", 5)
+
+        vm.dispatch(AlarmIntent.CancelAlarmClicked(request))
+
+        cancelSingleAlarmArg shouldBe request
+    }
+
+    @Test
     fun `given a ringing alarm, when StopRingingClicked is dispatched, then stopRinging is called`() {
         vm.dispatch(AlarmIntent.StopRingingClicked)
         stopRingingCalled shouldBe true
@@ -221,6 +237,17 @@ class AlarmViewModelTest {
         vm.dispatch(AlarmIntent.StartClicked)
         startAlarmArg shouldBe request
         state.value.errorMessage shouldBe null
+    }
+
+    @Test
+    fun `given maximum active alarms, when StartClicked is dispatched, then errorMessage is set and startAlarm is not called`() {
+        val alarms = (1..MAX_ACTIVE_ALARMS).map { BusAlarmRequest(it.toString(), "100", 5) }
+        state.value = AlarmState(activeAlarm = alarms.first(), activeAlarms = alarms)
+
+        vm.dispatch(AlarmIntent.StartClicked)
+
+        state.value.errorMessage shouldBe "You can have up to $MAX_ACTIVE_ALARMS active alarms."
+        startAlarmArg shouldBe null
     }
 
     @Test

@@ -20,6 +20,11 @@ fun cancelAlarmService(context: Context) {
         .let(context::startService)
 }
 
+fun cancelAlarmService(context: Context, request: BusAlarmRequest) {
+    Timber.d("Requesting service cancel line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
+    cancelAlarmIntent(context, request).let(context::startService)
+}
+
 fun stopAlarmRinging(context: Context) {
     Timber.d("Requesting stop ringing")
     Intent(context, AlarmMonitorService::class.java)

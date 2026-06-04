@@ -12,6 +12,8 @@ import kotlinx.coroutines.launch
 import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
+import org.m0skit0.android.emtmadridalarms.domain.MAX_ACTIVE_ALARMS
+import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.CancelAlarmClicked
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.CancelClicked
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.ErrorShown
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.LineChanged
@@ -35,6 +37,7 @@ class AlarmViewModel(
     private val loadStops: StopLoader,
     private val buildRequest: AlarmRequestBuilder,
     private val startAlarm: AlarmStarter,
+    private val cancelSingleAlarm: SingleAlarmCanceller,
     private val cancelAlarm: AlarmCanceller,
     private val stopRinging: RingingStop,
 ) : ViewModel() {
@@ -47,6 +50,7 @@ class AlarmViewModel(
                 _state.update { current ->
                     current.copy(
                         activeAlarm = persisted.activeAlarm,
+                        activeAlarms = persisted.activeAlarms,
                         latestEtaSeconds = persisted.latestEtaSeconds,
                         latestDestination = persisted.latestDestination,
                         statusMessage = persisted.statusMessage,
@@ -86,6 +90,7 @@ class AlarmViewModel(
             RefreshLinesClicked -> loadLines()
             StopPickerOpened -> onStopPickerOpened()
             StartClicked -> onStartClicked()
+            is CancelAlarmClicked -> cancelSingleAlarm(intent.value)
             CancelClicked -> cancelAlarm()
             StopRingingClicked -> stopRinging()
             ErrorShown -> _state.update { it.copy(errorMessage = null) }
@@ -154,6 +159,10 @@ class AlarmViewModel(
     }
 
     private fun onStartClicked() {
+        if (_state.value.activeAlarms.size >= MAX_ACTIVE_ALARMS) {
+            _state.update { it.copy(errorMessage = "You can have up to $MAX_ACTIVE_ALARMS active alarms.") }
+            return
+        }
         buildRequest(_state.value)
             .onSuccess { startAlarm(it) }
             .onFailure { error ->

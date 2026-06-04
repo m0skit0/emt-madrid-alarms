@@ -18,6 +18,7 @@ data class AlarmState(
     val selectedLine: BusLine? = null,
     val selectedStop: BusStop? = null,
     val activeAlarm: BusAlarmRequest? = null,
+    val activeAlarms: List<BusAlarmRequest> = activeAlarm?.let { listOf(it) } ?: emptyList(),
     val latestEtaSeconds: Int? = null,
     val latestDestination: String = "",
     val statusMessage: String = "",
@@ -34,6 +35,7 @@ sealed interface AlarmIntent {
     data object RefreshLinesClicked : AlarmIntent
     data object StopPickerOpened : AlarmIntent
     data object StartClicked : AlarmIntent
+    data class CancelAlarmClicked(val value: BusAlarmRequest) : AlarmIntent
     data object CancelClicked : AlarmIntent
     data object StopRingingClicked : AlarmIntent
     data object ErrorShown : AlarmIntent

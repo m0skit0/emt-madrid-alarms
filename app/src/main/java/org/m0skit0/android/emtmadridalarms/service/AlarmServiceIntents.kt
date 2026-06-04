@@ -7,6 +7,7 @@ import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 
 internal const val ACTION_START = "org.m0skit0.android.emtmadridalarms.START"
 internal const val ACTION_CANCEL = "org.m0skit0.android.emtmadridalarms.CANCEL"
+internal const val ACTION_CANCEL_ALARM = "org.m0skit0.android.emtmadridalarms.CANCEL_ALARM"
 internal const val ACTION_STOP_RINGING = "org.m0skit0.android.emtmadridalarms.STOP_RINGING"
 
 private const val EXTRA_LINE = "line"
@@ -22,8 +23,14 @@ internal fun Intent.alarmRequest(): BusAlarmRequest? {
 }
 
 internal fun startAlarmIntent(context: Context, request: BusAlarmRequest): Intent =
+    alarmIntent(context, ACTION_START, request)
+
+internal fun cancelAlarmIntent(context: Context, request: BusAlarmRequest): Intent =
+    alarmIntent(context, ACTION_CANCEL_ALARM, request)
+
+private fun alarmIntent(context: Context, action: String, request: BusAlarmRequest): Intent =
     Intent(context, AlarmMonitorService::class.java)
-        .setAction(ACTION_START)
+        .setAction(action)
         .putExtra(EXTRA_LINE, request.line)
         .putExtra(EXTRA_STOP_ID, request.stopId)
         .putExtra(EXTRA_TARGET_MINUTES, request.targetMinutes)
