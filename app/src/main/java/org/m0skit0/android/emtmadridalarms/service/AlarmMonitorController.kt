@@ -11,9 +11,12 @@ import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
+import android.app.NotificationManager
+import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
+import org.m0skit0.android.emtmadridalarms.utils.orDefault
 
 private const val TAG = "BusAlarm"
-private const val NOTIFICATION_ID = 1001
+internal const val NOTIFICATION_ID = 1001
 
 /**
  * Data class representing the state for the alarm monitoring job.
@@ -28,6 +31,7 @@ fun interface StartRinging : (BusAlarmRequest) -> Unit
 fun interface StopRingingAndSelf : () -> Unit
 fun interface StopSignal : () -> Unit
 fun interface CancelJob : () -> Unit
+fun interface MonitorNotificationUpdater : (CoroutineScope) -> Unit
 
 internal fun startMonitoring(
     service: Service,
@@ -46,7 +50,11 @@ internal fun startMonitoring(
     globalState.state.alarmMonitor.monitorJob?.cancel()
     service.startForeground(
         NOTIFICATION_ID,
-        monitoringNotification(request, "Waiting for EMT arrivals...", service.servicePendingIntent(ACTION_CANCEL, 2)),
+        monitoringNotification(
+            request,
+            "Waiting for EMT arrivals...",
+            service.servicePendingIntent(ACTION_CANCEL, 2)
+        ),
     )
     Timber.d("Foreground monitoring notification started")
     launchMonitorJob(scope, globalState, pollingMonitor, request, startRinging)
@@ -125,4 +133,28 @@ internal fun cancelMonitoring(
 
 internal fun cancelJob(globalState: GlobalStateHolder): CancelJob = CancelJob {
     globalState.state.alarmMonitor.monitorJob?.cancel()
+}
+
+internal fun monitorNotificationUpdater(
+    service: Service,
+    alarmStateReader: AlarmStateReader,
+    monitoringNotification: MonitoringNotificationProvider,
+): MonitorNotificationUpdater = MonitorNotificationUpdater { scope ->
+    scope.launch {
+        alarmStateReader().collect { state ->
+            if (state.activeAlarm == null) return@collect
+            if (state.isRinging) return@collect
+            val text = state.latestEtaSeconds
+                ?.let { "Next bus: ${it.floorDiv(60)} min" }
+                .orDefault { state.statusMessage.ifBlank { "Waiting for EMT arrivals..." } }
+            val notification = monitoringNotification(
+                state.activeAlarm,
+                text,
+                service.servicePendingIntent(ACTION_CANCEL, 2)
+            )
+            service
+                .getSystemService(NotificationManager::class.java)
+                ?.notify(NOTIFICATION_ID, notification)
+        }
+    }
 }

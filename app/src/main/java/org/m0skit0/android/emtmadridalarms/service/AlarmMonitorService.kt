@@ -11,7 +11,11 @@ import kotlinx.coroutines.cancel
 import org.koin.android.ext.android.inject
 import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
+import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
 import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
+import android.app.NotificationManager
+import android.content.Context
+import kotlinx.coroutines.launch
 
 private const val TAG = "BusAlarm"
 
@@ -27,12 +31,14 @@ class AlarmMonitorService : Service() {
     private val startSignal: StartSignal by inject()
     private val stopSignal: StopSignal by inject()
     private val globalState: GlobalStateHolder by inject()
+    private val alarmStateReader: AlarmStateReader by inject()
 
     private lateinit var startMonitoring: StartMonitoring
     private lateinit var cancelMonitoring: CancelMonitoring
     private lateinit var startRinging: StartRinging
     private lateinit var stopRingingAndSelf: StopRingingAndSelf
     private lateinit var cancelJob: CancelJob
+    private lateinit var monitorNotificationUpdater: MonitorNotificationUpdater
 
     override fun onCreate() {
         super.onCreate()
@@ -44,6 +50,9 @@ class AlarmMonitorService : Service() {
         cancelMonitoring = cancelMonitoring(this, scope, clearActiveAlarm, setRinging, stopSignal, globalState)
         startRinging = startRinging(this, ringingNotification, startSignal)
         startMonitoring = startMonitoring(this, scope, pollingMonitor, monitoringNotification, startRinging, globalState)
+        monitorNotificationUpdater = monitorNotificationUpdater(this, alarmStateReader, monitoringNotification)
+
+        monitorNotificationUpdater(scope)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
