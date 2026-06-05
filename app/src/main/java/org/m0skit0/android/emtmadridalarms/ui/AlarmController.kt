@@ -11,6 +11,7 @@ import org.m0skit0.android.emtmadridalarms.R
 import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.RemoveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
+import org.m0skit0.android.emtmadridalarms.data.SetAlarmEnabled
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.MAX_ACTIVE_ALARMS
@@ -24,6 +25,7 @@ private const val TAG = "AlarmController"
 fun interface AlarmStarter : (BusAlarmRequest) -> Unit
 fun interface AlarmCanceller : () -> Unit
 fun interface SingleAlarmCanceller : (BusAlarmRequest) -> Unit
+fun interface AlarmEnabler : (BusAlarmRequest, Boolean) -> Unit
 fun interface RingingStop : () -> Unit
 
 internal fun alarmStarter(
@@ -55,7 +57,7 @@ internal fun alarmStarter(
                 stops = emptyList(),
             )
         }
-        Toast.makeText(context, context.getString(R.string.toast_alarm_added), Toast.LENGTH_SHORT).show()
+        Toast.makeText(context, context.getString(R.string.toast_alarm_added_enabled), Toast.LENGTH_SHORT).show()
         Timber.d("Alarm start requested")
     }
 }
@@ -104,6 +106,29 @@ internal fun singleAlarmCanceller(
                 latestDestination = it.latestDestination.takeIf { activeAlarms.isNotEmpty() }.orEmpty(),
                 statusMessage = it.statusMessage.takeIf { activeAlarms.isNotEmpty() }.orEmpty(),
             )
+        }
+    }
+}
+
+internal fun alarmEnabler(
+    context: Context,
+    setAlarmEnabled: SetAlarmEnabled,
+    state: MutableStateFlow<AlarmState>,
+    scope: CoroutineScope,
+): AlarmEnabler = AlarmEnabler { request, enabled ->
+    scope.launch {
+        Timber.d("${if (enabled) "Enabling" else "Disabling"} alarm line=${request.line} stop=${request.stopId}")
+        setAlarmEnabled(request, enabled)
+        if (enabled) {
+            startAlarmService(context, request)
+        } else {
+            cancelAlarmService(context, request)
+        }
+        state.update {
+            val activeAlarms = it.activeAlarms.map { alarm ->
+                if (alarm.hasSameLineAndStop(request)) alarm.copy(isEnabled = enabled) else alarm
+            }
+            it.copy(activeAlarm = activeAlarms.firstOrNull(), activeAlarms = activeAlarms)
         }
     }
 }

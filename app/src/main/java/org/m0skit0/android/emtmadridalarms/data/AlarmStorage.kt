@@ -18,6 +18,7 @@ private object Keys {
     val LINE = stringPreferencesKey("line")
     val STOP_ID = stringPreferencesKey("stop_id")
     val TARGET_MINUTES = intPreferencesKey("target_minutes")
+    val ENABLED = booleanPreferencesKey("enabled")
     val LATEST_ETA_SECONDS = intPreferencesKey("latest_eta_seconds")
     val LATEST_DESTINATION = stringPreferencesKey("latest_destination")
     val STATUS_MESSAGE = stringPreferencesKey("status_message")
@@ -44,6 +45,7 @@ fun interface ClearActiveAlarm : suspend () -> Unit
 fun interface SaveLatestArrival : suspend (Int?, String) -> Unit
 fun interface SaveStatus : suspend (String) -> Unit
 fun interface SetRinging : suspend (Boolean, BusAlarmRequest?) -> Unit
+fun interface SetAlarmEnabled : suspend (BusAlarmRequest, Boolean) -> Unit
 
 internal fun alarmStateReader(dataStore: DataStore<Preferences>): AlarmStateReader = AlarmStateReader {
     dataStore.data.map { preferences ->
@@ -133,8 +135,9 @@ private fun activeAlarms(preferences: Preferences): List<BusAlarmRequest> =
         val line = preferences[lineKey(index)].orEmpty()
         val stopId = preferences[stopIdKey(index)].orEmpty()
         val targetMinutes = preferences[targetMinutesKey(index)] ?: 0
+        val isEnabled = preferences[enabledKey(index)] ?: true
         if (line.isNotBlank() && stopId.isNotBlank() && targetMinutes > 0) {
-            BusAlarmRequest(line = line, stopId = stopId, targetMinutes = targetMinutes)
+            BusAlarmRequest(line = line, stopId = stopId, targetMinutes = targetMinutes, isEnabled = isEnabled)
         } else {
             null
         }
@@ -145,11 +148,13 @@ private fun writeActiveAlarms(preferences: MutablePreferences, alarms: List<BusA
         preferences.remove(lineKey(index))
         preferences.remove(stopIdKey(index))
         preferences.remove(targetMinutesKey(index))
+        preferences.remove(enabledKey(index))
     }
     alarms.take(MAX_ACTIVE_ALARMS).forEachIndexed { index, alarm ->
         preferences[lineKey(index)] = alarm.line
         preferences[stopIdKey(index)] = alarm.stopId
         preferences[targetMinutesKey(index)] = alarm.targetMinutes
+        preferences[enabledKey(index)] = alarm.isEnabled
     }
 }
 
@@ -170,6 +175,16 @@ private fun clearRingingAlarm(preferences: MutablePreferences) {
     preferences.remove(Keys.RINGING_TARGET_MINUTES)
 }
 
+internal fun setAlarmEnabled(dataStore: DataStore<Preferences>): SetAlarmEnabled = SetAlarmEnabled { request, enabled ->
+    dataStore.edit { preferences ->
+        val updated = activeAlarms(preferences).map { alarm ->
+            if (alarm.hasSameLineAndStop(request)) alarm.copy(isEnabled = enabled) else alarm
+        }
+        writeActiveAlarms(preferences, updated)
+    }
+}
+
 private fun lineKey(index: Int) = if (index == 0) Keys.LINE else stringPreferencesKey("line_$index")
 private fun stopIdKey(index: Int) = if (index == 0) Keys.STOP_ID else stringPreferencesKey("stop_id_$index")
 private fun targetMinutesKey(index: Int) = if (index == 0) Keys.TARGET_MINUTES else intPreferencesKey("target_minutes_$index")
+private fun enabledKey(index: Int) = if (index == 0) Keys.ENABLED else booleanPreferencesKey("enabled_$index")

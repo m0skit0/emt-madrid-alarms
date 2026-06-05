@@ -8,6 +8,7 @@ import org.koin.dsl.module
 import org.m0skit0.android.emtmadridalarms.ui.AlarmState
 import org.m0skit0.android.emtmadridalarms.ui.AlarmViewModel
 import org.m0skit0.android.emtmadridalarms.ui.alarmCanceller
+import org.m0skit0.android.emtmadridalarms.ui.alarmEnabler
 import org.m0skit0.android.emtmadridalarms.ui.alarmRequestBuilder
 import org.m0skit0.android.emtmadridalarms.ui.alarmRequestValidator
 import org.m0skit0.android.emtmadridalarms.ui.alarmStarter
@@ -31,6 +32,7 @@ val presentationModule = module {
             buildRequest = alarmRequestBuilder(alarmRequestValidator()),
             startAlarm = alarmStarter(androidContext(), get(), state, scope),
             cancelSingleAlarm = singleAlarmCanceller(androidContext(), get(), state, scope),
+            enableAlarm = alarmEnabler(androidContext(), get(), state, scope),
             cancelAlarm = alarmCanceller(androidContext(), get(), get(), state, scope),
             stopRinging = ringingStop(androidContext(), get(), state, scope),
         )

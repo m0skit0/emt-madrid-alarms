@@ -22,7 +22,7 @@
     <string name="title_active_alarms">Alarmas activas: %1$d/%2$d</string>
     <string name="text_active_alarm_item">Línea %1$s · Parada %2$s · %3$d min</string>
     <string name="button_cancel_all_alarms">Cancelar todas las alarmas</string>
-    <string name="toast_alarm_added">Alarma añadida a las alarmas programadas.</string>
+    <string name="toast_alarm_added_enabled">Alarma añadida a las alarmas programadas y activada.</string>
     
     <!-- Line Selection Screen -->
     <string name="title_select_line">Selecciona línea de autobús</string>

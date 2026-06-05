@@ -20,6 +20,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -121,12 +122,18 @@ private fun ActiveAlarmsCard(activeAlarms: List<BusAlarmRequest>, dispatch: (Ala
                 activeAlarms.forEach { alarm ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
                             text = stringResource(R.string.text_active_alarm_item, alarm.line, alarm.stopId, alarm.targetMinutes),
                             modifier = Modifier.weight(1f),
+                        )
+                        Switch(
+                            checked = alarm.isEnabled,
+                            onCheckedChange = { enabled ->
+                                dispatch(AlarmIntent.ToggleAlarmEnabled(alarm, enabled))
+                            },
                         )
                         IconButton(
                             onClick = { dispatch(AlarmIntent.CancelAlarmClicked(alarm)) },

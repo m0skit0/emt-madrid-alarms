@@ -17,5 +17,5 @@ val serviceModule = module {
     single { startSignal(androidContext(), get()) }
     single { stopSignal(get()) }
     single { pollInterval() }
-    single { pollAlarm(get(), get(), get(), get(), get(), get(), get()) }
+    single { pollAlarm(get(), get(), get(), get(), get(), get()) }
 }

@@ -157,6 +157,42 @@ class AlarmStorageTest {
     }
 
     @Test
+    fun `given an enabled alarm, when setAlarmEnabled is called with false, then the alarm is disabled`() = runTest {
+        val ds = makeDataStore(this)
+        val request = BusAlarmRequest("27", "100", 5)
+        saveActiveAlarm(ds)(request)
+
+        setAlarmEnabled(ds)(request, false)
+
+        val result = alarmStateReader(ds)().first()
+        result.activeAlarms shouldBe listOf(request.copy(isEnabled = false))
+    }
+
+    @Test
+    fun `given a disabled alarm, when setAlarmEnabled is called with true, then the alarm is enabled`() = runTest {
+        val ds = makeDataStore(this)
+        val request = BusAlarmRequest("27", "100", 5, isEnabled = false)
+        saveActiveAlarm(ds)(request)
+
+        setAlarmEnabled(ds)(request, true)
+
+        val result = alarmStateReader(ds)().first()
+        result.activeAlarms shouldBe listOf(request.copy(isEnabled = true))
+    }
+
+    @Test
+    fun `given no alarm matching the request, when setAlarmEnabled is called, then the alarm list is unchanged`() = runTest {
+        val ds = makeDataStore(this)
+        val saved = BusAlarmRequest("27", "100", 5)
+        val other = BusAlarmRequest("34", "200", 10)
+        saveActiveAlarm(ds)(saved)
+
+        setAlarmEnabled(ds)(other, false)
+
+        alarmStateReader(ds)().first().activeAlarms shouldBe listOf(saved)
+    }
+
+    @Test
     fun `given isRinging false, when setRinging is called with true, then isRinging and ringingAlarm are persisted`() = runTest {
         val ds = makeDataStore(this)
         val request = BusAlarmRequest("27", "100", 5)

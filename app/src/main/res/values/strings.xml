@@ -22,7 +22,7 @@
     <string name="title_active_alarms">Active alarms: %1$d/%2$d</string>
     <string name="text_active_alarm_item">Line %1$s · Stop %2$s · %3$d min</string>
     <string name="button_cancel_all_alarms">Cancel all alarms</string>
-    <string name="toast_alarm_added">Alarm added to scheduled alarms.</string>
+    <string name="toast_alarm_added_enabled">Alarm added to scheduled alarms and enabled.</string>
     
     <!-- Line Selection Screen -->
     <string name="title_select_line">Select bus line</string>

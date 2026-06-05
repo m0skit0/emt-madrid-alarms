@@ -37,6 +37,7 @@ sealed interface AlarmIntent {
     data object StopPickerOpened : AlarmIntent
     data object StartClicked : AlarmIntent
     data class CancelAlarmClicked(val value: BusAlarmRequest) : AlarmIntent
+    data class ToggleAlarmEnabled(val alarm: BusAlarmRequest, val enabled: Boolean) : AlarmIntent
     data object CancelClicked : AlarmIntent
     data object StopRingingClicked : AlarmIntent
     data object ErrorShown : AlarmIntent

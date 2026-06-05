@@ -16,6 +16,7 @@ import org.m0skit0.android.emtmadridalarms.domain.MAX_ACTIVE_ALARMS
 import org.m0skit0.android.emtmadridalarms.domain.hasSameLineAndStop
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.CancelAlarmClicked
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.CancelClicked
+import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.ToggleAlarmEnabled
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.ErrorShown
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.LineChanged
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.LineSelected
@@ -39,6 +40,7 @@ class AlarmViewModel(
     private val buildRequest: AlarmRequestBuilder,
     private val startAlarm: AlarmStarter,
     private val cancelSingleAlarm: SingleAlarmCanceller,
+    private val enableAlarm: AlarmEnabler,
     private val cancelAlarm: AlarmCanceller,
     private val stopRinging: RingingStop,
 ) : ViewModel() {
@@ -93,6 +95,7 @@ class AlarmViewModel(
             StopPickerOpened -> onStopPickerOpened()
             StartClicked -> onStartClicked()
             is CancelAlarmClicked -> cancelSingleAlarm(intent.value)
+            is ToggleAlarmEnabled -> enableAlarm(intent.alarm, intent.enabled)
             CancelClicked -> cancelAlarm()
             StopRingingClicked -> stopRinging()
             ErrorShown -> _state.update { it.copy(errorMessage = null) }

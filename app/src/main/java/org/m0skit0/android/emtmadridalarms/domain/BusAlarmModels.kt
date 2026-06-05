@@ -8,6 +8,7 @@ data class BusAlarmRequest(
     val line: String,
     val stopId: String,
     val targetMinutes: Int,
+    val isEnabled: Boolean = true,
 )
 
 fun BusAlarmRequest.hasSameLineAndStop(other: BusAlarmRequest): Boolean =

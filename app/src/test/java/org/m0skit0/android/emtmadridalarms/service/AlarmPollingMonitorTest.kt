@@ -5,10 +5,9 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 import org.junit.Test
-import org.m0skit0.android.emtmadridalarms.data.RemoveActiveAlarm
-import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival
 import org.m0skit0.android.emtmadridalarms.data.SaveStatus
+import org.m0skit0.android.emtmadridalarms.data.SetAlarmEnabled
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusArrival
@@ -74,80 +73,59 @@ class AlarmPollingMonitorTest {
     private val unavailableArrival = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 999999, distanceMeters = 0)
     private val fixedPollInterval: PollInterval = PollInterval { _, _ -> 30.seconds }
 
+    private fun makeMonitor(
+        loadBusArrivals: suspend (BusAlarmRequest) -> List<BusArrival>,
+        saveStatus: SaveStatus = mockk(relaxed = true),
+        saveLatestArrival: SaveLatestArrival = mockk(relaxed = true),
+        setRinging: SetRinging = mockk(relaxed = true),
+        setAlarmEnabled: SetAlarmEnabled = SetAlarmEnabled { _, _ -> },
+    ) = pollAlarm(
+        pollInterval = fixedPollInterval,
+        loadBusArrivals = loadBusArrivals,
+        saveStatus = saveStatus,
+        saveLatestArrival = saveLatestArrival,
+        setRinging = setRinging,
+        setAlarmEnabled = setAlarmEnabled,
+    )
+
     @Test
     fun `given an arrival at the target window, when polled, then the alarm is triggered and ringing is set`() = runTest {
-        val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
-        val saveStatus = mockk<SaveStatus>(relaxed = true)
-        val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
         val setRinging = mockk<SetRinging>(relaxed = true)
-        val removeActiveAlarm = mockk<RemoveActiveAlarm>(relaxed = true)
-        var triggeredWith: BusArrival? = null
-
-        val monitor = pollAlarm(
-            pollInterval = fixedPollInterval,
+        var disabledRequest: BusAlarmRequest? = null
+        val monitor = makeMonitor(
             loadBusArrivals = { listOf(arrivalAtTarget) },
-            saveActiveAlarm = saveActiveAlarm,
-            saveStatus = saveStatus,
-            saveLatestArrival = saveLatestArrival,
             setRinging = setRinging,
-            removeActiveAlarm = removeActiveAlarm,
+            setAlarmEnabled = SetAlarmEnabled { req, enabled -> if (!enabled) disabledRequest = req },
         )
+        var triggeredWith: BusArrival? = null
 
         monitor(request) { triggeredWith = it }
 
         triggeredWith shouldBe arrivalAtTarget
         coVerify { setRinging(true, request) }
-        coVerify { removeActiveAlarm(request) }
+        disabledRequest shouldBe request
     }
 
     @Test
     fun `given an arrival inside target plus poll interval, when polled, then the alarm is triggered`() = runTest {
-        val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
-        val saveStatus = mockk<SaveStatus>(relaxed = true)
-        val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
-        val setRinging = mockk<SetRinging>(relaxed = true)
-        val removeActiveAlarm = mockk<RemoveActiveAlarm>(relaxed = true)
         var triggeredWith: BusArrival? = null
-
-        val monitor = pollAlarm(
-            pollInterval = fixedPollInterval,
-            loadBusArrivals = { listOf(arrivalWithinPollInterval) },
-            saveActiveAlarm = saveActiveAlarm,
-            saveStatus = saveStatus,
-            saveLatestArrival = saveLatestArrival,
-            setRinging = setRinging,
-            removeActiveAlarm = removeActiveAlarm,
-        )
+        val monitor = makeMonitor(loadBusArrivals = { listOf(arrivalWithinPollInterval) })
 
         monitor(request) { triggeredWith = it }
 
         triggeredWith shouldBe arrivalWithinPollInterval
-        coVerify { setRinging(true, request) }
-        coVerify { removeActiveAlarm(request) }
     }
 
     @Test
     fun `given an arrival already inside the target window, when a later bus reaches the target, then the later bus triggers the alarm`() = runTest {
-        val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
-        val saveStatus = mockk<SaveStatus>(relaxed = true)
-        val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
-        val setRinging = mockk<SetRinging>(relaxed = true)
-        val removeActiveAlarm = mockk<RemoveActiveAlarm>(relaxed = true)
         var callCount = 0
         var triggeredWith: BusArrival? = null
-
-        val monitor = pollAlarm(
-            pollInterval = fixedPollInterval,
+        val monitor = makeMonitor(
             loadBusArrivals = {
                 callCount++
                 if (callCount == 1) listOf(arrivalWithinWindow, arrivalOutsideWindow)
                 else listOf(arrivalWithinWindow.copy(estimateSeconds = 240), arrivalAtTarget)
             },
-            saveActiveAlarm = saveActiveAlarm,
-            saveStatus = saveStatus,
-            saveLatestArrival = saveLatestArrival,
-            setRinging = setRinging,
-            removeActiveAlarm = removeActiveAlarm,
         )
 
         monitor(request) { triggeredWith = it }
@@ -158,25 +136,15 @@ class AlarmPollingMonitorTest {
 
     @Test
     fun `given loadBusArrivals throws on the first call, when polled, then the error status is saved`() = runTest {
-        val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
         val saveStatus = mockk<SaveStatus>(relaxed = true)
-        val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
-        val setRinging = mockk<SetRinging>(relaxed = true)
-        val removeActiveAlarm = mockk<RemoveActiveAlarm>(relaxed = true)
         var callCount = 0
-
-        val monitor = pollAlarm(
-            pollInterval = fixedPollInterval,
+        val monitor = makeMonitor(
             loadBusArrivals = {
                 callCount++
                 if (callCount == 1) throw RuntimeException("server error")
                 else listOf(arrivalAtTarget)
             },
-            saveActiveAlarm = saveActiveAlarm,
             saveStatus = saveStatus,
-            saveLatestArrival = saveLatestArrival,
-            setRinging = setRinging,
-            removeActiveAlarm = removeActiveAlarm,
         )
 
         monitor(request) {}
@@ -186,16 +154,9 @@ class AlarmPollingMonitorTest {
 
     @Test
     fun `given a sentinel arrival on the first poll, when polled again, then the arrival is skipped and alarm triggers later`() = runTest {
-        val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
-        val saveStatus = mockk<SaveStatus>(relaxed = true)
-        val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
-        val setRinging = mockk<SetRinging>(relaxed = true)
-        val removeActiveAlarm = mockk<RemoveActiveAlarm>(relaxed = true)
         var callCount = 0
         var triggered = false
-
-        val monitor = pollAlarm(
-            pollInterval = fixedPollInterval,
+        val monitor = makeMonitor(
             loadBusArrivals = {
                 callCount++
                 when (callCount) {
@@ -204,39 +165,11 @@ class AlarmPollingMonitorTest {
                     else -> listOf(arrivalAtTarget)
                 }
             },
-            saveActiveAlarm = saveActiveAlarm,
-            saveStatus = saveStatus,
-            saveLatestArrival = saveLatestArrival,
-            setRinging = setRinging,
-            removeActiveAlarm = removeActiveAlarm,
         )
 
         monitor(request) { triggered = true }
 
         triggered shouldBe true
         callCount shouldBe 3
-    }
-
-    @Test
-    fun `given a valid request, when polling starts, then the active alarm is persisted immediately`() = runTest {
-        val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
-        val saveStatus = mockk<SaveStatus>(relaxed = true)
-        val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
-        val setRinging = mockk<SetRinging>(relaxed = true)
-        val removeActiveAlarm = mockk<RemoveActiveAlarm>(relaxed = true)
-
-        val monitor = pollAlarm(
-            pollInterval = fixedPollInterval,
-            loadBusArrivals = { listOf(arrivalAtTarget) },
-            saveActiveAlarm = saveActiveAlarm,
-            saveStatus = saveStatus,
-            saveLatestArrival = saveLatestArrival,
-            setRinging = setRinging,
-            removeActiveAlarm = removeActiveAlarm,
-        )
-
-        monitor(request) {}
-
-        coVerify { saveActiveAlarm(request) }
     }
 }

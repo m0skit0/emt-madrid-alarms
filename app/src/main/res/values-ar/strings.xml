@@ -22,7 +22,7 @@
     <string name="title_active_alarms">التنبيهات النشطة: %1$d/%2$d</string>
     <string name="text_active_alarm_item">الخط %1$s · المحطة %2$s · %3$d دقيقة</string>
     <string name="button_cancel_all_alarms">إلغاء كل التنبيهات</string>
-    <string name="toast_alarm_added">تمت إضافة التنبيه إلى التنبيهات المجدولة.</string>
+    <string name="toast_alarm_added_enabled">تمت إضافة التنبيه إلى التنبيهات المجدولة وتفعيله.</string>
     
     <!-- Line Selection Screen -->
     <string name="title_select_line">اختر خط الحافلة</string>

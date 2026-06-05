@@ -69,6 +69,7 @@ class AlarmViewModelTest {
             buildRequest = buildRequest,
             startAlarm = startAlarm,
             cancelSingleAlarm = cancelSingleAlarm,
+            enableAlarm = AlarmEnabler { _, _ -> },
             cancelAlarm = cancelAlarm,
             stopRinging = stopRinging,
         )
@@ -92,7 +93,7 @@ class AlarmViewModelTest {
             _state = freshState, scope = scope,
             alarmStateReader = AlarmStateReader { flowOf(persisted) },
             loadLines = loadLines, loadAllStops = loadAllStops, loadStops = loadStops, buildRequest = buildRequest,
-            startAlarm = startAlarm, cancelSingleAlarm = cancelSingleAlarm, cancelAlarm = cancelAlarm, stopRinging = stopRinging,
+            startAlarm = startAlarm, cancelSingleAlarm = cancelSingleAlarm, enableAlarm = AlarmEnabler { _, _ -> }, cancelAlarm = cancelAlarm, stopRinging = stopRinging,
         )
         dispatcher.scheduler.advanceUntilIdle()
 

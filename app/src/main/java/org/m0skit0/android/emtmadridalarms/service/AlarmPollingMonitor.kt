@@ -2,9 +2,8 @@ package org.m0skit0.android.emtmadridalarms.service
 
 import timber.log.Timber
 import kotlinx.coroutines.delay
-import org.m0skit0.android.emtmadridalarms.data.RemoveActiveAlarm
-import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SaveLatestArrival
+import org.m0skit0.android.emtmadridalarms.data.SetAlarmEnabled
 import org.m0skit0.android.emtmadridalarms.data.SaveStatus
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
@@ -36,14 +35,12 @@ private data class PollResult(
 internal fun pollAlarm(
     pollInterval: PollInterval,
     loadBusArrivals: LoadBusArrivalsUseCase,
-    saveActiveAlarm: SaveActiveAlarm,
     saveStatus: SaveStatus,
     saveLatestArrival: SaveLatestArrival,
     setRinging: SetRinging,
-    removeActiveAlarm: RemoveActiveAlarm,
+    setAlarmEnabled: SetAlarmEnabled,
 ): AlarmPollingMonitor = AlarmPollingMonitor { request, onTriggered ->
-    saveActiveAlarm(request)
-    runPollLoop(request, pollInterval, loadBusArrivals, saveStatus, saveLatestArrival, setRinging, removeActiveAlarm, onTriggered)
+    runPollLoop(request, pollInterval, loadBusArrivals, saveStatus, saveLatestArrival, setRinging, setAlarmEnabled, onTriggered)
 }
 
 private suspend fun runPollLoop(
@@ -53,7 +50,7 @@ private suspend fun runPollLoop(
     saveStatus: SaveStatus,
     saveLatestArrival: SaveLatestArrival,
     setRinging: SetRinging,
-    removeActiveAlarm: RemoveActiveAlarm,
+    setAlarmEnabled: SetAlarmEnabled,
     onTriggered: suspend (BusArrival) -> Unit,
 ) {
     var pollNumber = 0
@@ -61,7 +58,7 @@ private suspend fun runPollLoop(
     while (true) {
         pollNumber++
         val result = try {
-            processPoll(pollNumber, request, trackedArrival, loadBusArrivals, saveLatestArrival, setRinging, removeActiveAlarm, onTriggered)
+            processPoll(pollNumber, request, trackedArrival, loadBusArrivals, saveLatestArrival, setRinging, setAlarmEnabled, onTriggered)
         } catch (error: Exception) {
             Timber.e(error, "Poll #$pollNumber failed: ${error.message}")
             saveStatus(error.message ?: "Could not refresh EMT arrivals.")
@@ -83,7 +80,7 @@ private suspend fun processPoll(
     loadBusArrivals: LoadBusArrivalsUseCase,
     saveLatestArrival: SaveLatestArrival,
     setRinging: SetRinging,
-    removeActiveAlarm: RemoveActiveAlarm,
+    setAlarmEnabled: SetAlarmEnabled,
     onTriggered: suspend (BusArrival) -> Unit,
 ): PollResult {
     val validArrivals = loadValidArrivals(pollNumber, request, loadBusArrivals)
@@ -95,7 +92,7 @@ private suspend fun processPoll(
     Timber.d("Poll #$pollNumber: shouldTrigger=$shouldTrigger targetSeconds=${triggerThresholdSeconds(request.targetMinutes)}")
     if (!shouldTrigger) return PollResult(triggered = false, trackedArrival = nextTrackedArrival)
     checkNotNull(nextTrackedArrival)
-    triggerAlarm(request, nextTrackedArrival, setRinging, removeActiveAlarm, saveLatestArrival, onTriggered)
+    triggerAlarm(request, nextTrackedArrival, setRinging, setAlarmEnabled, saveLatestArrival, onTriggered)
     return PollResult(triggered = true, trackedArrival = nextTrackedArrival)
 }
 
@@ -132,13 +129,13 @@ private suspend fun triggerAlarm(
     request: BusAlarmRequest,
     arrival: BusArrival,
     setRinging: SetRinging,
-    removeActiveAlarm: RemoveActiveAlarm,
+    setAlarmEnabled: SetAlarmEnabled,
     saveLatestArrival: SaveLatestArrival,
     onTriggered: suspend (BusArrival) -> Unit,
 ) {
     Timber.i("Triggering alarm line=${request.line} stop=${request.stopId} etaSeconds=${arrival.estimateSeconds}")
     setRinging(true, request)
-    removeActiveAlarm(request)
+    setAlarmEnabled(request, false)
     saveLatestArrival(arrival.estimateSeconds, arrival.destination)
     onTriggered(arrival)
 }
