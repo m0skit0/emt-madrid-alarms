@@ -17,13 +17,15 @@ import kotlin.time.Duration.Companion.seconds
 
 fun interface AlarmPollingMonitor : suspend (BusAlarmRequest, suspend (BusArrival) -> Unit) -> Unit
 
+fun interface PollInterval : (Int?, Int) -> Duration
+
 private val MIN_POLL_INTERVAL = 30.seconds
 private val MAX_POLL_INTERVAL = 5.minutes
 
-internal fun pollInterval(estimateSeconds: Int?, targetMinutes: Int): Duration {
-    if (estimateSeconds == null || targetMinutes <= 0) return MIN_POLL_INTERVAL
+internal fun pollInterval(): PollInterval = PollInterval { estimateSeconds, targetMinutes ->
+    if (estimateSeconds == null || targetMinutes <= 0) return@PollInterval MIN_POLL_INTERVAL
     val remainingSeconds = (estimateSeconds - targetMinutes * 60L).coerceAtLeast(0L)
-    return (remainingSeconds / 6).seconds.coerceIn(MIN_POLL_INTERVAL, MAX_POLL_INTERVAL)
+    (remainingSeconds / 6).seconds.coerceIn(MIN_POLL_INTERVAL, MAX_POLL_INTERVAL)
 }
 
 private data class PollResult(
@@ -32,6 +34,7 @@ private data class PollResult(
 )
 
 internal fun pollAlarm(
+    pollInterval: PollInterval,
     loadBusArrivals: LoadBusArrivalsUseCase,
     saveActiveAlarm: SaveActiveAlarm,
     saveStatus: SaveStatus,
@@ -40,11 +43,12 @@ internal fun pollAlarm(
     removeActiveAlarm: RemoveActiveAlarm,
 ): AlarmPollingMonitor = AlarmPollingMonitor { request, onTriggered ->
     saveActiveAlarm(request)
-    runPollLoop(request, loadBusArrivals, saveStatus, saveLatestArrival, setRinging, removeActiveAlarm, onTriggered)
+    runPollLoop(request, pollInterval, loadBusArrivals, saveStatus, saveLatestArrival, setRinging, removeActiveAlarm, onTriggered)
 }
 
 private suspend fun runPollLoop(
     request: BusAlarmRequest,
+    pollInterval: PollInterval,
     loadBusArrivals: LoadBusArrivalsUseCase,
     saveStatus: SaveStatus,
     saveLatestArrival: SaveLatestArrival,
