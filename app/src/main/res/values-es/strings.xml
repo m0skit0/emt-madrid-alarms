@@ -11,12 +11,10 @@
     <string name="label_bus_stop">Parada de autobús</string>
     <string name="placeholder_select_line">Selecciona línea de autobús</string>
     <string name="placeholder_loading_lines">Cargando líneas...</string>
-    <string name="placeholder_select_line_first">Selecciona primero una línea</string>
     <string name="placeholder_select_stop">Selecciona parada de autobús</string>
     <string name="placeholder_loading_stops">Cargando paradas...</string>
     <string name="label_trigger_minutes">Avisar minutos antes de la llegada</string>
     <string name="button_reload_lines">Recargar líneas de autobús</string>
-    <string name="button_start_alarm">Iniciar alarma</string>
     <string name="button_add_alarm">Añadir alarma</string>
     <string name="button_starting">Iniciando...</string>
     <string name="tab_add_alarm">Añadir alarma</string>
@@ -34,13 +32,11 @@
     <!-- Stop Selection Screen -->
     <string name="title_select_stop">Selecciona parada de autobús</string>
     <string name="placeholder_search_stop">Busca número de parada o nombre</string>
-    <string name="empty_text_no_stops_loaded">Selecciona primero una línea</string>
     <string name="empty_text_no_stops">No se encontraron paradas</string>
     
     <!-- Common UI -->
     <string name="button_back">Atrás</string>
     <string name="text_loading">Cargando...</string>
-    <string name="empty_results">Sin resultados</string>
     
     <!-- Monitoring Screen -->
     <string name="title_monitoring">Supervisando</string>

@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -117,13 +119,22 @@ private fun ActiveAlarmsCard(activeAlarms: List<BusAlarmRequest>, dispatch: (Ala
                 Text(stringResource(R.string.text_no_active_alarm))
             } else {
                 activeAlarms.forEach { alarm ->
-                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        Text(stringResource(R.string.text_active_alarm_item, alarm.line, alarm.stopId, alarm.targetMinutes))
-                        OutlinedButton(
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = stringResource(R.string.text_active_alarm_item, alarm.line, alarm.stopId, alarm.targetMinutes),
+                            modifier = Modifier.weight(1f),
+                        )
+                        IconButton(
                             onClick = { dispatch(AlarmIntent.CancelAlarmClicked(alarm)) },
-                            modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text(stringResource(R.string.button_cancel_alarm))
+                            Icon(
+                                painter = painterResource(R.drawable.ic_delete),
+                                contentDescription = null,
+                            )
                         }
                     }
                 }

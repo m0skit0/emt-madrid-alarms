@@ -11,12 +11,10 @@
     <string name="label_bus_stop">Bus stop</string>
     <string name="placeholder_select_line">Select bus line</string>
     <string name="placeholder_loading_lines">Loading lines...</string>
-    <string name="placeholder_select_line_first">Select a line first</string>
     <string name="placeholder_select_stop">Select bus stop</string>
     <string name="placeholder_loading_stops">Loading stops...</string>
     <string name="label_trigger_minutes">Trigger at minutes before arrival</string>
     <string name="button_reload_lines">Reload bus lines</string>
-    <string name="button_start_alarm">Start alarm</string>
     <string name="button_add_alarm">Add alarm</string>
     <string name="button_starting">Starting...</string>
     <string name="tab_add_alarm">Add alarm</string>
@@ -34,13 +32,11 @@
     <!-- Stop Selection Screen -->
     <string name="title_select_stop">Select bus stop</string>
     <string name="placeholder_search_stop">Search stop number or name</string>
-    <string name="empty_text_no_stops_loaded">Select a line first</string>
     <string name="empty_text_no_stops">No stops found</string>
     
     <!-- Common UI -->
     <string name="button_back">Back</string>
     <string name="text_loading">Loading...</string>
-    <string name="empty_results">No results</string>
     
     <!-- Monitoring Screen -->
     <string name="title_monitoring">Monitoring</string>

@@ -11,12 +11,10 @@
     <string name="label_bus_stop">محطة الحافلة</string>
     <string name="placeholder_select_line">اختر خط الحافلة</string>
     <string name="placeholder_loading_lines">جاري تحميل الخطوط...</string>
-    <string name="placeholder_select_line_first">اختر خطًا أولًا</string>
     <string name="placeholder_select_stop">اختر محطة الحافلة</string>
     <string name="placeholder_loading_stops">جاري تحميل المحطات...</string>
     <string name="label_trigger_minutes">التنبيه قبل الوصول بعدة دقائق</string>
     <string name="button_reload_lines">إعادة تحميل خطوط الحافلات</string>
-    <string name="button_start_alarm">بدء التنبيه</string>
     <string name="button_add_alarm">إضافة تنبيه</string>
     <string name="button_starting">جارٍ البدء...</string>
     <string name="tab_add_alarm">إضافة تنبيه</string>
@@ -34,13 +32,11 @@
     <!-- Stop Selection Screen -->
     <string name="title_select_stop">اختر محطة الحافلة</string>
     <string name="placeholder_search_stop">ابحث عن رقم المحطة أو الاسم</string>
-    <string name="empty_text_no_stops_loaded">اختر خطًا أولًا</string>
     <string name="empty_text_no_stops">لم يتم العثور على محطات</string>
     
     <!-- Common UI -->
     <string name="button_back">رجوع</string>
     <string name="text_loading">جارٍ التحميل...</string>
-    <string name="empty_results">لا توجد نتائج</string>
     
     <!-- Monitoring Screen -->
     <string name="title_monitoring">قيد المراقبة</string>

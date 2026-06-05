@@ -11,12 +11,10 @@
     <string name="label_bus_stop">Arrêt de bus</string>
     <string name="placeholder_select_line">Sélectionner une ligne de bus</string>
     <string name="placeholder_loading_lines">Chargement des lignes...</string>
-    <string name="placeholder_select_line_first">Sélectionnez d\'abord une ligne</string>
     <string name="placeholder_select_stop">Sélectionner un arrêt de bus</string>
     <string name="placeholder_loading_stops">Chargement des arrêts...</string>
     <string name="label_trigger_minutes">Prévenir quelques minutes avant l\'arrivée</string>
     <string name="button_reload_lines">Recharger les lignes de bus</string>
-    <string name="button_start_alarm">Démarrer l\'alarme</string>
     <string name="button_add_alarm">Ajouter une alarme</string>
     <string name="button_starting">Démarrage...</string>
     <string name="tab_add_alarm">Ajouter une alarme</string>
@@ -34,13 +32,11 @@
     <!-- Stop Selection Screen -->
     <string name="title_select_stop">Sélectionner un arrêt de bus</string>
     <string name="placeholder_search_stop">Rechercher un numéro ou un nom d\'arrêt</string>
-    <string name="empty_text_no_stops_loaded">Sélectionnez d\'abord une ligne</string>
     <string name="empty_text_no_stops">Aucun arrêt trouvé</string>
     
     <!-- Common UI -->
     <string name="button_back">Retour</string>
     <string name="text_loading">Chargement...</string>
-    <string name="empty_results">Aucun résultat</string>
     
     <!-- Monitoring Screen -->
     <string name="title_monitoring">Surveillance</string>

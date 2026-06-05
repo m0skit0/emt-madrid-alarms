@@ -11,12 +11,10 @@
     <string name="label_bus_stop">公交车站</string>
     <string name="placeholder_select_line">选择公交线路</string>
     <string name="placeholder_loading_lines">正在加载线路...</string>
-    <string name="placeholder_select_line_first">先选择一条线路</string>
     <string name="placeholder_select_stop">选择公交车站</string>
     <string name="placeholder_loading_stops">正在加载车站...</string>
     <string name="label_trigger_minutes">到达前多少分钟提醒</string>
     <string name="button_reload_lines">重新加载公交线路</string>
-    <string name="button_start_alarm">启动提醒</string>
     <string name="button_add_alarm">添加提醒</string>
     <string name="button_starting">启动中...</string>
     <string name="tab_add_alarm">添加提醒</string>
@@ -34,13 +32,11 @@
     <!-- Stop Selection Screen -->
     <string name="title_select_stop">选择公交车站</string>
     <string name="placeholder_search_stop">搜索车站号或名称</string>
-    <string name="empty_text_no_stops_loaded">先选择一条线路</string>
     <string name="empty_text_no_stops">未找到车站</string>
     
     <!-- Common UI -->
     <string name="button_back">返回</string>
     <string name="text_loading">加载中...</string>
-    <string name="empty_results">无结果</string>
     
     <!-- Monitoring Screen -->
     <string name="title_monitoring">正在监控</string>
