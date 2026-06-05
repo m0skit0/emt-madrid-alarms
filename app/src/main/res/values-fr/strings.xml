@@ -21,7 +21,7 @@
     <string name="tab_scheduled_alarms">Alarmes programmées</string>
     <string name="title_active_alarms">Alarmes actives : %1$d/%2$d</string>
     <string name="text_active_alarm_item">Ligne %1$s · Arrêt %2$s · %3$d min</string>
-    <string name="button_cancel_all_alarms">Annuler toutes les alarmes</string>
+    <string name="button_delete_all_alarms">Supprimer toutes les alarmes</string>
     <string name="toast_alarm_added_enabled">Alarme ajoutée aux alarmes programmées et activée.</string>
     
     <!-- Line Selection Screen -->

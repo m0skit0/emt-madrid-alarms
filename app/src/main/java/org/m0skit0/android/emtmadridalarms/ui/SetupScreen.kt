@@ -149,7 +149,7 @@ private fun ActiveAlarmsCard(activeAlarms: List<BusAlarmRequest>, dispatch: (Ala
                     onClick = { dispatch(AlarmIntent.CancelClicked) },
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Text(stringResource(R.string.button_cancel_all_alarms))
+                    Text(stringResource(R.string.button_delete_all_alarms))
                 }
             }
         }

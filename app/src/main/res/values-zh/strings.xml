@@ -21,7 +21,7 @@
     <string name="tab_scheduled_alarms">已计划提醒</string>
     <string name="title_active_alarms">活动提醒：%1$d/%2$d</string>
     <string name="text_active_alarm_item">线路 %1$s · 车站 %2$s · %3$d 分钟</string>
-    <string name="button_cancel_all_alarms">取消所有提醒</string>
+    <string name="button_delete_all_alarms">删除所有提醒</string>
     <string name="toast_alarm_added_enabled">提醒已添加到计划提醒并启用。</string>
     
     <!-- Line Selection Screen -->
