@@ -11,11 +11,20 @@ import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusArrival
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusArrivalsUseCase
 import kotlin.math.abs
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 fun interface AlarmPollingMonitor : suspend (BusAlarmRequest, suspend (BusArrival) -> Unit) -> Unit
 
-private val POLL_INTERVAL = 30.seconds
+private val MIN_POLL_INTERVAL = 30.seconds
+private val MAX_POLL_INTERVAL = 5.minutes
+
+internal fun pollInterval(estimateSeconds: Int?, targetMinutes: Int): Duration {
+    if (estimateSeconds == null || targetMinutes <= 0) return MIN_POLL_INTERVAL
+    val remainingSeconds = (estimateSeconds - targetMinutes * 60L).coerceAtLeast(0L)
+    return (remainingSeconds / 6).seconds.coerceIn(MIN_POLL_INTERVAL, MAX_POLL_INTERVAL)
+}
 
 private data class PollResult(
     val triggered: Boolean,
@@ -57,8 +66,9 @@ private suspend fun runPollLoop(
         trackedArrival = result.trackedArrival
         val triggered = result.triggered
         if (triggered) break
-        Timber.d("Poll #$pollNumber complete; waiting $POLL_INTERVAL")
-        delay(POLL_INTERVAL.inWholeMilliseconds)
+        val interval = pollInterval(trackedArrival?.estimateSeconds, request.targetMinutes)
+        Timber.d("Poll #$pollNumber complete; waiting $interval")
+        delay(interval.inWholeMilliseconds)
     }
 }
 
@@ -135,6 +145,6 @@ private fun shouldTriggerAlarm(estimateSeconds: Int, targetMinutes: Int): Boolea
     return estimateSeconds <= triggerThresholdSeconds(targetMinutes)
 }
 
-private fun triggerThresholdSeconds(targetMinutes: Int): Long = targetMinutes * 60L + POLL_INTERVAL.inWholeSeconds
+private fun triggerThresholdSeconds(targetMinutes: Int): Long = targetMinutes * 60L + MIN_POLL_INTERVAL.inWholeSeconds
 
 private fun isValidArrival(estimateSeconds: Int): Boolean = estimateSeconds >= 0 && estimateSeconds != 999999
