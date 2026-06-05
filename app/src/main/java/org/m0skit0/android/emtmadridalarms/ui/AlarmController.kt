@@ -1,11 +1,13 @@
 package org.m0skit0.android.emtmadridalarms.ui
 
 import android.content.Context
+import android.widget.Toast
 import timber.log.Timber
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import org.m0skit0.android.emtmadridalarms.R
 import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.RemoveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
@@ -48,6 +50,7 @@ internal fun alarmStarter(
                 stops = emptyList(),
             )
         }
+        Toast.makeText(context, context.getString(R.string.toast_alarm_added), Toast.LENGTH_SHORT).show()
         Timber.d("Alarm start requested")
     }
 }

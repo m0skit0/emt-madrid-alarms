@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -16,8 +17,15 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -35,9 +43,41 @@ internal fun SetupScreen(
     onSelectLine: () -> Unit,
     onSelectStop: () -> Unit,
 ) {
+    var selectedTab by remember { mutableIntStateOf(0) }
     ScreenColumn {
         SetupHeader()
-        ActiveAlarmsCard(state.activeAlarms, dispatch)
+        SetupTabs(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
+        when (selectedTab) {
+            0 -> AddAlarmTab(state, dispatch, onSelectLine, onSelectStop)
+            else -> ScheduledAlarmsTab(state.activeAlarms, dispatch)
+        }
+    }
+}
+
+@Composable
+private fun SetupTabs(selectedTab: Int, onTabSelected: (Int) -> Unit) {
+    PrimaryTabRow(selectedTabIndex = selectedTab, modifier = Modifier.fillMaxWidth()) {
+        Tab(
+            selected = selectedTab == 0,
+            onClick = { onTabSelected(0) },
+            text = { Text(stringResource(R.string.tab_add_alarm)) },
+        )
+        Tab(
+            selected = selectedTab == 1,
+            onClick = { onTabSelected(1) },
+            text = { Text(stringResource(R.string.tab_scheduled_alarms)) },
+        )
+    }
+}
+
+@Composable
+private fun AddAlarmTab(
+    state: AlarmState,
+    dispatch: (AlarmIntent) -> Unit,
+    onSelectLine: () -> Unit,
+    onSelectStop: () -> Unit,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         PickerField(
             value = state.selectedLine?.displayName.orEmpty(),
             label = stringResource(R.string.label_bus_line),
@@ -57,6 +97,11 @@ internal fun SetupScreen(
         )
         AlarmInputControls(state, dispatch)
     }
+}
+
+@Composable
+private fun ScheduledAlarmsTab(activeAlarms: List<BusAlarmRequest>, dispatch: (AlarmIntent) -> Unit) {
+    ActiveAlarmsCard(activeAlarms, dispatch)
 }
 
 @Composable
@@ -95,16 +140,22 @@ private fun ActiveAlarmsCard(activeAlarms: List<BusAlarmRequest>, dispatch: (Ala
 
 @Composable
 private fun SetupHeader() {
-    Image(
-        painter = painterResource(R.drawable.logo),
-        contentDescription = null,
-        modifier = Modifier.size(96.dp),
-    )
-    Text(
-        text = stringResource(R.string.setup_title),
-        style = MaterialTheme.typography.headlineMedium,
-        fontWeight = FontWeight.Bold,
-    )
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Image(
+            painter = painterResource(R.drawable.logo),
+            contentDescription = null,
+            modifier = Modifier.size(48.dp),
+        )
+        Text(
+            text = stringResource(R.string.setup_title),
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+        )
+    }
     Text(
         text = stringResource(R.string.setup_description),
         style = MaterialTheme.typography.bodyLarge,

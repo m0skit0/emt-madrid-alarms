@@ -17,7 +17,14 @@
     <string name="label_trigger_minutes">Prévenir quelques minutes avant l\'arrivée</string>
     <string name="button_reload_lines">Recharger les lignes de bus</string>
     <string name="button_start_alarm">Démarrer l\'alarme</string>
+    <string name="button_add_alarm">Ajouter une alarme</string>
     <string name="button_starting">Démarrage...</string>
+    <string name="tab_add_alarm">Ajouter une alarme</string>
+    <string name="tab_scheduled_alarms">Alarmes programmées</string>
+    <string name="title_active_alarms">Alarmes actives : %1$d/%2$d</string>
+    <string name="text_active_alarm_item">Ligne %1$s · Arrêt %2$s · %3$d min</string>
+    <string name="button_cancel_all_alarms">Annuler toutes les alarmes</string>
+    <string name="toast_alarm_added">Alarme ajoutée aux alarmes programmées.</string>
     
     <!-- Line Selection Screen -->
     <string name="title_select_line">Sélectionner une ligne de bus</string>

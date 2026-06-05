@@ -17,7 +17,14 @@
     <string name="label_trigger_minutes">التنبيه قبل الوصول بعدة دقائق</string>
     <string name="button_reload_lines">إعادة تحميل خطوط الحافلات</string>
     <string name="button_start_alarm">بدء التنبيه</string>
+    <string name="button_add_alarm">إضافة تنبيه</string>
     <string name="button_starting">جارٍ البدء...</string>
+    <string name="tab_add_alarm">إضافة تنبيه</string>
+    <string name="tab_scheduled_alarms">التنبيهات المجدولة</string>
+    <string name="title_active_alarms">التنبيهات النشطة: %1$d/%2$d</string>
+    <string name="text_active_alarm_item">الخط %1$s · المحطة %2$s · %3$d دقيقة</string>
+    <string name="button_cancel_all_alarms">إلغاء كل التنبيهات</string>
+    <string name="toast_alarm_added">تمت إضافة التنبيه إلى التنبيهات المجدولة.</string>
     
     <!-- Line Selection Screen -->
     <string name="title_select_line">اختر خط الحافلة</string>

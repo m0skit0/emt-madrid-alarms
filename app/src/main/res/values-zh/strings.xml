@@ -17,7 +17,14 @@
     <string name="label_trigger_minutes">到达前多少分钟提醒</string>
     <string name="button_reload_lines">重新加载公交线路</string>
     <string name="button_start_alarm">启动提醒</string>
+    <string name="button_add_alarm">添加提醒</string>
     <string name="button_starting">启动中...</string>
+    <string name="tab_add_alarm">添加提醒</string>
+    <string name="tab_scheduled_alarms">已计划提醒</string>
+    <string name="title_active_alarms">活动提醒：%1$d/%2$d</string>
+    <string name="text_active_alarm_item">线路 %1$s · 车站 %2$s · %3$d 分钟</string>
+    <string name="button_cancel_all_alarms">取消所有提醒</string>
+    <string name="toast_alarm_added">提醒已添加到已计划提醒。</string>
     
     <!-- Line Selection Screen -->
     <string name="title_select_line">选择公交线路</string>
