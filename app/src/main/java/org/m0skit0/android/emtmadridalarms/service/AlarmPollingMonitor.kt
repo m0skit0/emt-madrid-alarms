@@ -94,7 +94,6 @@ private suspend fun processPoll(
     val shouldTrigger = nextTrackedArrival?.let { shouldTriggerAlarm(it.estimateSeconds, request.targetMinutes) } == true
     Timber.d("Poll #$pollNumber: shouldTrigger=$shouldTrigger targetSeconds=${triggerThresholdSeconds(request.targetMinutes)}")
     if (!shouldTrigger) return PollResult(triggered = false, trackedArrival = nextTrackedArrival)
-    checkNotNull(nextTrackedArrival)
     triggerAlarm(request, nextTrackedArrival, setRinging, setAlarmEnabled, saveLatestArrival, onTriggered)
     return PollResult(triggered = true, trackedArrival = nextTrackedArrival)
 }
@@ -115,18 +114,17 @@ private fun selectTrackedArrival(
     arrivals: List<BusArrival>,
     trackedArrival: BusArrival?,
     targetMinutes: Int,
-): BusArrival? {
-    if (targetMinutes <= 0) return null
-    if (trackedArrival != null) return findClosestTrackedArrival(arrivals, trackedArrival)
-    val targetSeconds = targetMinutes * 60
-    return arrivals.firstOrNull { it.estimateSeconds >= targetSeconds }
+): BusArrival? = when {
+    targetMinutes <= 0 -> null
+    trackedArrival != null -> findClosestTrackedArrival(arrivals, trackedArrival)
+    else -> arrivals.firstOrNull { it.estimateSeconds >= targetMinutes * 60 }
 }
 
-private fun findClosestTrackedArrival(arrivals: List<BusArrival>, trackedArrival: BusArrival): BusArrival? {
-    val sameDestination = arrivals.filter { it.destination == trackedArrival.destination }
-    val candidates = sameDestination.ifEmpty { arrivals }
-    return candidates.minByOrNull { abs(it.estimateSeconds - trackedArrival.estimateSeconds) }
-}
+private fun findClosestTrackedArrival(arrivals: List<BusArrival>, trackedArrival: BusArrival): BusArrival? =
+    arrivals
+        .filter { it.destination == trackedArrival.destination }
+        .ifEmpty { arrivals }
+        .minByOrNull { abs(it.estimateSeconds - trackedArrival.estimateSeconds) }
 
 private suspend fun triggerAlarm(
     request: BusAlarmRequest,

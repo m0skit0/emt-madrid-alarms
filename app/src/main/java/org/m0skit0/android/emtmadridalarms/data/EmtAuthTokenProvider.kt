@@ -57,7 +57,11 @@ private suspend fun fetchAndStoreToken(
     return token
 }
 
-private suspend fun fetchToken(api: EmtApi, credentials: EmtCredentials, loginFailedMessage: String): Pair<String, Long> {
+private suspend fun fetchToken(
+    api: EmtApi,
+    credentials: EmtCredentials,
+    loginFailedMessage: String
+): Pair<String, Long> {
     Timber.d("Requesting new EMT token authMode=${if (credentials.passKey.isNotBlank()) "passKey" else "email"}")
     val response = api.login(
         email = credentials.email.takeIf { it.isNotBlank() && credentials.passKey.isBlank() },
@@ -71,8 +75,7 @@ private suspend fun fetchToken(api: EmtApi, credentials: EmtCredentials, loginFa
         Timber.w("Login returned no token code=${response.code} description=${response.description}")
         throw IOException(response.description.orDefault { loginFailedMessage })
     }
-    val expiresAtMillis =
-        System.currentTimeMillis() + (tokenData.tokenSecExpiration.orDefault { 900 } * 1_000L)
+    val expiresAtMillis = System.currentTimeMillis() + (tokenData.tokenSecExpiration.orDefault { 900 } * 1_000L)
     Timber.d("Fetched EMT token code=${response.code} expiresInSec=${tokenData.tokenSecExpiration.orDefault { 900 }}")
     return newToken to expiresAtMillis
 }
