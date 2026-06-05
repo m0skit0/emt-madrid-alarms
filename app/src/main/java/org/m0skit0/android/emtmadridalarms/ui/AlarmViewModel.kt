@@ -43,6 +43,8 @@ class AlarmViewModel(
     private val enableAlarm: AlarmEnabler,
     private val cancelAlarm: AlarmCanceller,
     private val stopRinging: RingingStop,
+    private val maxActiveAlarmsMessage: (Int) -> String = { "You can have up to $it active alarms." },
+    private val duplicateAlarmMessage: () -> String = { "An alarm for this line and stop is already scheduled." },
 ) : ViewModel() {
     val state: StateFlow<AlarmState> = _state.asStateFlow()
 
@@ -165,13 +167,13 @@ class AlarmViewModel(
 
     private fun onStartClicked() {
         if (_state.value.activeAlarms.size >= MAX_ACTIVE_ALARMS) {
-            _state.update { it.copy(errorMessage = "You can have up to $MAX_ACTIVE_ALARMS active alarms.") }
+            _state.update { it.copy(errorMessage = maxActiveAlarmsMessage(MAX_ACTIVE_ALARMS)) }
             return
         }
         buildRequest(_state.value)
             .onSuccess { request ->
                 if (_state.value.activeAlarms.any { it.hasSameLineAndStop(request) }) {
-                    _state.update { it.copy(errorMessage = "An alarm for this line and stop is already scheduled.") }
+                    _state.update { it.copy(errorMessage = duplicateAlarmMessage()) }
                     return@onSuccess
                 }
                 startAlarm(request)

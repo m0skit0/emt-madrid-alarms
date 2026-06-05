@@ -8,6 +8,7 @@ import kotlinx.coroutines.launch
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.LoadAllBusStopsUseCase
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusStopsUseCase
+import org.m0skit0.android.emtmadridalarms.utils.orDefault
 
 fun interface AllStopLoader : () -> Unit
 
@@ -17,6 +18,7 @@ internal fun allStopLoader(
     loadAllBusStops: LoadAllBusStopsUseCase,
     state: MutableStateFlow<AlarmState>,
     scope: CoroutineScope,
+    loadAllStopsErrorMessage: String = "Could not load EMT bus stops.",
 ): AllStopLoader = AllStopLoader {
     scope.launch {
         Timber.d("Loading all stops")
@@ -37,7 +39,7 @@ internal fun allStopLoader(
                 state.update {
                     it.copy(
                         isLoadingStops = false,
-                        errorMessage = error.message ?: "Could not load EMT bus stops.",
+                        errorMessage = error.message.orDefault { loadAllStopsErrorMessage },
                     )
                 }
             }
@@ -48,6 +50,7 @@ internal fun stopLoader(
     loadBusStops: LoadBusStopsUseCase,
     state: MutableStateFlow<AlarmState>,
     scope: CoroutineScope,
+    loadStopsForLineErrorMessage: (String) -> String = { lineLabel -> "Could not load stops for line $lineLabel." },
 ): StopLoader = StopLoader { line ->
     scope.launch {
         Timber.d("Loading stops for line=${line.label}")
@@ -61,7 +64,7 @@ internal fun stopLoader(
                 state.update {
                     it.copy(
                         isLoadingStops = false,
-                        errorMessage = error.message ?: "Could not load stops for line ${line.label}.",
+                        errorMessage = error.message.orDefault { loadStopsForLineErrorMessage(line.label) },
                     )
                 }
             }

@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusLinesUseCase
+import org.m0skit0.android.emtmadridalarms.utils.orDefault
 
 fun interface LineLoader : () -> Unit
 
@@ -13,6 +14,7 @@ internal fun lineLoader(
     loadBusLines: LoadBusLinesUseCase,
     state: MutableStateFlow<AlarmState>,
     scope: CoroutineScope,
+    loadBusLinesErrorMessage: String = "Could not load EMT bus lines.",
 ): LineLoader = LineLoader {
     scope.launch {
         Timber.d("Loading bus lines")
@@ -23,7 +25,7 @@ internal fun lineLoader(
                 state.update {
                     it.copy(
                         allLines = lines,
-                        lines = it.selectedStop?.let { stop -> linesForStop(lines, stop) } ?: lines,
+                        lines = it.selectedStop?.let { stop -> linesForStop(lines, stop) }.orDefault { lines },
                         isLoadingLines = false,
                     )
                 }
@@ -33,7 +35,7 @@ internal fun lineLoader(
                 state.update {
                     it.copy(
                         isLoadingLines = false,
-                        errorMessage = error.message ?: "Could not load EMT bus lines.",
+                        errorMessage = error.message.orDefault { loadBusLinesErrorMessage },
                     )
                 }
             }

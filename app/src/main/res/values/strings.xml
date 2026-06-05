@@ -37,6 +37,23 @@
     <!-- Common UI -->
     <string name="button_back">Back</string>
     <string name="text_loading">Loading...</string>
+    <string name="error_load_bus_lines">Could not load EMT bus lines.</string>
+    <string name="error_load_all_bus_stops">Could not load EMT bus stops.</string>
+    <string name="error_load_stops_for_line">Could not load stops for line %s.</string>
+    <string name="error_max_active_alarms">You can have up to %d active alarms.</string>
+    <string name="error_duplicate_alarm">An alarm for this line and stop is already scheduled.</string>
+    <string name="error_enter_bus_line">Enter a bus line.</string>
+    <string name="error_enter_stop_number">Enter a stop number.</string>
+    <string name="error_stop_number_digits">Stop number must contain only digits.</string>
+    <string name="error_positive_minutes">Minutes must be a positive number.</string>
+    <string name="error_select_bus_line_from_list">Select a bus line from the list.</string>
+    <string name="error_select_stop_for_selected_line">Select a stop for the selected line.</string>
+    <string name="status_monitoring_arrivals">Monitoring arrivals...</string>
+    <string name="status_no_matching_arrivals">No matching arrivals right now.</string>
+    <string name="status_last_updated">Last updated just now.</string>
+    <string name="error_refresh_arrivals">Could not refresh EMT arrivals.</string>
+    <string name="error_emt_login_failed">EMT login failed</string>
+    <string name="error_emt_request_failed">EMT request failed with code %s</string>
     
     <!-- Monitoring Screen -->
     <string name="title_monitoring">Monitoring</string>

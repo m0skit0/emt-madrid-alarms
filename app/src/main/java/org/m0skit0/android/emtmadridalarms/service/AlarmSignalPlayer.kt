@@ -11,6 +11,7 @@ import android.os.VibratorManager
 import timber.log.Timber
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
+import org.m0skit0.android.emtmadridalarms.utils.orDefault
 
 private const val TAG = "BusAlarm"
 
@@ -34,8 +35,8 @@ internal fun startSignal(context: Context, globalState: GlobalStateHolder): Star
 
 private fun resolveRingtone(context: Context): Ringtone? {
     val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-        ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-        ?: Uri.EMPTY
+        .orDefault { RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION) }
+        .orDefault { Uri.EMPTY }
     Timber.d("Using ringtone uri=$uri")
     val ringtone = RingtoneManager.getRingtone(context, uri)?.apply {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) isLooping = true

@@ -37,6 +37,23 @@
     <!-- Common UI -->
     <string name="button_back">Atrás</string>
     <string name="text_loading">Cargando...</string>
+    <string name="error_load_bus_lines">No se pudieron cargar las líneas de EMT.</string>
+    <string name="error_load_all_bus_stops">No se pudieron cargar las paradas de EMT.</string>
+    <string name="error_load_stops_for_line">No se pudieron cargar las paradas de la línea %s.</string>
+    <string name="error_max_active_alarms">Puedes tener hasta %d alarmas activas.</string>
+    <string name="error_duplicate_alarm">Ya hay una alarma programada para esta línea y parada.</string>
+    <string name="error_enter_bus_line">Introduce una línea de autobús.</string>
+    <string name="error_enter_stop_number">Introduce un número de parada.</string>
+    <string name="error_stop_number_digits">El número de parada solo debe contener dígitos.</string>
+    <string name="error_positive_minutes">Los minutos deben ser un número positivo.</string>
+    <string name="error_select_bus_line_from_list">Selecciona una línea de autobús de la lista.</string>
+    <string name="error_select_stop_for_selected_line">Selecciona una parada para la línea elegida.</string>
+    <string name="status_monitoring_arrivals">Monitorizando llegadas...</string>
+    <string name="status_no_matching_arrivals">No hay llegadas coincidentes en este momento.</string>
+    <string name="status_last_updated">Última actualización hace un momento.</string>
+    <string name="error_refresh_arrivals">No se pudieron actualizar las llegadas de EMT.</string>
+    <string name="error_emt_login_failed">Error al iniciar sesión en EMT.</string>
+    <string name="error_emt_request_failed">La solicitud a EMT falló con el código %s.</string>
     
     <!-- Monitoring Screen -->
     <string name="title_monitoring">Supervisando</string>

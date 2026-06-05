@@ -37,6 +37,23 @@
     <!-- Common UI -->
     <string name="button_back">رجوع</string>
     <string name="text_loading">جارٍ التحميل...</string>
+    <string name="error_load_bus_lines">تعذر تحميل خطوط EMT.</string>
+    <string name="error_load_all_bus_stops">تعذر تحميل محطات EMT.</string>
+    <string name="error_load_stops_for_line">تعذر تحميل محطات الخط %s.</string>
+    <string name="error_max_active_alarms">يمكنك إضافة ما يصل إلى %d منبهات نشطة.</string>
+    <string name="error_duplicate_alarm">يوجد بالفعل منبه مجدول لهذا الخط وهذه المحطة.</string>
+    <string name="error_enter_bus_line">أدخل خط الحافلة.</string>
+    <string name="error_enter_stop_number">أدخل رقم المحطة.</string>
+    <string name="error_stop_number_digits">يجب أن يحتوي رقم المحطة على أرقام فقط.</string>
+    <string name="error_positive_minutes">يجب أن تكون الدقائق رقمًا موجبًا.</string>
+    <string name="error_select_bus_line_from_list">اختر خط حافلة من القائمة.</string>
+    <string name="error_select_stop_for_selected_line">اختر محطة للخط المحدد.</string>
+    <string name="status_monitoring_arrivals">جارٍ مراقبة الوصول...</string>
+    <string name="status_no_matching_arrivals">لا توجد وصولات مطابقة حاليًا.</string>
+    <string name="status_last_updated">تم التحديث للتو.</string>
+    <string name="error_refresh_arrivals">تعذر تحديث وصولات EMT.</string>
+    <string name="error_emt_login_failed">فشل تسجيل الدخول إلى EMT.</string>
+    <string name="error_emt_request_failed">فشل طلب EMT بالرمز %s.</string>
     
     <!-- Monitoring Screen -->
     <string name="title_monitoring">قيد المراقبة</string>

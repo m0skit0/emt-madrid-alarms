@@ -80,7 +80,7 @@ private fun <T> SearchSelectionScreen(
     options: List<T>,
     optionText: (T) -> String,
     onOptionSelected: (T) -> Unit,
-    emptyText: String = "No results",
+    emptyText: String,
     onBack: () -> Unit,
 ) {
     var query by remember { mutableStateOf("") }

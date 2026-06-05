@@ -2,6 +2,7 @@ package org.m0skit0.android.emtmadridalarms.data
 
 import timber.log.Timber
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
+import org.m0skit0.android.emtmadridalarms.utils.orDefault
 
 fun interface LinesProvider : suspend () -> List<BusLine>
 
@@ -34,5 +35,5 @@ internal fun linesForToday(
 private fun busLineComparator(): Comparator<BusLine> = compareBy<BusLine> {
     !it.label.all(Char::isDigit)
 }.thenBy {
-    it.label.toIntOrNull() ?: Int.MAX_VALUE
+    it.label.toIntOrNull().orDefault { Int.MAX_VALUE }
 }.thenBy { it.label }

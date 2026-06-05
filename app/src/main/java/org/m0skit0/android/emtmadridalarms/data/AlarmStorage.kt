@@ -13,6 +13,7 @@ import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.MAX_ACTIVE_ALARMS
 import org.m0skit0.android.emtmadridalarms.domain.PersistedAlarmState
 import org.m0skit0.android.emtmadridalarms.domain.hasSameLineAndStop
+import org.m0skit0.android.emtmadridalarms.utils.orDefault
 
 private object Keys {
     val LINE = stringPreferencesKey("line")
@@ -30,7 +31,7 @@ private object Keys {
 
 data class AlarmStorageState(
     val activeAlarm: BusAlarmRequest? = null,
-    val activeAlarms: List<BusAlarmRequest> = activeAlarm?.let { listOf(it) } ?: emptyList(),
+    val activeAlarms: List<BusAlarmRequest> = activeAlarm?.let { listOf(it) }.orDefault { emptyList() },
     val latestEtaSeconds: Int? = null,
     val latestDestination: String = "",
     val statusMessage: String = "",
@@ -55,14 +56,17 @@ internal fun alarmStateReader(dataStore: DataStore<Preferences>): AlarmStateRead
             latestEtaSeconds = preferences[Keys.LATEST_ETA_SECONDS]?.takeIf { it >= 0 },
             latestDestination = preferences[Keys.LATEST_DESTINATION].orEmpty(),
             statusMessage = preferences[Keys.STATUS_MESSAGE].orEmpty(),
-            isRinging = preferences[Keys.IS_RINGING] ?: false,
+            isRinging = preferences[Keys.IS_RINGING].orDefault { false },
             activeAlarms = activeAlarms,
             ringingAlarm = ringingAlarm(preferences),
         )
     }
 }
 
-internal fun saveActiveAlarm(dataStore: DataStore<Preferences>): SaveActiveAlarm = SaveActiveAlarm { request ->
+internal fun saveActiveAlarm(
+    dataStore: DataStore<Preferences>,
+    monitoringArrivalsMessage: String = "Monitoring arrivals...",
+): SaveActiveAlarm = SaveActiveAlarm { request ->
     dataStore.edit { preferences ->
         val activeAlarms = activeAlarms(preferences)
         val nextAlarms = if (activeAlarms.any { it.hasSameLineAndStop(request) } || activeAlarms.size >= MAX_ACTIVE_ALARMS) {
@@ -73,7 +77,7 @@ internal fun saveActiveAlarm(dataStore: DataStore<Preferences>): SaveActiveAlarm
         writeActiveAlarms(preferences, nextAlarms)
         preferences[Keys.IS_RINGING] = false
         clearRingingAlarm(preferences)
-        preferences[Keys.STATUS_MESSAGE] = "Monitoring arrivals..."
+        preferences[Keys.STATUS_MESSAGE] = monitoringArrivalsMessage
         if (activeAlarms.isEmpty()) {
             preferences.remove(Keys.LATEST_ETA_SECONDS)
             preferences.remove(Keys.LATEST_DESTINATION)
@@ -97,7 +101,11 @@ internal fun clearActiveAlarm(dataStore: DataStore<Preferences>): ClearActiveAla
     }
 }
 
-internal fun saveLatestArrival(dataStore: DataStore<Preferences>): SaveLatestArrival =
+internal fun saveLatestArrival(
+    dataStore: DataStore<Preferences>,
+    noMatchingArrivalsMessage: String = "No matching arrivals right now.",
+    lastUpdatedMessage: String = "Last updated just now.",
+): SaveLatestArrival =
     SaveLatestArrival { etaSeconds, destination ->
         dataStore.edit { preferences ->
             if (etaSeconds == null) {
@@ -107,7 +115,7 @@ internal fun saveLatestArrival(dataStore: DataStore<Preferences>): SaveLatestArr
             }
             preferences[Keys.LATEST_DESTINATION] = destination
             preferences[Keys.STATUS_MESSAGE] =
-                if (etaSeconds == null) "No matching arrivals right now." else "Last updated just now."
+                if (etaSeconds == null) noMatchingArrivalsMessage else lastUpdatedMessage
         }
     }
 
@@ -134,8 +142,8 @@ private fun activeAlarms(preferences: Preferences): List<BusAlarmRequest> =
     (0 until MAX_ACTIVE_ALARMS).mapNotNull { index ->
         val line = preferences[lineKey(index)].orEmpty()
         val stopId = preferences[stopIdKey(index)].orEmpty()
-        val targetMinutes = preferences[targetMinutesKey(index)] ?: 0
-        val isEnabled = preferences[enabledKey(index)] ?: true
+        val targetMinutes = preferences[targetMinutesKey(index)].orDefault { 0 }
+        val isEnabled = preferences[enabledKey(index)].orDefault { true }
         if (line.isNotBlank() && stopId.isNotBlank() && targetMinutes > 0) {
             BusAlarmRequest(line = line, stopId = stopId, targetMinutes = targetMinutes, isEnabled = isEnabled)
         } else {
@@ -161,7 +169,7 @@ private fun writeActiveAlarms(preferences: MutablePreferences, alarms: List<BusA
 private fun ringingAlarm(preferences: Preferences): BusAlarmRequest? {
     val line = preferences[Keys.RINGING_LINE].orEmpty()
     val stopId = preferences[Keys.RINGING_STOP_ID].orEmpty()
-    val targetMinutes = preferences[Keys.RINGING_TARGET_MINUTES] ?: 0
+    val targetMinutes = preferences[Keys.RINGING_TARGET_MINUTES].orDefault { 0 }
     return if (line.isNotBlank() && stopId.isNotBlank() && targetMinutes > 0) {
         BusAlarmRequest(line = line, stopId = stopId, targetMinutes = targetMinutes)
     } else {

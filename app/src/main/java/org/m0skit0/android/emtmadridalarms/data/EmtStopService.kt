@@ -3,6 +3,7 @@ package org.m0skit0.android.emtmadridalarms.data
 import timber.log.Timber
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
+import org.m0skit0.android.emtmadridalarms.utils.orDefault
 
 fun interface AllStopsProvider : suspend () -> List<BusStop>
 
@@ -36,7 +37,7 @@ internal fun stopsForLine(
             )
         }
         .distinctBy { it.id }
-        .sortedBy { it.id.toIntOrNull() ?: Int.MAX_VALUE }
+        .sortedBy { it.id.toIntOrNull().orDefault { Int.MAX_VALUE } }
     Timber.d("Loaded stops for line=${line.label} mapped=${stops.size}")
     stops
 }
@@ -61,7 +62,7 @@ internal fun allStops(
             )
         }
         .distinctBy { it.id }
-        .sortedBy { it.id.toIntOrNull() ?: Int.MAX_VALUE }
+        .sortedBy { it.id.toIntOrNull().orDefault { Int.MAX_VALUE } }
     Timber.d("Loaded all EMT stops raw=${response.data.size} mapped=${stops.size}")
     stops
 }

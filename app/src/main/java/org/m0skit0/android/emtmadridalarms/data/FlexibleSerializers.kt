@@ -10,6 +10,7 @@ import kotlinx.serialization.json.JsonDecoder
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.intOrNull
+import org.m0skit0.android.emtmadridalarms.utils.orDefault
 
 object FlexibleIntSerializer : KSerializer<Int> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("FlexibleInt", PrimitiveKind.INT)
@@ -19,7 +20,7 @@ object FlexibleIntSerializer : KSerializer<Int> {
         val element = input.decodeJsonElement()
         if (element is JsonNull) return 0
         val primitive = element as? JsonPrimitive ?: return 0
-        return primitive.intOrNull ?: primitive.content.toIntOrNull() ?: 0
+        return primitive.intOrNull.orDefault { primitive.content.toIntOrNull().orDefault { 0 } }
     }
 
     override fun serialize(encoder: Encoder, value: Int) {

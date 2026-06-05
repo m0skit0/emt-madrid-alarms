@@ -5,6 +5,7 @@ import java.io.IOException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
+import org.m0skit0.android.emtmadridalarms.utils.orDefault
 
 private const val TAG = "EmtAuthTokenProvider"
 
@@ -30,9 +31,10 @@ internal fun provideToken(
     api: EmtApi,
     credentials: EmtCredentials,
     globalState: GlobalStateHolder,
+    loginFailedMessage: String = "EMT login failed",
 ): EmtAuthTokenProvider = EmtAuthTokenProvider {
     globalState.state.emtAuthToken.mutex.withLock {
-        cachedToken(globalState) ?: fetchAndStoreToken(api, credentials, globalState)
+        cachedToken(globalState).orDefault { fetchAndStoreToken(api, credentials, globalState, loginFailedMessage) }
     }
 }
 
@@ -48,13 +50,14 @@ private suspend fun fetchAndStoreToken(
     api: EmtApi,
     credentials: EmtCredentials,
     globalState: GlobalStateHolder,
+    loginFailedMessage: String,
 ): String {
-    val (token, expiresAtMillis) = fetchToken(api, credentials)
+    val (token, expiresAtMillis) = fetchToken(api, credentials, loginFailedMessage)
     storeToken(globalState, token, expiresAtMillis)
     return token
 }
 
-private suspend fun fetchToken(api: EmtApi, credentials: EmtCredentials): Pair<String, Long> {
+private suspend fun fetchToken(api: EmtApi, credentials: EmtCredentials, loginFailedMessage: String): Pair<String, Long> {
     Timber.d("Requesting new EMT token authMode=${if (credentials.passKey.isNotBlank()) "passKey" else "email"}")
     val response = api.login(
         email = credentials.email.takeIf { it.isNotBlank() && credentials.passKey.isBlank() },
@@ -66,11 +69,11 @@ private suspend fun fetchToken(api: EmtApi, credentials: EmtCredentials): Pair<S
     val newToken = tokenData?.accessToken
     if (newToken.isNullOrBlank()) {
         Timber.w("Login returned no token code=${response.code} description=${response.description}")
-        throw IOException(response.description ?: "EMT login failed")
+        throw IOException(response.description.orDefault { loginFailedMessage })
     }
     val expiresAtMillis =
-        System.currentTimeMillis() + ((tokenData.tokenSecExpiration ?: 900) * 1_000L)
-    Timber.d("Fetched EMT token code=${response.code} expiresInSec=${tokenData.tokenSecExpiration ?: 900}")
+        System.currentTimeMillis() + (tokenData.tokenSecExpiration.orDefault { 900 } * 1_000L)
+    Timber.d("Fetched EMT token code=${response.code} expiresInSec=${tokenData.tokenSecExpiration.orDefault { 900 }}")
     return newToken to expiresAtMillis
 }
 

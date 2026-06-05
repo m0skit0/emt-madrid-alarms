@@ -1,6 +1,7 @@
 package org.m0skit0.android.emtmadridalarms.domain
 
 import org.m0skit0.android.emtmadridalarms.data.normalizeLine
+import org.m0skit0.android.emtmadridalarms.utils.orDefault
 
 const val MAX_ACTIVE_ALARMS = 5
 
@@ -20,7 +21,7 @@ data class PersistedAlarmState(
     val latestDestination: String,
     val statusMessage: String,
     val isRinging: Boolean,
-    val activeAlarms: List<BusAlarmRequest> = activeAlarm?.let { listOf(it) } ?: emptyList(),
+    val activeAlarms: List<BusAlarmRequest> = activeAlarm?.let { listOf(it) }.orDefault { emptyList() },
     val ringingAlarm: BusAlarmRequest? = null,
 )
 

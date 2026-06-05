@@ -10,6 +10,7 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
+import org.m0skit0.android.emtmadridalarms.R
 import org.m0skit0.android.emtmadridalarms.data.EmtApi
 import org.m0skit0.android.emtmadridalarms.data.EmtCredentials
 import org.m0skit0.android.emtmadridalarms.data.alarmStateReader
@@ -61,19 +62,25 @@ val dataModule = module {
     }
     single { get<Retrofit>().create(EmtApi::class.java) }
     single { EmtCredentials.fromBuildConfig() }
-    single { provideToken(get(), get(), get()) }
+    single { provideToken(get(), get(), get(), androidContext().getString(R.string.error_emt_login_failed)) }
     single { todayDateRef() }
-    single { requireEmtSuccess() }
+    single { requireEmtSuccess { code -> androidContext().getString(R.string.error_emt_request_failed, code) } }
     single { linesForToday(get(), get(), get(), get()) }
     single { allStops(get(), get(), get()) }
     single { stopsForLine(get(), get(), get()) }
     single { arrivalsFor(get(), get(), get(), get()) }
     single<DataStore<Preferences>> { androidContext().alarmDataStore }
     single { alarmStateReader(get()) }
-    single { saveActiveAlarm(get()) }
+    single { saveActiveAlarm(get(), androidContext().getString(R.string.status_monitoring_arrivals)) }
     single { removeActiveAlarm(get()) }
     single { clearActiveAlarm(get()) }
-    single { saveLatestArrival(get()) }
+    single {
+        saveLatestArrival(
+            get(),
+            androidContext().getString(R.string.status_no_matching_arrivals),
+            androidContext().getString(R.string.status_last_updated),
+        )
+    }
     single { saveStatus(get()) }
     single { setRinging(get()) }
     single { setAlarmEnabled(get()) }

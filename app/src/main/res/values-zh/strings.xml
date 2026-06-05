@@ -37,6 +37,23 @@
     <!-- Common UI -->
     <string name="button_back">返回</string>
     <string name="text_loading">加载中...</string>
+    <string name="error_load_bus_lines">无法加载 EMT 线路。</string>
+    <string name="error_load_all_bus_stops">无法加载 EMT 站点。</string>
+    <string name="error_load_stops_for_line">无法加载线路 %s 的站点。</string>
+    <string name="error_max_active_alarms">最多只能有 %d 个有效提醒。</string>
+    <string name="error_duplicate_alarm">该线路和站点的提醒已存在。</string>
+    <string name="error_enter_bus_line">请输入公交线路。</string>
+    <string name="error_enter_stop_number">请输入站点编号。</string>
+    <string name="error_stop_number_digits">站点编号只能包含数字。</string>
+    <string name="error_positive_minutes">分钟数必须为正数。</string>
+    <string name="error_select_bus_line_from_list">请从列表中选择公交线路。</string>
+    <string name="error_select_stop_for_selected_line">请为所选线路选择站点。</string>
+    <string name="status_monitoring_arrivals">正在监控到站信息...</string>
+    <string name="status_no_matching_arrivals">当前没有匹配的到站信息。</string>
+    <string name="status_last_updated">刚刚更新。</string>
+    <string name="error_refresh_arrivals">无法刷新 EMT 到站信息。</string>
+    <string name="error_emt_login_failed">EMT 登录失败。</string>
+    <string name="error_emt_request_failed">EMT 请求失败，代码为 %s。</string>
     
     <!-- Monitoring Screen -->
     <string name="title_monitoring">正在监控</string>

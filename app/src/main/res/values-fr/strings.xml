@@ -37,6 +37,23 @@
     <!-- Common UI -->
     <string name="button_back">Retour</string>
     <string name="text_loading">Chargement...</string>
+    <string name="error_load_bus_lines">Impossible de charger les lignes EMT.</string>
+    <string name="error_load_all_bus_stops">Impossible de charger les arrêts EMT.</string>
+    <string name="error_load_stops_for_line">Impossible de charger les arrêts de la ligne %s.</string>
+    <string name="error_max_active_alarms">Vous pouvez avoir jusqu\'à %d alarmes actives.</string>
+    <string name="error_duplicate_alarm">Une alarme est déjà programmée pour cette ligne et cet arrêt.</string>
+    <string name="error_enter_bus_line">Saisissez une ligne de bus.</string>
+    <string name="error_enter_stop_number">Saisissez un numéro d\'arrêt.</string>
+    <string name="error_stop_number_digits">Le numéro d\'arrêt ne doit contenir que des chiffres.</string>
+    <string name="error_positive_minutes">Le nombre de minutes doit être positif.</string>
+    <string name="error_select_bus_line_from_list">Sélectionnez une ligne de bus dans la liste.</string>
+    <string name="error_select_stop_for_selected_line">Sélectionnez un arrêt pour la ligne choisie.</string>
+    <string name="status_monitoring_arrivals">Suivi des arrivées...</string>
+    <string name="status_no_matching_arrivals">Aucune arrivée correspondante pour le moment.</string>
+    <string name="status_last_updated">Dernière mise à jour à l\'instant.</string>
+    <string name="error_refresh_arrivals">Impossible d\'actualiser les arrivées EMT.</string>
+    <string name="error_emt_login_failed">Échec de la connexion à EMT.</string>
+    <string name="error_emt_request_failed">La requête EMT a échoué avec le code %s.</string>
     
     <!-- Monitoring Screen -->
     <string name="title_monitoring">Surveillance</string>

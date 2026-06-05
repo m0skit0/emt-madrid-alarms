@@ -9,6 +9,7 @@ import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusArrival
 import org.m0skit0.android.emtmadridalarms.domain.LoadBusArrivalsUseCase
+import org.m0skit0.android.emtmadridalarms.utils.orDefault
 import kotlin.math.abs
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -39,8 +40,9 @@ internal fun pollAlarm(
     saveLatestArrival: SaveLatestArrival,
     setRinging: SetRinging,
     setAlarmEnabled: SetAlarmEnabled,
+    refreshArrivalsErrorMessage: String = "Could not refresh EMT arrivals.",
 ): AlarmPollingMonitor = AlarmPollingMonitor { request, onTriggered ->
-    runPollLoop(request, pollInterval, loadBusArrivals, saveStatus, saveLatestArrival, setRinging, setAlarmEnabled, onTriggered)
+    runPollLoop(request, pollInterval, loadBusArrivals, saveStatus, saveLatestArrival, setRinging, setAlarmEnabled, refreshArrivalsErrorMessage, onTriggered)
 }
 
 private suspend fun runPollLoop(
@@ -51,6 +53,7 @@ private suspend fun runPollLoop(
     saveLatestArrival: SaveLatestArrival,
     setRinging: SetRinging,
     setAlarmEnabled: SetAlarmEnabled,
+    refreshArrivalsErrorMessage: String,
     onTriggered: suspend (BusArrival) -> Unit,
 ) {
     var pollNumber = 0
@@ -61,7 +64,7 @@ private suspend fun runPollLoop(
             processPoll(pollNumber, request, trackedArrival, loadBusArrivals, saveLatestArrival, setRinging, setAlarmEnabled, onTriggered)
         } catch (error: Exception) {
             Timber.e(error, "Poll #$pollNumber failed: ${error.message}")
-            saveStatus(error.message ?: "Could not refresh EMT arrivals.")
+            saveStatus(error.message.orDefault { refreshArrivalsErrorMessage })
             PollResult(triggered = false, trackedArrival = trackedArrival)
         }
         trackedArrival = result.trackedArrival
@@ -85,7 +88,7 @@ private suspend fun processPoll(
 ): PollResult {
     val validArrivals = loadValidArrivals(pollNumber, request, loadBusArrivals)
     val nextTrackedArrival = selectTrackedArrival(validArrivals, trackedArrival, request.targetMinutes)
-    val latestArrival = nextTrackedArrival ?: validArrivals.firstOrNull()
+    val latestArrival = nextTrackedArrival.orDefault { validArrivals.firstOrNull() }
     saveLatestArrival(latestArrival?.estimateSeconds, latestArrival?.destination.orEmpty())
 
     val shouldTrigger = nextTrackedArrival?.let { shouldTriggerAlarm(it.estimateSeconds, request.targetMinutes) } == true
@@ -104,7 +107,7 @@ private suspend fun loadValidArrivals(
     Timber.d("Poll #$pollNumber: requesting arrivals line=${request.line} stop=${request.stopId}")
     val arrivals = loadBusArrivals(request).filter { isValidArrival(it.estimateSeconds) }
     val nextArrival = arrivals.firstOrNull()
-    Timber.d("Poll #$pollNumber: arrivals=${arrivals.size}, next=${nextArrival?.estimateSeconds ?: "none"}s destination=${nextArrival?.destination.orEmpty()}")
+    Timber.d("Poll #$pollNumber: arrivals=${arrivals.size}, next=${nextArrival?.estimateSeconds.orDefault { "none" }}s destination=${nextArrival?.destination.orEmpty()}")
     return arrivals
 }
 
