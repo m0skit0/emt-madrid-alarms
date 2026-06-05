@@ -78,7 +78,7 @@ private suspend fun processPoll(
     saveLatestArrival(latestArrival?.estimateSeconds, latestArrival?.destination.orEmpty())
 
     val shouldTrigger = nextTrackedArrival?.let { shouldTriggerAlarm(it.estimateSeconds, request.targetMinutes) } == true
-    Timber.d("Poll #$pollNumber: shouldTrigger=$shouldTrigger targetSeconds=${request.targetMinutes * 60}")
+    Timber.d("Poll #$pollNumber: shouldTrigger=$shouldTrigger targetSeconds=${triggerThresholdSeconds(request.targetMinutes)}")
     if (!shouldTrigger) return PollResult(triggered = false, trackedArrival = nextTrackedArrival)
     checkNotNull(nextTrackedArrival)
     triggerAlarm(request, nextTrackedArrival, setRinging, removeActiveAlarm, saveLatestArrival, onTriggered)
@@ -132,7 +132,9 @@ private suspend fun triggerAlarm(
 private fun shouldTriggerAlarm(estimateSeconds: Int, targetMinutes: Int): Boolean {
     if (targetMinutes <= 0) return false
     if (!isValidArrival(estimateSeconds)) return false
-    return estimateSeconds <= targetMinutes * 60
+    return estimateSeconds <= triggerThresholdSeconds(targetMinutes)
 }
+
+private fun triggerThresholdSeconds(targetMinutes: Int): Long = targetMinutes * 60L + POLL_INTERVAL.inWholeSeconds
 
 private fun isValidArrival(estimateSeconds: Int): Boolean = estimateSeconds >= 0 && estimateSeconds != 999999

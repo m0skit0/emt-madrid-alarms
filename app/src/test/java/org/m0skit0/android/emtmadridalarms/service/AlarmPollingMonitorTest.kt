@@ -17,6 +17,7 @@ class AlarmPollingMonitorTest {
     private val request = BusAlarmRequest(line = "1", stopId = "62", targetMinutes = 10)
     private val arrivalWithinWindow = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 300, distanceMeters = 0)
     private val arrivalAtTarget = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 600, distanceMeters = 0)
+    private val arrivalWithinPollInterval = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 620, distanceMeters = 0)
     private val arrivalOutsideWindow = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 900, distanceMeters = 0)
     private val unavailableArrival = BusArrival(line = "1", stopId = "62", destination = "A", estimateSeconds = 999999, distanceMeters = 0)
 
@@ -41,6 +42,31 @@ class AlarmPollingMonitorTest {
         monitor(request) { triggeredWith = it }
 
         triggeredWith shouldBe arrivalAtTarget
+        coVerify { setRinging(true) }
+        coVerify { removeActiveAlarm(request) }
+    }
+
+    @Test
+    fun `given an arrival inside target plus poll interval, when polled, then the alarm is triggered`() = runTest {
+        val saveActiveAlarm = mockk<SaveActiveAlarm>(relaxed = true)
+        val saveStatus = mockk<SaveStatus>(relaxed = true)
+        val saveLatestArrival = mockk<SaveLatestArrival>(relaxed = true)
+        val setRinging = mockk<SetRinging>(relaxed = true)
+        val removeActiveAlarm = mockk<RemoveActiveAlarm>(relaxed = true)
+        var triggeredWith: BusArrival? = null
+
+        val monitor = pollAlarm(
+            loadBusArrivals = { listOf(arrivalWithinPollInterval) },
+            saveActiveAlarm = saveActiveAlarm,
+            saveStatus = saveStatus,
+            saveLatestArrival = saveLatestArrival,
+            setRinging = setRinging,
+            removeActiveAlarm = removeActiveAlarm,
+        )
+
+        monitor(request) { triggeredWith = it }
+
+        triggeredWith shouldBe arrivalWithinPollInterval
         coVerify { setRinging(true) }
         coVerify { removeActiveAlarm(request) }
     }
