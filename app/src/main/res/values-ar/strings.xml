@@ -6,7 +6,7 @@
     
     <!-- Setup Screen -->
     <string name="setup_title">نبّهني عندما تقترب حافلتي</string>
-    <string name="setup_description">اختر خطًا أو محطة أولًا، ثم اختر الخيار المطابق.</string>
+    <string name="setup_description">اختر خطًا ومحطة حافلة، ثم اضبط تنبيه الوصول.</string>
     <string name="label_bus_line">خط الحافلة</string>
     <string name="label_bus_stop">محطة الحافلة</string>
     <string name="placeholder_select_line">اختر خط الحافلة</string>
@@ -43,7 +43,7 @@
     <string name="text_no_active_alarm">لا توجد تنبيهات نشطة.</string>
     <string name="text_line">الخط %s</string>
     <string name="text_stop">المحطة %s</string>
-    <string name="text_alarm_triggers">سيتم تفعيل التنبيه عندما يتبقى %d دقائق أو أقل</string>
+    <string name="text_alarm_triggers">سيتم تفعيل التنبيه قبل الوصول بحوالي %d دقائق</string>
     <string name="text_latest_estimate">آخر تقدير من EMT</string>
     <string name="text_waiting_arrival">في انتظار وصول متطابق...</string>
     <string name="text_eta_format">%1$d دقيقة %2$d ثانية</string>

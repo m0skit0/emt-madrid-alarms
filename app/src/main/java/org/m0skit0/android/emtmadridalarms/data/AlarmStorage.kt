@@ -22,6 +22,9 @@ private object Keys {
     val LATEST_DESTINATION = stringPreferencesKey("latest_destination")
     val STATUS_MESSAGE = stringPreferencesKey("status_message")
     val IS_RINGING = booleanPreferencesKey("is_ringing")
+    val RINGING_LINE = stringPreferencesKey("ringing_line")
+    val RINGING_STOP_ID = stringPreferencesKey("ringing_stop_id")
+    val RINGING_TARGET_MINUTES = intPreferencesKey("ringing_target_minutes")
 }
 
 data class AlarmStorageState(
@@ -31,6 +34,7 @@ data class AlarmStorageState(
     val latestDestination: String = "",
     val statusMessage: String = "",
     val isRinging: Boolean = false,
+    val ringingAlarm: BusAlarmRequest? = null,
 )
 
 fun interface AlarmStateReader : () -> Flow<PersistedAlarmState>
@@ -39,7 +43,7 @@ fun interface RemoveActiveAlarm : suspend (BusAlarmRequest) -> Unit
 fun interface ClearActiveAlarm : suspend () -> Unit
 fun interface SaveLatestArrival : suspend (Int?, String) -> Unit
 fun interface SaveStatus : suspend (String) -> Unit
-fun interface SetRinging : suspend (Boolean) -> Unit
+fun interface SetRinging : suspend (Boolean, BusAlarmRequest?) -> Unit
 
 internal fun alarmStateReader(dataStore: DataStore<Preferences>): AlarmStateReader = AlarmStateReader {
     dataStore.data.map { preferences ->
@@ -51,6 +55,7 @@ internal fun alarmStateReader(dataStore: DataStore<Preferences>): AlarmStateRead
             statusMessage = preferences[Keys.STATUS_MESSAGE].orEmpty(),
             isRinging = preferences[Keys.IS_RINGING] ?: false,
             activeAlarms = activeAlarms,
+            ringingAlarm = ringingAlarm(preferences),
         )
     }
 }
@@ -65,6 +70,7 @@ internal fun saveActiveAlarm(dataStore: DataStore<Preferences>): SaveActiveAlarm
         }
         writeActiveAlarms(preferences, nextAlarms)
         preferences[Keys.IS_RINGING] = false
+        clearRingingAlarm(preferences)
         preferences[Keys.STATUS_MESSAGE] = "Monitoring arrivals..."
         if (activeAlarms.isEmpty()) {
             preferences.remove(Keys.LATEST_ETA_SECONDS)
@@ -85,6 +91,7 @@ internal fun clearActiveAlarm(dataStore: DataStore<Preferences>): ClearActiveAla
         preferences.remove(Keys.LATEST_ETA_SECONDS)
         preferences.remove(Keys.LATEST_DESTINATION)
         preferences.remove(Keys.STATUS_MESSAGE)
+        clearRingingAlarm(preferences)
     }
 }
 
@@ -108,9 +115,16 @@ internal fun saveStatus(dataStore: DataStore<Preferences>): SaveStatus = SaveSta
     }
 }
 
-internal fun setRinging(dataStore: DataStore<Preferences>): SetRinging = SetRinging { isRinging ->
+internal fun setRinging(dataStore: DataStore<Preferences>): SetRinging = SetRinging { isRinging, alarm ->
     dataStore.edit { preferences ->
         preferences[Keys.IS_RINGING] = isRinging
+        if (isRinging && alarm != null) {
+            preferences[Keys.RINGING_LINE] = alarm.line
+            preferences[Keys.RINGING_STOP_ID] = alarm.stopId
+            preferences[Keys.RINGING_TARGET_MINUTES] = alarm.targetMinutes
+        } else {
+            clearRingingAlarm(preferences)
+        }
     }
 }
 
@@ -137,6 +151,23 @@ private fun writeActiveAlarms(preferences: MutablePreferences, alarms: List<BusA
         preferences[stopIdKey(index)] = alarm.stopId
         preferences[targetMinutesKey(index)] = alarm.targetMinutes
     }
+}
+
+private fun ringingAlarm(preferences: Preferences): BusAlarmRequest? {
+    val line = preferences[Keys.RINGING_LINE].orEmpty()
+    val stopId = preferences[Keys.RINGING_STOP_ID].orEmpty()
+    val targetMinutes = preferences[Keys.RINGING_TARGET_MINUTES] ?: 0
+    return if (line.isNotBlank() && stopId.isNotBlank() && targetMinutes > 0) {
+        BusAlarmRequest(line = line, stopId = stopId, targetMinutes = targetMinutes)
+    } else {
+        null
+    }
+}
+
+private fun clearRingingAlarm(preferences: MutablePreferences) {
+    preferences.remove(Keys.RINGING_LINE)
+    preferences.remove(Keys.RINGING_STOP_ID)
+    preferences.remove(Keys.RINGING_TARGET_MINUTES)
 }
 
 private fun lineKey(index: Int) = if (index == 0) Keys.LINE else stringPreferencesKey("line_$index")

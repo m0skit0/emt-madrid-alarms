@@ -123,7 +123,7 @@ private suspend fun triggerAlarm(
     onTriggered: suspend (BusArrival) -> Unit,
 ) {
     Timber.i("Triggering alarm line=${request.line} stop=${request.stopId} etaSeconds=${arrival.estimateSeconds}")
-    setRinging(true)
+    setRinging(true, request)
     removeActiveAlarm(request)
     saveLatestArrival(arrival.estimateSeconds, arrival.destination)
     onTriggered(arrival)

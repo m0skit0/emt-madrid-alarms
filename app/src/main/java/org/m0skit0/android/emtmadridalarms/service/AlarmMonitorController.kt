@@ -121,7 +121,7 @@ internal fun stopRingingAndSelf(
 ): StopRingingAndSelf = StopRingingAndSelf {
     Timber.d("Stopping ringing")
     scope.launch {
-        setRinging(false)
+        setRinging(false, null)
     }
     stopSignal()
     if (globalState.state.alarmMonitor.monitorJobs.isEmpty()) {
@@ -145,7 +145,7 @@ internal fun cancelMonitoring(
     }
     scope.launch {
         clearActiveAlarm()
-        setRinging(false)
+        setRinging(false, null)
     }
     stopSignal()
     service.stopForeground(Service.STOP_FOREGROUND_REMOVE)

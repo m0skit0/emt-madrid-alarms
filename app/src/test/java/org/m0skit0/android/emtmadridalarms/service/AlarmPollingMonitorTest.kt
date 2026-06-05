@@ -42,7 +42,7 @@ class AlarmPollingMonitorTest {
         monitor(request) { triggeredWith = it }
 
         triggeredWith shouldBe arrivalAtTarget
-        coVerify { setRinging(true) }
+        coVerify { setRinging(true, request) }
         coVerify { removeActiveAlarm(request) }
     }
 
@@ -67,7 +67,7 @@ class AlarmPollingMonitorTest {
         monitor(request) { triggeredWith = it }
 
         triggeredWith shouldBe arrivalWithinPollInterval
-        coVerify { setRinging(true) }
+        coVerify { setRinging(true, request) }
         coVerify { removeActiveAlarm(request) }
     }
 

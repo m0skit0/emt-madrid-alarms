@@ -20,6 +20,7 @@ data class PersistedAlarmState(
     val statusMessage: String,
     val isRinging: Boolean,
     val activeAlarms: List<BusAlarmRequest> = activeAlarm?.let { listOf(it) } ?: emptyList(),
+    val ringingAlarm: BusAlarmRequest? = null,
 )
 
 data class BusLine(

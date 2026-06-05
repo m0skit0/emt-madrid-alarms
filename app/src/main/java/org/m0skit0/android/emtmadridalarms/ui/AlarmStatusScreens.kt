@@ -79,6 +79,7 @@ internal fun RingingScreen(state: AlarmState, dispatch: (AlarmIntent) -> Unit) {
             text = stringResource(R.string.text_bus_arriving),
             style = MaterialTheme.typography.bodyLarge,
         )
+        state.ringingAlarm?.let { AlarmDetailsCard(it) }
         if (state.latestEtaSeconds != null) {
             Text(stringResource(R.string.text_last_estimate, state.latestEtaSeconds / 60, state.latestEtaSeconds % 60))
         }

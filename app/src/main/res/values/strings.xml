@@ -5,8 +5,8 @@
     <string name="app_title">EMT Madrid Alarms</string>
     
     <!-- Setup Screen -->
-    <string name="setup_title">Avísame cuando mi autobús esté cerca</string>
-    <string name="setup_description">Select a bus line or stop first, then choose the matching option.</string>
+    <string name="setup_title">Notify me when my bus is nearby</string>
+    <string name="setup_description">Pick a bus line and stop, then set your arrival alert.</string>
     <string name="label_bus_line">Bus line</string>
     <string name="label_bus_stop">Bus stop</string>
     <string name="placeholder_select_line">Select bus line</string>
@@ -43,7 +43,7 @@
     <string name="text_no_active_alarm">No active alarm.</string>
     <string name="text_line">Line %s</string>
     <string name="text_stop">Stop %s</string>
-    <string name="text_alarm_triggers">Alarm triggers at %d minutes or less</string>
+    <string name="text_alarm_triggers">Alarm triggers approximately %d minutes before arrival</string>
     <string name="text_latest_estimate">Latest EMT estimate</string>
     <string name="text_waiting_arrival">Waiting for a matching arrival...</string>
     <string name="text_eta_format">%1$d min %2$d sec</string>

@@ -56,6 +56,7 @@ class AlarmViewModel(
                         latestDestination = persisted.latestDestination,
                         statusMessage = persisted.statusMessage,
                         isRinging = persisted.isRinging,
+                        ringingAlarm = persisted.ringingAlarm,
                     )
                 }
             }

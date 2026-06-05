@@ -28,6 +28,7 @@ class AlarmStorageTest {
         result.activeAlarm shouldBe null
         result.activeAlarms shouldBe emptyList()
         result.isRinging shouldBe false
+        result.ringingAlarm shouldBe null
         result.statusMessage shouldBe ""
     }
 
@@ -156,23 +157,26 @@ class AlarmStorageTest {
     }
 
     @Test
-    fun `given isRinging false, when setRinging is called with true, then isRinging is persisted as true`() = runTest {
+    fun `given isRinging false, when setRinging is called with true, then isRinging and ringingAlarm are persisted`() = runTest {
         val ds = makeDataStore(this)
+        val request = BusAlarmRequest("27", "100", 5)
 
-        setRinging(ds)(true)
+        setRinging(ds)(true, request)
 
         val result = alarmStateReader(ds)().first()
         result.isRinging shouldBe true
+        result.ringingAlarm shouldBe request
     }
 
     @Test
-    fun `given isRinging true, when setRinging is called with false, then isRinging is persisted as false`() = runTest {
+    fun `given isRinging true, when setRinging is called with false, then isRinging and ringingAlarm are cleared`() = runTest {
         val ds = makeDataStore(this)
-        setRinging(ds)(true)
+        setRinging(ds)(true, BusAlarmRequest("27", "100", 5))
 
-        setRinging(ds)(false)
+        setRinging(ds)(false, null)
 
         val result = alarmStateReader(ds)().first()
         result.isRinging shouldBe false
+        result.ringingAlarm shouldBe null
     }
 }

@@ -6,7 +6,7 @@
     
     <!-- Setup Screen -->
     <string name="setup_title">Avísame cuando mi autobús esté cerca</string>
-    <string name="setup_description">Selecciona primero una línea o una parada y luego elige la opción correspondiente.</string>
+    <string name="setup_description">Elige una línea y una parada de autobús, y luego configura tu alerta de llegada.</string>
     <string name="label_bus_line">Línea de autobús</string>
     <string name="label_bus_stop">Parada de autobús</string>
     <string name="placeholder_select_line">Selecciona línea de autobús</string>
@@ -43,7 +43,7 @@
     <string name="text_no_active_alarm">Sin alarma activa.</string>
     <string name="text_line">Línea %s</string>
     <string name="text_stop">Parada %s</string>
-    <string name="text_alarm_triggers">La alarma se activará cuando falten %d minutos o menos</string>
+    <string name="text_alarm_triggers">La alarma se activará aproximadamente %d minutos antes de la llegada</string>
     <string name="text_latest_estimate">Última estimación EMT</string>
     <string name="text_waiting_arrival">Esperando una llegada que coincida...</string>
     <string name="text_eta_format">%1$d min %2$d seg</string>

@@ -6,7 +6,7 @@
     
     <!-- Setup Screen -->
     <string name="setup_title">公交车快到时提醒我</string>
-    <string name="setup_description">先选择公交线路或车站，然后选择匹配的另一项。</string>
+    <string name="setup_description">选择公交线路和车站，然后设置到站提醒。</string>
     <string name="label_bus_line">公交线路</string>
     <string name="label_bus_stop">公交车站</string>
     <string name="placeholder_select_line">选择公交线路</string>
@@ -43,7 +43,7 @@
     <string name="text_no_active_alarm">没有正在运行的提醒。</string>
     <string name="text_line">线路 %s</string>
     <string name="text_stop">车站 %s</string>
-    <string name="text_alarm_triggers">剩余 %d 分钟或更少时提醒</string>
+    <string name="text_alarm_triggers">约在到达前 %d 分钟提醒</string>
     <string name="text_latest_estimate">EMT 最新预计时间</string>
     <string name="text_waiting_arrival">正在等待匹配的到站信息...</string>
     <string name="text_eta_format">%1$d 分钟 %2$d 秒</string>

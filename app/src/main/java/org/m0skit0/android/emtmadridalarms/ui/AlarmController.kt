@@ -71,14 +71,15 @@ internal fun alarmCanceller(
         Timber.d("Cancelling alarm")
         cancelAlarmService(context)
         clearActiveAlarm()
-        setRinging(false)
+        setRinging(false, null)
         state.update {
             it.copy(
                 activeAlarm = null,
                 activeAlarms = emptyList(),
                 latestEtaSeconds = null,
                 latestDestination = "",
-                statusMessage = ""
+                statusMessage = "",
+                ringingAlarm = null,
             )
         }
     }
@@ -116,7 +117,7 @@ internal fun ringingStop(
     scope.launch {
         Timber.d("Stopping ringing")
         stopAlarmRinging(context)
-        setRinging(false)
-        state.update { it.copy(isRinging = false) }
+        setRinging(false, null)
+        state.update { it.copy(isRinging = false, ringingAlarm = null) }
     }
 }
