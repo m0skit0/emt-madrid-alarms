@@ -26,7 +26,7 @@ org.m0skit0.android.emtmadridalarms
 ### Full file inventory
 
 **`data/`**
-- `AlarmStorage.kt` — 6 `fun interface`s + factories for DataStore read/write; defines `AlarmStorageState`
+- `AlarmStorage.kt` — 7 `fun interface`s + factories for DataStore read/write; defines `AlarmStorageState`. Interfaces: `AlarmStateReader`, `SaveActiveAlarm`, `RemoveActiveAlarm`, `ClearActiveAlarm`, `SaveLatestArrival`, `SaveStatus`, `SetRinging : suspend (Boolean, BusAlarmRequest?) -> Unit`
 - `ApiLoggingInterceptor.kt` — `loggingInterceptor(): Interceptor` (top-level factory returning OkHttp `Interceptor`)
 - `EmtApi.kt` — Retrofit interface (`login`, `arrivals`, `lines`, `lineStops`)
 - `EmtApiModels.kt` — `@Serializable` network DTOs
@@ -44,14 +44,14 @@ org.m0skit0.android.emtmadridalarms
 - `DataModule.kt`, `DomainModule.kt`, `PresentationModule.kt`, `ServiceModule.kt`, `StateModule.kt`
 
 **`domain/`**
-- `BusAlarmModels.kt` — `BusAlarmRequest`, `PersistedAlarmState`, `BusLine`, `BusStop`, `BusArrival`
+- `BusAlarmModels.kt` — `MAX_ACTIVE_ALARMS` constant; `BusAlarmRequest` + `hasSameLineAndStop(...)` extension; `PersistedAlarmState`, `BusLine`, `BusStop`, `BusArrival`
 - `BusAlarmUseCases.kt` — `LoadBusLinesUseCase`, `LoadBusStopsUseCase`, `LoadBusArrivalsUseCase`
 
 **`service/`**
-- `AlarmMonitorController.kt` — `StartMonitoring`, `CancelMonitoring`, `StartRinging`, `StopRingingAndSelf`, `CancelJob` + factories; defines `AlarmMonitorState`
+- `AlarmMonitorController.kt` — `StartMonitoring`, `CancelMonitoring`, `CancelSingleMonitoring`, `StartRinging`, `StopRingingAndSelf`, `CancelJob`, `MonitorNotificationUpdater` + factories; defines `AlarmMonitorState`
 - `AlarmMonitorService.kt` — foreground `Service`
 - `AlarmNotificationFactory.kt` — `MonitoringNotificationProvider`, `RingingNotificationProvider`, `NotificationChannelsEnsurer` + factories
-- `AlarmPollingMonitor.kt` — `AlarmPollingMonitor` + `pollAlarm(...)` factory
+- `AlarmPollingMonitor.kt` — `AlarmPollingMonitor` + `pollAlarm(...)` factory; `PollInterval` + `pollInterval()` factory (progressive delay between polls)
 - `AlarmServiceCommands.kt` — top-level free functions: `startAlarmService`, `cancelAlarmService`, `stopAlarmRinging`
 - `AlarmServiceIntents.kt` — intent/action string constants
 - `AlarmSignalPlayer.kt` — `StartSignal`, `StopSignal` + factories; defines `AlarmSignalState`
@@ -121,7 +121,7 @@ ui  →  domain  →  data
 | Model | Key fields |
 |---|---|
 | `BusAlarmRequest` | `line`, `stopId`, `targetMinutes` |
-| `PersistedAlarmState` | `activeAlarm`, `latestEtaSeconds`, `latestDestination`, `statusMessage`, `isRinging` — bridge between DataStore and ViewModel |
+| `PersistedAlarmState` | `activeAlarm`, `activeAlarms`, `latestEtaSeconds`, `latestDestination`, `statusMessage`, `isRinging`, `ringingAlarm` — bridge between DataStore and ViewModel |
 | `BusLine` | `id`, `label`, `nameA`, `nameB`; computed `displayName` |
 | `BusStop` | `id`, `name`, `address`; computed `displayName` |
 | `BusArrival` | `line`, `stopId`, `destination`, `estimateSeconds`, `distanceMeters`; computed `estimateMinutes` |
@@ -244,7 +244,7 @@ fun `given valid inputs when building request then returns success`() { ... }
 | `GlobalStateHolder` | `AlarmMonitorService` |
 | `EmtAuthTokenProvider` | `AlarmController` (`AlarmStarter`, `AlarmCanceller`, `RingingStop`) |
 | `AlarmStorage` factories | `AlarmNotificationFactory` |
-| `AlarmPollingMonitor` | `EmtArrivalService`, `EmtLineService`, `EmtStopService` |
+| `AlarmPollingMonitor` + `PollInterval` | `EmtArrivalService`, `EmtLineService`, `EmtStopService` |
 | `AlarmRequestValidator`, `AlarmRequestBuilder` | `EmtApiModels`, `EmtResponseValidator` |
 | `LineLoader`, `StopLoader` | `ApiLoggingInterceptor`, `EmtDateProvider` |
 | `AlarmViewModel` | `AlarmServiceIntents`, `AlarmServiceCommands` |
@@ -269,5 +269,5 @@ Excluded from coverage: Android entry points (`MainActivity`, `BusAlarmApplicati
 ### Notes
 
 - `android.util.Log` is stubbed via `mockkStatic(Log::class)` in tests that exercise code with log calls.
-- `AlarmPollingMonitorTest` uses `runTest` without `StandardTestDispatcher` — `delay()` calls in the poll loop are skipped by the test scheduler.
+- `AlarmPollingMonitorTest.kt` contains two test classes: `PollIntervalTest` (pure function, no coroutines) and `AlarmPollingMonitorTest` (poll loop integration tests). Both use `runTest`; `delay()` calls are skipped by the test scheduler.
 - `lateinit var` cannot be used for `Result<T>` (inline class) — use a regular `var` with an initial value instead.
