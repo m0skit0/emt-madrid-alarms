@@ -13,6 +13,7 @@ import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
 import org.m0skit0.android.emtmadridalarms.domain.MAX_ACTIVE_ALARMS
+import org.m0skit0.android.emtmadridalarms.domain.hasSameLineAndStop
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.CancelAlarmClicked
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.CancelClicked
 import org.m0skit0.android.emtmadridalarms.ui.AlarmIntent.ErrorShown
@@ -164,7 +165,13 @@ class AlarmViewModel(
             return
         }
         buildRequest(_state.value)
-            .onSuccess { startAlarm(it) }
+            .onSuccess { request ->
+                if (_state.value.activeAlarms.any { it.hasSameLineAndStop(request) }) {
+                    _state.update { it.copy(errorMessage = "An alarm for this line and stop is already scheduled.") }
+                    return@onSuccess
+                }
+                startAlarm(request)
+            }
             .onFailure { error ->
                 Timber.w("Cannot start alarm: ${error.message}")
                 _state.update { it.copy(errorMessage = error.message) }

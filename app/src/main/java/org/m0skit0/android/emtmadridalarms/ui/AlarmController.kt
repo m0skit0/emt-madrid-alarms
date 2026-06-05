@@ -14,6 +14,7 @@ import org.m0skit0.android.emtmadridalarms.data.SaveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.MAX_ACTIVE_ALARMS
+import org.m0skit0.android.emtmadridalarms.domain.hasSameLineAndStop
 import org.m0skit0.android.emtmadridalarms.service.cancelAlarmService
 import org.m0skit0.android.emtmadridalarms.service.startAlarmService
 import org.m0skit0.android.emtmadridalarms.service.stopAlarmRinging
@@ -37,7 +38,11 @@ internal fun alarmStarter(
         saveActiveAlarm(request)
         startAlarmService(context, request)
         state.update {
-            val activeAlarms = (it.activeAlarms + request).distinct().take(MAX_ACTIVE_ALARMS)
+            val activeAlarms = if (it.activeAlarms.any { alarm -> alarm.hasSameLineAndStop(request) }) {
+                it.activeAlarms
+            } else {
+                (it.activeAlarms + request).take(MAX_ACTIVE_ALARMS)
+            }
             it.copy(
                 isLoading = false,
                 activeAlarm = activeAlarms.firstOrNull(),

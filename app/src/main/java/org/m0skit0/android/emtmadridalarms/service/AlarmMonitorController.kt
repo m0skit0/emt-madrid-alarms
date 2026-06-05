@@ -14,6 +14,7 @@ import org.m0skit0.android.emtmadridalarms.data.ClearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.RemoveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.SetRinging
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
+import org.m0skit0.android.emtmadridalarms.domain.hasSameLineAndStop
 import org.m0skit0.android.emtmadridalarms.state.GlobalStateHolder
 import org.m0skit0.android.emtmadridalarms.utils.orDefault
 
@@ -50,14 +51,15 @@ internal fun startMonitoring(
         return@StartMonitoring
     }
     Timber.d("Starting monitoring line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
-    if (globalState.state.alarmMonitor.monitorJobs.containsKey(request)) {
+    if (globalState.state.alarmMonitor.monitorJobs.keys.any { it.hasSameLineAndStop(request) }) {
         Timber.d("Monitoring already active for line=${request.line} stop=${request.stopId} targetMinutes=${request.targetMinutes}")
         return@StartMonitoring
     }
     service.startForeground(
         NOTIFICATION_ID,
         monitoringNotification(
-            (globalState.state.alarmMonitor.monitorJobs.keys + request).distinct(),
+            (globalState.state.alarmMonitor.monitorJobs.keys + request)
+                .distinctBy { it.line to it.stopId },
             "Waiting for EMT arrivals...",
             service.servicePendingIntent(ACTION_CANCEL, 2)
         ),

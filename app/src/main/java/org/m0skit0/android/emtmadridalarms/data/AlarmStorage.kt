@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.map
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.MAX_ACTIVE_ALARMS
 import org.m0skit0.android.emtmadridalarms.domain.PersistedAlarmState
+import org.m0skit0.android.emtmadridalarms.domain.hasSameLineAndStop
 
 private object Keys {
     val LINE = stringPreferencesKey("line")
@@ -57,7 +58,7 @@ internal fun alarmStateReader(dataStore: DataStore<Preferences>): AlarmStateRead
 internal fun saveActiveAlarm(dataStore: DataStore<Preferences>): SaveActiveAlarm = SaveActiveAlarm { request ->
     dataStore.edit { preferences ->
         val activeAlarms = activeAlarms(preferences)
-        val nextAlarms = if (request in activeAlarms || activeAlarms.size >= MAX_ACTIVE_ALARMS) {
+        val nextAlarms = if (activeAlarms.any { it.hasSameLineAndStop(request) } || activeAlarms.size >= MAX_ACTIVE_ALARMS) {
             activeAlarms
         } else {
             activeAlarms + request

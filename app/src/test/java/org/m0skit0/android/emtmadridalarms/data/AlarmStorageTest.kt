@@ -83,6 +83,18 @@ class AlarmStorageTest {
     }
 
     @Test
+    fun `given an active alarm, when saving same line and stop with different minutes, then duplicate is not persisted`() = runTest {
+        val ds = makeDataStore(this)
+        val first = BusAlarmRequest("27", "100", 5)
+        val duplicate = BusAlarmRequest("27", "100", 10)
+
+        saveActiveAlarm(ds)(first)
+        saveActiveAlarm(ds)(duplicate)
+
+        alarmStateReader(ds)().first().activeAlarms shouldBe listOf(first)
+    }
+
+    @Test
     fun `given five active alarms, when another alarm is saved, then active alarms remain capped`() = runTest {
         val ds = makeDataStore(this)
         val alarms = (1..MAX_ACTIVE_ALARMS).map { BusAlarmRequest(it.toString(), "100", 5) }

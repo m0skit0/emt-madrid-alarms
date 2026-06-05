@@ -10,6 +10,9 @@ data class BusAlarmRequest(
     val targetMinutes: Int,
 )
 
+fun BusAlarmRequest.hasSameLineAndStop(other: BusAlarmRequest): Boolean =
+    line == other.line && stopId == other.stopId
+
 data class PersistedAlarmState(
     val activeAlarm: BusAlarmRequest?,
     val latestEtaSeconds: Int?,

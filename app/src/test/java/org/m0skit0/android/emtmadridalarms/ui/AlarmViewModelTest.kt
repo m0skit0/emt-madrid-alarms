@@ -240,6 +240,19 @@ class AlarmViewModelTest {
     }
 
     @Test
+    fun `given same line and stop active alarm, when StartClicked is dispatched with different minutes, then errorMessage is set and startAlarm is not called`() {
+        val activeAlarm = BusAlarmRequest("1", "100", 5)
+        val duplicate = BusAlarmRequest("1", "100", 10)
+        state.value = AlarmState(activeAlarm = activeAlarm, activeAlarms = listOf(activeAlarm))
+        buildRequestResult = Result.success(duplicate)
+
+        vm.dispatch(AlarmIntent.StartClicked)
+
+        state.value.errorMessage shouldBe "An alarm for this line and stop is already scheduled."
+        startAlarmArg shouldBe null
+    }
+
+    @Test
     fun `given maximum active alarms, when StartClicked is dispatched, then errorMessage is set and startAlarm is not called`() {
         val alarms = (1..MAX_ACTIVE_ALARMS).map { BusAlarmRequest(it.toString(), "100", 5) }
         state.value = AlarmState(activeAlarm = alarms.first(), activeAlarms = alarms)
