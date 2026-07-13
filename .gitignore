@@ -11,3 +11,4 @@ app/build/
 captures/
 .DS_Store
 release/
+.serena/
