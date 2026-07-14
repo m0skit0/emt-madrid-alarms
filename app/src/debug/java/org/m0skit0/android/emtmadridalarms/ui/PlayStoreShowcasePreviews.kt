@@ -23,6 +23,20 @@ import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
 
+internal enum class PlayStoreShowcaseScene(val value: String) {
+    Setup("setup"),
+    Lines("lines"),
+    Stops("stops"),
+    Monitoring("monitoring"),
+    Scheduled("scheduled"),
+    Ringing("ringing");
+
+    companion object {
+        fun fromValue(value: String): PlayStoreShowcaseScene =
+            entries.firstOrNull { it.value == value } ?: Setup
+    }
+}
+
 private val showcaseLines = listOf(
     BusLine(id = "34", label = "34", nameA = "Cibeles", nameB = "Las Aguilas"),
     BusLine(id = "27", label = "27", nameA = "Plaza Castilla", nameB = "Embajadores"),
@@ -65,91 +79,108 @@ private val showcaseRingingState = showcaseMonitoringState.copy(
 @Preview(name = "Play 1", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
 private fun SetupShowcasePreview() {
-    ShowcaseFrame(
-        title = "Configura alertas en segundos",
-        subtitle = "Elige linea, parada y margen de llegada desde una sola pantalla.",
-    ) {
-        SetupScreen(
-            state = showcaseSetupState,
-            dispatch = {},
-            onSelectLine = {},
-            onSelectStop = {},
-            initialSelectedTab = 1,
-        )
-    }
+    PlayStoreShowcaseScreen(scene = PlayStoreShowcaseScene.Setup)
 }
 
 @Preview(name = "Play 2", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
 private fun LinesShowcasePreview() {
-    ShowcaseFrame(
-        title = "Busca por linea o destino",
-        subtitle = "Encuentra rapidamente la ruta correcta antes de salir de casa.",
-    ) {
-        LineSelectionScreen(
-            state = showcaseSetupState,
-            dispatch = {},
-            onBack = {},
-        )
-    }
+    PlayStoreShowcaseScreen(scene = PlayStoreShowcaseScene.Lines)
 }
 
 @Preview(name = "Play 3", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
 private fun StopsShowcasePreview() {
-    ShowcaseFrame(
-        title = "Confirma la parada exacta",
-        subtitle = "Filtra por numero o nombre para evitar errores al programar la alarma.",
-    ) {
-        StopSelectionScreen(
-            state = showcaseSetupState,
-            dispatch = {},
-            onBack = {},
-        )
-    }
+    PlayStoreShowcaseScreen(scene = PlayStoreShowcaseScene.Stops)
 }
 
 @Preview(name = "Play 4", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
 private fun MonitoringShowcasePreview() {
-    ShowcaseFrame(
-        title = "Sigue la llegada en tiempo real",
-        subtitle = "Consulta la estimacion mas reciente de EMT mientras el sistema monitoriza tu trayecto.",
-    ) {
-        MonitoringScreen(
-            state = showcaseMonitoringState,
-            dispatch = {},
-        )
-    }
+    PlayStoreShowcaseScreen(scene = PlayStoreShowcaseScene.Monitoring)
 }
 
 @Preview(name = "Play 5", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
 private fun ScheduledShowcasePreview() {
-    ShowcaseFrame(
-        title = "Gestiona varias alarmas",
-        subtitle = "Activa, pausa o elimina avisos programados para distintas lineas y paradas.",
-    ) {
-        SetupScreen(
-            state = showcaseSetupState,
-            dispatch = {},
-            onSelectLine = {},
-            onSelectStop = {},
-        )
-    }
+    PlayStoreShowcaseScreen(scene = PlayStoreShowcaseScene.Scheduled)
 }
 
 @Preview(name = "Play 6", widthDp = 412, heightDp = 915, showBackground = true)
 @Composable
 private fun RingingShowcasePreview() {
-    ShowcaseFrame(
-        title = "Recibe el aviso final",
-        subtitle = "La app te alerta cuando el autobus entra en tu margen de llegada configurado.",
-    ) {
-        RingingScreen(
-            state = showcaseRingingState,
-            dispatch = {},
-        )
+    PlayStoreShowcaseScreen(scene = PlayStoreShowcaseScene.Ringing)
+}
+
+@Composable
+internal fun PlayStoreShowcaseScreen(scene: PlayStoreShowcaseScene) {
+    when (scene) {
+        PlayStoreShowcaseScene.Setup -> ShowcaseFrame(
+            title = "Configura alertas en segundos",
+            subtitle = "Elige linea, parada y margen de llegada desde una sola pantalla.",
+        ) {
+            SetupScreen(
+                state = showcaseSetupState,
+                dispatch = {},
+                onSelectLine = {},
+                onSelectStop = {},
+            )
+        }
+
+        PlayStoreShowcaseScene.Lines -> ShowcaseFrame(
+            title = "Busca por linea o destino",
+            subtitle = "Encuentra rapidamente la ruta correcta antes de salir de casa.",
+        ) {
+            LineSelectionScreen(
+                state = showcaseSetupState,
+                dispatch = {},
+                onBack = {},
+            )
+        }
+
+        PlayStoreShowcaseScene.Stops -> ShowcaseFrame(
+            title = "Confirma la parada exacta",
+            subtitle = "Filtra por numero o nombre para evitar errores al programar la alarma.",
+        ) {
+            StopSelectionScreen(
+                state = showcaseSetupState,
+                dispatch = {},
+                onBack = {},
+            )
+        }
+
+        PlayStoreShowcaseScene.Monitoring -> ShowcaseFrame(
+            title = "Sigue la llegada en tiempo real",
+            subtitle = "Consulta la estimacion mas reciente de EMT mientras el sistema monitoriza tu trayecto.",
+        ) {
+            MonitoringScreen(
+                state = showcaseMonitoringState,
+                dispatch = {},
+            )
+        }
+
+        PlayStoreShowcaseScene.Scheduled -> ShowcaseFrame(
+            title = "Gestiona varias alarmas",
+            subtitle = "Activa, pausa o elimina avisos programados para distintas lineas y paradas.",
+        ) {
+            SetupScreen(
+                state = showcaseSetupState,
+                dispatch = {},
+                onSelectLine = {},
+                onSelectStop = {},
+                initialSelectedTab = 1,
+            )
+        }
+
+        PlayStoreShowcaseScene.Ringing -> ShowcaseFrame(
+            title = "Recibe el aviso final",
+            subtitle = "La app te alerta cuando el autobus entra en tu margen de llegada configurado.",
+        ) {
+            RingingScreen(
+                state = showcaseRingingState,
+                dispatch = {},
+            )
+        }
     }
 }
 

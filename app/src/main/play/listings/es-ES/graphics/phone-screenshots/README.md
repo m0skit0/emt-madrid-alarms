@@ -10,5 +10,6 @@ Export order for Play phone screenshots:
 Recommended capture source:
 
 - `PlayStoreShowcasePreviews.kt` in the debug source set.
+- `scripts/capture-play-screenshots.sh` automates install, launch, and capture through adb.
 - Keep portrait framing consistent across all screenshots.
 - Export final files as PNG and keep the numeric order stable for Play listing uploads.
