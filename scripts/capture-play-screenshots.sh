@@ -107,4 +107,6 @@ for scene_def in "${SCENES[@]}"; do
   adb_cmd exec-out screencap -p > "$local_file"
 done
 
+adb_cmd shell am force-stop "$PACKAGE_NAME" >/dev/null || true
+
 printf 'Saved screenshots to %s\n' "$OUTPUT_DIR"
