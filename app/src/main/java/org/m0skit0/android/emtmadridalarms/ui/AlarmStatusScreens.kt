@@ -69,7 +69,7 @@ private fun AlarmDetailsCard(alarm: BusAlarmRequest) {
 private fun EtaStatusCard(state: AlarmState) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(stringResource(R.string.text_latest_estimate), style = MaterialTheme.typography.titleMedium)

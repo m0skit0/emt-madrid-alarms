@@ -108,5 +108,5 @@ private fun RingingScreenPreview() {
 
 @Composable
 private fun PreviewSurface(content: @Composable () -> Unit) {
-    EmtTheme(content)
+    EmtTheme(content = content)
 }

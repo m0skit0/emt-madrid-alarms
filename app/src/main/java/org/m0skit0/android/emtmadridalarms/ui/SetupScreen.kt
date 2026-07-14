@@ -88,7 +88,7 @@ private fun AddAlarmTab(
         SelectionSummaryCard(state)
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
         ) {
             Column(
                 modifier = Modifier.padding(18.dp),
@@ -126,7 +126,7 @@ private fun ScheduledAlarmsTab(activeAlarms: List<BusAlarmRequest>, dispatch: (A
 private fun ActiveAlarmsCard(activeAlarms: List<BusAlarmRequest>, dispatch: (AlarmIntent) -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
     ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
