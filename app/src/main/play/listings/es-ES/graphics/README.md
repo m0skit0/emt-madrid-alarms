@@ -1,15 +1,36 @@
 Play listing graphics for the `es-ES` storefront.
 
-Phone screenshot order:
+## Screenshot order (all device classes)
 
-1. `phone-screenshots/1.png` -> "Configura alertas en segundos"
-2. `phone-screenshots/2.png` -> "Busca por linea o destino"
-3. `phone-screenshots/3.png` -> "Confirma la parada exacta"
-4. `phone-screenshots/4.png` -> "Sigue la llegada en tiempo real"
-5. `phone-screenshots/5.png` -> "Gestiona varias alarmas"
-6. `phone-screenshots/6.png` -> "Recibe el aviso final"
+1. `setup` — "Configura alertas en segundos"
+2. `lines` — "Busca por línea o destino"
+3. `stops` — "Confirma la parada exacta"
+4. `monitoring` — "Sigue la llegada en tiempo real"
+5. `scheduled` — "Gestiona varias alarmas"
+6. `ringing` — "Recibe el aviso final"
 
-Capture notes:
+## Directories
 
-- `scripts/capture-play-screenshots.sh` automates install, launch, and adb capture.
-- Keep media directories (`phone-screenshots/`, future tablet/feature graphic folders) limited to publishable image files only.
+| Directory | Description |
+|---|---|
+| `phone-screenshots/` | Phone (portrait, 9:16) |
+| `tablet-screenshots/` | 7-inch tablet (portrait) |
+| `large-tablet-screenshots/` | 10-inch tablet (portrait) |
+
+## Capture
+
+```bash
+# Auto-detect target from the only connected device
+scripts/capture-play-screenshots.sh
+
+# Auto-detect target for a specific device
+scripts/capture-play-screenshots.sh emulator-5554
+
+# Manual override
+scripts/capture-play-screenshots.sh tablet emulator-5554
+scripts/capture-play-screenshots.sh large-tablet emulator-5556
+```
+
+If you omit the serial, the script uses the only connected device. When multiple devices are connected, pass the adb serial. If you omit the target, the script auto-detects it from the device size using Android-style `sw600dp` and `sw720dp` thresholds.
+
+Keep media directories limited to publishable image files only.

@@ -37,6 +37,16 @@ internal enum class PlayStoreShowcaseScene(val value: String) {
     }
 }
 
+internal enum class PlayStoreShowcaseMode(val value: String) {
+    Phone("phone"),
+    Tablet("tablet");
+
+    companion object {
+        fun fromValue(value: String): PlayStoreShowcaseMode =
+            entries.firstOrNull { it.value == value } ?: Phone
+    }
+}
+
 private val showcaseLines = listOf(
     BusLine(id = "34", label = "34", nameA = "Cibeles", nameB = "Las Aguilas"),
     BusLine(id = "27", label = "27", nameA = "Plaza Castilla", nameB = "Embajadores"),
@@ -67,7 +77,7 @@ private val showcaseMonitoringState = showcaseSetupState.copy(
     activeAlarm = BusAlarmRequest(line = "34", stopId = "5625", targetMinutes = 8),
     latestEtaSeconds = 420,
     latestDestination = "Las Aguilas",
-    statusMessage = "Ultima actualizacion hace un momento.",
+    statusMessage = "Última actualización hace un momento.",
 )
 
 private val showcaseRingingState = showcaseMonitoringState.copy(
@@ -113,79 +123,80 @@ private fun RingingShowcasePreview() {
 }
 
 @Composable
-internal fun PlayStoreShowcaseScreen(scene: PlayStoreShowcaseScene) {
-    when (scene) {
-        PlayStoreShowcaseScene.Setup -> ShowcaseFrame(
-            title = "Configura alertas en segundos",
-            subtitle = "Elige linea, parada y margen de llegada desde una sola pantalla.",
-        ) {
-            SetupScreen(
+internal fun PlayStoreShowcaseScreen(
+    scene: PlayStoreShowcaseScene,
+    mode: PlayStoreShowcaseMode = PlayStoreShowcaseMode.Phone,
+) {
+    val content: @Composable () -> Unit = {
+        when (scene) {
+            PlayStoreShowcaseScene.Setup -> SetupScreen(
                 state = showcaseSetupState,
                 dispatch = {},
                 onSelectLine = {},
                 onSelectStop = {},
             )
-        }
 
-        PlayStoreShowcaseScene.Lines -> ShowcaseFrame(
-            title = "Busca por linea o destino",
-            subtitle = "Encuentra rapidamente la ruta correcta antes de salir de casa.",
-        ) {
-            LineSelectionScreen(
+            PlayStoreShowcaseScene.Lines -> LineSelectionScreen(
                 state = showcaseSetupState,
                 dispatch = {},
                 onBack = {},
+                autoFocus = false,
             )
-        }
 
-        PlayStoreShowcaseScene.Stops -> ShowcaseFrame(
-            title = "Confirma la parada exacta",
-            subtitle = "Filtra por numero o nombre para evitar errores al programar la alarma.",
-        ) {
-            StopSelectionScreen(
+            PlayStoreShowcaseScene.Stops -> StopSelectionScreen(
                 state = showcaseSetupState,
                 dispatch = {},
                 onBack = {},
+                autoFocus = false,
             )
-        }
 
-        PlayStoreShowcaseScene.Monitoring -> ShowcaseFrame(
-            title = "Sigue la llegada en tiempo real",
-            subtitle = "Consulta la estimacion mas reciente de EMT mientras el sistema monitoriza tu trayecto.",
-        ) {
-            MonitoringScreen(
+            PlayStoreShowcaseScene.Monitoring -> MonitoringScreen(
                 state = showcaseMonitoringState,
                 dispatch = {},
             )
-        }
 
-        PlayStoreShowcaseScene.Scheduled -> ShowcaseFrame(
-            title = "Gestiona varias alarmas",
-            subtitle = "Activa, pausa o elimina avisos programados para distintas lineas y paradas.",
-        ) {
-            SetupScreen(
+            PlayStoreShowcaseScene.Scheduled -> SetupScreen(
                 state = showcaseSetupState,
                 dispatch = {},
                 onSelectLine = {},
                 onSelectStop = {},
                 initialSelectedTab = 1,
             )
-        }
 
-        PlayStoreShowcaseScene.Ringing -> ShowcaseFrame(
-            title = "Recibe el aviso final",
-            subtitle = "La app te alerta cuando el autobus entra en tu margen de llegada configurado.",
-        ) {
-            RingingScreen(
+            PlayStoreShowcaseScene.Ringing -> RingingScreen(
                 state = showcaseRingingState,
                 dispatch = {},
             )
         }
     }
+
+    when (mode) {
+        PlayStoreShowcaseMode.Phone -> PhoneShowcaseFrame(
+            title = when (scene) {
+                PlayStoreShowcaseScene.Setup -> "Configura alertas en segundos"
+                PlayStoreShowcaseScene.Lines -> "Busca por línea o destino"
+                PlayStoreShowcaseScene.Stops -> "Confirma la parada exacta"
+                PlayStoreShowcaseScene.Monitoring -> "Sigue la llegada en tiempo real"
+                PlayStoreShowcaseScene.Scheduled -> "Gestiona varias alarmas"
+                PlayStoreShowcaseScene.Ringing -> "Recibe el aviso final"
+            },
+            subtitle = when (scene) {
+                PlayStoreShowcaseScene.Setup -> "Elige línea, parada y margen de llegada desde una sola pantalla."
+                PlayStoreShowcaseScene.Lines -> "Encuentra rápidamente la ruta correcta antes de salir de casa."
+                PlayStoreShowcaseScene.Stops -> "Filtra por número o nombre para evitar errores al programar la alarma."
+                PlayStoreShowcaseScene.Monitoring -> "Consulta la estimación más reciente de EMT mientras el sistema monitoriza tu trayecto."
+                PlayStoreShowcaseScene.Scheduled -> "Activa, pausa o elimina avisos programados para distintas líneas y paradas."
+                PlayStoreShowcaseScene.Ringing -> "La app te alerta cuando el autobús entra en tu margen de llegada configurado."
+            },
+            content = content,
+        )
+
+        PlayStoreShowcaseMode.Tablet -> TabletShowcaseFrame(content = content)
+    }
 }
 
 @Composable
-private fun ShowcaseFrame(
+private fun PhoneShowcaseFrame(
     title: String,
     subtitle: String,
     content: @Composable () -> Unit,
@@ -241,6 +252,19 @@ private fun ShowcaseFrame(
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+        }
+    }
+}
+
+@Composable
+private fun TabletShowcaseFrame(content: @Composable () -> Unit) {
+    EmtTheme {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background),
+        ) {
+            content()
         }
     }
 }

@@ -5,7 +5,6 @@
         <activity
             android:name=".ui.PlayStoreShowcaseActivity"
             android:exported="true"
-            android:screenOrientation="portrait"
             android:theme="@style/Theme.EmtMadridAlarms" />
     </application>
 

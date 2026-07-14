@@ -37,6 +37,7 @@ internal fun LineSelectionScreen(
     state: AlarmState,
     dispatch: (AlarmIntent) -> Unit,
     onBack: () -> Unit,
+    autoFocus: Boolean = true,
 ) {
     SearchSelectionScreen(
         title = stringResource(R.string.title_select_line),
@@ -46,6 +47,7 @@ internal fun LineSelectionScreen(
         optionText = BusLine::displayName,
         emptyText = stringResource(R.string.empty_text_no_lines),
         onBack = onBack,
+        autoFocus = autoFocus,
         onOptionSelected = {
             dispatch(AlarmIntent.LineSelected(it))
             onBack()
@@ -58,6 +60,7 @@ internal fun StopSelectionScreen(
     state: AlarmState,
     dispatch: (AlarmIntent) -> Unit,
     onBack: () -> Unit,
+    autoFocus: Boolean = true,
 ) {
     SearchSelectionScreen(
         title = stringResource(R.string.title_select_stop),
@@ -67,6 +70,7 @@ internal fun StopSelectionScreen(
         optionText = BusStop::displayName,
         emptyText = stringResource(R.string.empty_text_no_stops),
         onBack = onBack,
+        autoFocus = autoFocus,
         onOptionSelected = {
             dispatch(AlarmIntent.StopSelected(it))
             onBack()
@@ -84,6 +88,7 @@ private fun <T> SearchSelectionScreen(
     onOptionSelected: (T) -> Unit,
     emptyText: String,
     onBack: () -> Unit,
+    autoFocus: Boolean,
 ) {
     var query by remember { mutableStateOf("") }
     val focusRequester = remember { FocusRequester() }
@@ -92,9 +97,11 @@ private fun <T> SearchSelectionScreen(
         fuzzyFilter(options, query, optionText)
     }
 
-    LaunchedEffect(Unit) {
-        focusRequester.requestFocus()
-        keyboardController?.show()
+    LaunchedEffect(autoFocus) {
+        if (autoFocus) {
+            focusRequester.requestFocus()
+            keyboardController?.show()
+        }
     }
 
     Column(

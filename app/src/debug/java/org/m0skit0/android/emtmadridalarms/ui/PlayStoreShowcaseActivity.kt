@@ -11,15 +11,16 @@ class PlayStoreShowcaseActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             val sceneValue = intent.getStringExtra(EXTRA_SCENE).orEmpty()
-            PlayStoreShowcaseScreen(scene = PlayStoreShowcaseScene.fromValue(sceneValue))
+            val modeValue = intent.getStringExtra(EXTRA_MODE).orEmpty()
+            PlayStoreShowcaseScreen(
+                scene = PlayStoreShowcaseScene.fromValue(sceneValue),
+                mode = PlayStoreShowcaseMode.fromValue(modeValue),
+            )
         }
     }
 
     companion object {
         const val EXTRA_SCENE = "scene"
-
-        internal fun intent(context: Context, scene: PlayStoreShowcaseScene): Intent =
-            Intent(context, PlayStoreShowcaseActivity::class.java)
-                .putExtra(EXTRA_SCENE, scene.value)
+        const val EXTRA_MODE = "mode"
     }
 }
