@@ -67,6 +67,9 @@
     <string name="text_destination">目的地：%s</string>
     <string name="button_cancel_alarm">取消提醒</string>
     
+    <!-- Setup Header -->
+    <string name="setup_header_dismiss">关闭欢迎卡片</string>
+
     <!-- Ringing Screen -->
     <string name="title_ringing">公交车快到了</string>
     <string name="text_bus_arriving">你关注的公交车已进入设置的到达时间范围。</string>

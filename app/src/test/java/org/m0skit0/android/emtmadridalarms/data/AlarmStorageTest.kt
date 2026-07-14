@@ -193,6 +193,35 @@ class AlarmStorageTest {
     }
 
     @Test
+    fun `given default store, when alarmStateReader is collected, then isSetupHeaderDismissed is false`() = runTest {
+        val ds = makeDataStore(this)
+
+        val result = alarmStateReader(ds)().first()
+
+        result.isSetupHeaderDismissed shouldBe false
+    }
+
+    @Test
+    fun `given default store, when saveSetupHeaderDismissed is called, then isSetupHeaderDismissed is true`() = runTest {
+        val ds = makeDataStore(this)
+
+        saveSetupHeaderDismissed(ds)()
+
+        val result = alarmStateReader(ds)().first()
+        result.isSetupHeaderDismissed shouldBe true
+    }
+
+    @Test
+    fun `given isSetupHeaderDismissed true, when alarmStateReader is collected again, then persisted value is true`() = runTest {
+        val ds = makeDataStore(this)
+        saveSetupHeaderDismissed(ds)()
+
+        val result = alarmStateReader(ds)().first()
+
+        result.isSetupHeaderDismissed shouldBe true
+    }
+
+    @Test
     fun `given isRinging false, when setRinging is called with true, then isRinging and ringingAlarm are persisted`() = runTest {
         val ds = makeDataStore(this)
         val request = BusAlarmRequest("27", "100", 5)

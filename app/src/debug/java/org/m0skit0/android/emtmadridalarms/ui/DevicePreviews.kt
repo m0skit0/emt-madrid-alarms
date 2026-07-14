@@ -33,6 +33,7 @@ private val previewSetupState = AlarmState(
     stops = previewStops,
     selectedLine = previewLines.first(),
     selectedStop = previewStops.first(),
+    isSetupHeaderDismissed = false,
 )
 
 private val previewMonitoringState = previewSetupState.copy(

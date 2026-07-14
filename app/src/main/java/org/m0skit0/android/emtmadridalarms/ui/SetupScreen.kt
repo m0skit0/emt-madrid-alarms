@@ -52,7 +52,9 @@ internal fun SetupScreen(
 ) {
     var selectedTab by remember(initialSelectedTab) { mutableIntStateOf(initialSelectedTab) }
     ScreenColumn {
-        SetupHeader()
+        if (!state.isSetupHeaderDismissed) {
+            SetupHeader(onDismiss = { dispatch(AlarmIntent.SetupHeaderDismissed) })
+        }
         SetupTabs(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
         when (selectedTab) {
             0 -> AddAlarmTab(state, dispatch, onSelectLine, onSelectStop)
@@ -177,7 +179,7 @@ private fun ActiveAlarmsCard(activeAlarms: List<BusAlarmRequest>, dispatch: (Ala
 }
 
 @Composable
-private fun SetupHeader() {
+private fun SetupHeader(onDismiss: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
@@ -195,7 +197,10 @@ private fun SetupHeader() {
                     contentDescription = null,
                     modifier = Modifier.size(52.dp),
                 )
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
                     Text(
                         text = stringResource(R.string.app_title),
                         style = MaterialTheme.typography.labelLarge,
@@ -206,6 +211,12 @@ private fun SetupHeader() {
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
+                IconButton(onClick = onDismiss) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_close),
+                        contentDescription = stringResource(R.string.setup_header_dismiss),
                     )
                 }
             }

@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
+import org.m0skit0.android.emtmadridalarms.data.SaveSetupHeaderDismissed
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
 import org.m0skit0.android.emtmadridalarms.domain.MAX_ACTIVE_ALARMS
@@ -43,6 +44,7 @@ class AlarmViewModel(
     private val enableAlarm: AlarmEnabler,
     private val cancelAlarm: AlarmCanceller,
     private val stopRinging: RingingStop,
+    private val saveSetupHeaderDismissed: SaveSetupHeaderDismissed,
     private val maxActiveAlarmsMessage: (Int) -> String = { "You can have up to $it active alarms." },
     private val duplicateAlarmMessage: () -> String = { "An alarm for this line and stop is already scheduled." },
 ) : ViewModel() {
@@ -61,6 +63,7 @@ class AlarmViewModel(
                         statusMessage = persisted.statusMessage,
                         isRinging = persisted.isRinging,
                         ringingAlarm = persisted.ringingAlarm,
+                        isSetupHeaderDismissed = persisted.isSetupHeaderDismissed,
                     )
                 }
             }
@@ -101,6 +104,10 @@ class AlarmViewModel(
             CancelClicked -> cancelAlarm()
             StopRingingClicked -> stopRinging()
             ErrorShown -> _state.update { it.copy(errorMessage = null) }
+            AlarmIntent.SetupHeaderDismissed -> {
+                _state.update { it.copy(isSetupHeaderDismissed = true) }
+                scope.launch { saveSetupHeaderDismissed() }
+            }
         }
     }
 

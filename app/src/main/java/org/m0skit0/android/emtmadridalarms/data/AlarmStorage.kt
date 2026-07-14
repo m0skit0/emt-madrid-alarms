@@ -27,6 +27,7 @@ private object Keys {
     val RINGING_LINE = stringPreferencesKey("ringing_line")
     val RINGING_STOP_ID = stringPreferencesKey("ringing_stop_id")
     val RINGING_TARGET_MINUTES = intPreferencesKey("ringing_target_minutes")
+    val SETUP_HEADER_DISMISSED = booleanPreferencesKey("setup_header_dismissed")
 }
 
 data class AlarmStorageState(
@@ -47,6 +48,7 @@ fun interface SaveLatestArrival : suspend (Int?, String) -> Unit
 fun interface SaveStatus : suspend (String) -> Unit
 fun interface SetRinging : suspend (Boolean, BusAlarmRequest?) -> Unit
 fun interface SetAlarmEnabled : suspend (BusAlarmRequest, Boolean) -> Unit
+fun interface SaveSetupHeaderDismissed : suspend () -> Unit
 
 internal fun alarmStateReader(dataStore: DataStore<Preferences>): AlarmStateReader = AlarmStateReader {
     dataStore.data.map { preferences ->
@@ -59,6 +61,7 @@ internal fun alarmStateReader(dataStore: DataStore<Preferences>): AlarmStateRead
             isRinging = preferences[Keys.IS_RINGING].orDefault { false },
             activeAlarms = activeAlarms,
             ringingAlarm = ringingAlarm(preferences),
+            isSetupHeaderDismissed = preferences[Keys.SETUP_HEADER_DISMISSED].orDefault { false },
         )
     }
 }
@@ -181,6 +184,12 @@ private fun clearRingingAlarm(preferences: MutablePreferences) {
     preferences.remove(Keys.RINGING_LINE)
     preferences.remove(Keys.RINGING_STOP_ID)
     preferences.remove(Keys.RINGING_TARGET_MINUTES)
+}
+
+internal fun saveSetupHeaderDismissed(dataStore: DataStore<Preferences>): SaveSetupHeaderDismissed = SaveSetupHeaderDismissed {
+    dataStore.edit { preferences ->
+        preferences[Keys.SETUP_HEADER_DISMISSED] = true
+    }
 }
 
 internal fun setAlarmEnabled(dataStore: DataStore<Preferences>): SetAlarmEnabled = SetAlarmEnabled { request, enabled ->

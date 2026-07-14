@@ -67,6 +67,9 @@
     <string name="text_destination">Destino: %s</string>
     <string name="button_cancel_alarm">Cancelar alarma</string>
     
+    <!-- Setup Header -->
+    <string name="setup_header_dismiss">Descartar tarjeta de bienvenida</string>
+
     <!-- Ringing Screen -->
     <string name="title_ringing">Autobús llegando</string>
     <string name="text_bus_arriving">El autobús vigilado está dentro del margen de llegada configurado.</string>

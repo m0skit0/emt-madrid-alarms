@@ -47,6 +47,7 @@ val presentationModule = module {
             enableAlarm = alarmEnabler(androidContext(), get(), state, scope),
             cancelAlarm = alarmCanceller(androidContext(), get(), get(), state, scope),
             stopRinging = ringingStop(androidContext(), get(), state, scope),
+            saveSetupHeaderDismissed = get(),
             maxActiveAlarmsMessage = { max -> androidContext().getString(R.string.error_max_active_alarms, max) },
             duplicateAlarmMessage = { androidContext().getString(R.string.error_duplicate_alarm) },
         )

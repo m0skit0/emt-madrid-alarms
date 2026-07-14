@@ -71,6 +71,7 @@ private val showcaseSetupState = AlarmState(
         BusAlarmRequest(line = "34", stopId = "5625", targetMinutes = 8),
         BusAlarmRequest(line = "27", stopId = "73", targetMinutes = 5, isEnabled = false),
     ),
+    isSetupHeaderDismissed = false,
 )
 
 private val showcaseMonitoringState = showcaseSetupState.copy(

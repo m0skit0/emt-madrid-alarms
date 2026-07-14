@@ -24,6 +24,7 @@ import org.m0skit0.android.emtmadridalarms.data.removeActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.requireEmtSuccess
 import org.m0skit0.android.emtmadridalarms.data.saveActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.saveLatestArrival
+import org.m0skit0.android.emtmadridalarms.data.saveSetupHeaderDismissed
 import org.m0skit0.android.emtmadridalarms.data.saveStatus
 import org.m0skit0.android.emtmadridalarms.data.setAlarmEnabled
 import org.m0skit0.android.emtmadridalarms.data.setRinging
@@ -84,4 +85,5 @@ val dataModule = module {
     single { saveStatus(get()) }
     single { setRinging(get()) }
     single { setAlarmEnabled(get()) }
+    single { saveSetupHeaderDismissed(get()) }
 }

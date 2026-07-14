@@ -26,6 +26,7 @@ data class AlarmState(
     val errorMessage: String? = null,
     val isRinging: Boolean = false,
     val ringingAlarm: BusAlarmRequest? = null,
+    val isSetupHeaderDismissed: Boolean = false,
 )
 
 sealed interface AlarmIntent {
@@ -42,4 +43,5 @@ sealed interface AlarmIntent {
     data object CancelClicked : AlarmIntent
     data object StopRingingClicked : AlarmIntent
     data object ErrorShown : AlarmIntent
+    data object SetupHeaderDismissed : AlarmIntent
 }

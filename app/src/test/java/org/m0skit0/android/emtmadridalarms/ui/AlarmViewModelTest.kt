@@ -9,6 +9,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Before
 import org.junit.Test
 import org.m0skit0.android.emtmadridalarms.data.AlarmStateReader
+import org.m0skit0.android.emtmadridalarms.data.SaveSetupHeaderDismissed
 import org.m0skit0.android.emtmadridalarms.domain.BusAlarmRequest
 import org.m0skit0.android.emtmadridalarms.domain.BusLine
 import org.m0skit0.android.emtmadridalarms.domain.BusStop
@@ -29,6 +30,7 @@ class AlarmViewModelTest {
     private var cancelSingleAlarmArg: BusAlarmRequest? = null
     private var cancelAlarmCalled = false
     private var stopRingingCalled = false
+    private var saveSetupHeaderDismissedCalled = false
     private var buildRequestResult: Result<BusAlarmRequest> = Result.success(BusAlarmRequest("", "", 0))
 
     private val loadLines = LineLoader { loadLinesCallCount++ }
@@ -38,6 +40,7 @@ class AlarmViewModelTest {
     private val cancelSingleAlarm = SingleAlarmCanceller { cancelSingleAlarmArg = it }
     private val cancelAlarm = AlarmCanceller { cancelAlarmCalled = true }
     private val stopRinging = RingingStop { stopRingingCalled = true }
+    private val saveSetupHeaderDismissed = SaveSetupHeaderDismissed { saveSetupHeaderDismissedCalled = true }
     private val buildRequest = AlarmRequestBuilder { buildRequestResult }
 
     private fun emptyPersisted() = PersistedAlarmState(
@@ -55,6 +58,7 @@ class AlarmViewModelTest {
         cancelSingleAlarmArg = null
         cancelAlarmCalled = false
         stopRingingCalled = false
+        saveSetupHeaderDismissedCalled = false
         buildRequestResult = Result.success(BusAlarmRequest("", "", 0))
 
         state = MutableStateFlow(AlarmState())
@@ -72,6 +76,7 @@ class AlarmViewModelTest {
             enableAlarm = AlarmEnabler { _, _ -> },
             cancelAlarm = cancelAlarm,
             stopRinging = stopRinging,
+            saveSetupHeaderDismissed = saveSetupHeaderDismissed,
         )
     }
 
@@ -94,6 +99,7 @@ class AlarmViewModelTest {
             alarmStateReader = AlarmStateReader { flowOf(persisted) },
             loadLines = loadLines, loadAllStops = loadAllStops, loadStops = loadStops, buildRequest = buildRequest,
             startAlarm = startAlarm, cancelSingleAlarm = cancelSingleAlarm, enableAlarm = AlarmEnabler { _, _ -> }, cancelAlarm = cancelAlarm, stopRinging = stopRinging,
+            saveSetupHeaderDismissed = saveSetupHeaderDismissed,
         )
         dispatcher.scheduler.advanceUntilIdle()
 
@@ -270,5 +276,16 @@ class AlarmViewModelTest {
         vm.dispatch(AlarmIntent.StartClicked)
         state.value.errorMessage shouldBe "bad input"
         startAlarmArg shouldBe null
+    }
+
+    @Test
+    fun `given the setup header is visible, when SetupHeaderDismissed is dispatched, then header is hidden and persistence is called`() = scope.runTest {
+        state.value = AlarmState(isSetupHeaderDismissed = false)
+
+        vm.dispatch(AlarmIntent.SetupHeaderDismissed)
+        dispatcher.scheduler.advanceUntilIdle()
+
+        state.value.isSetupHeaderDismissed shouldBe true
+        saveSetupHeaderDismissedCalled shouldBe true
     }
 }

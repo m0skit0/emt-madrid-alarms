@@ -67,6 +67,9 @@
     <string name="text_destination">الوجهة: %s</string>
     <string name="button_cancel_alarm">إلغاء التنبيه</string>
     
+    <!-- Setup Header -->
+    <string name="setup_header_dismiss">تجاهل بطاقة الترحيب</string>
+
     <!-- Ringing Screen -->
     <string name="title_ringing">الحافلة تقترب</string>
     <string name="text_bus_arriving">الحافلة التي تراقبها ضمن نافذة الوصول التي ضبطتها.</string>
