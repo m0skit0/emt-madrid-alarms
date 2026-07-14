@@ -1,0 +1,1 @@
+Recibe una alarma cuando tu autobús de EMT esté a pocos minutos de tu parada.

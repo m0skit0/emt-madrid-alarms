@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -102,31 +104,41 @@ private fun <T> SearchSelectionScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-         Text(text = title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-         OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
-             Text(stringResource(R.string.button_back))
-         }
-         OutlinedTextField(
-             value = query,
-             onValueChange = { query = it },
-             placeholder = { Text(placeholder) },
-             singleLine = true,
-             modifier = Modifier
-                 .fillMaxWidth()
-                 .focusRequester(focusRequester),
-         )
-         when {
-             isLoading -> SearchResultRow(text = stringResource(R.string.text_loading))
-             filteredOptions.isEmpty() -> SearchResultRow(text = emptyText)
-            else -> LazyColumn(modifier = Modifier.fillMaxSize()) {
-                items(filteredOptions) { option ->
-                    SearchResultRow(
-                        text = optionText(option),
-                        onClick = {
-                            onOptionSelected(option)
-                            keyboardController?.hide()
-                        },
-                    )
+        Text(text = title, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+        OutlinedButton(onClick = onBack, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.button_back))
+        }
+        Card(
+            modifier = Modifier.fillMaxSize(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        ) {
+            Column(
+                modifier = Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    placeholder = { Text(placeholder) },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .focusRequester(focusRequester),
+                )
+                when {
+                    isLoading -> SearchResultRow(text = stringResource(R.string.text_loading))
+                    filteredOptions.isEmpty() -> SearchResultRow(text = emptyText)
+                    else -> LazyColumn(modifier = Modifier.fillMaxSize()) {
+                        items(filteredOptions) { option ->
+                            SearchResultRow(
+                                text = optionText(option),
+                                onClick = {
+                                    onOptionSelected(option)
+                                    keyboardController?.hide()
+                                },
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -139,11 +151,16 @@ private fun SearchResultRow(
     onClick: (() -> Unit)? = null,
 ) {
     val clickableModifier = if (onClick == null) Modifier else Modifier.clickable(onClick = onClick)
-    Text(
-        text = text,
-        style = MaterialTheme.typography.bodyLarge,
-        modifier = clickableModifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 14.dp),
-    )
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyLarge,
+            modifier = clickableModifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+        )
+    }
 }
