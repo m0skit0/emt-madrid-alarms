@@ -1,0 +1,8 @@
+Configura alertas para lineas y paradas de EMT Madrid en pocos pasos.
+
+- Selecciona una linea y una parada concretas.
+- Define cuantos minutos antes quieres recibir el aviso.
+- Consulta la estimacion mas reciente mientras la app sigue la llegada.
+- Gestiona varias alarmas programadas y activa solo las que necesites.
+
+Ideal para no esperar de mas en la parada y llegar justo cuando se acerca tu autobus.

@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -32,6 +34,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -45,8 +48,9 @@ internal fun SetupScreen(
     dispatch: (AlarmIntent) -> Unit,
     onSelectLine: () -> Unit,
     onSelectStop: () -> Unit,
+    initialSelectedTab: Int = 0,
 ) {
-    var selectedTab by remember { mutableIntStateOf(0) }
+    var selectedTab by remember(initialSelectedTab) { mutableIntStateOf(initialSelectedTab) }
     ScreenColumn {
         SetupHeader()
         SetupTabs(selectedTab = selectedTab, onTabSelected = { selectedTab = it })
@@ -81,24 +85,35 @@ private fun AddAlarmTab(
     onSelectStop: () -> Unit,
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        PickerField(
-            value = state.selectedLine?.displayName.orEmpty(),
-            label = stringResource(R.string.label_bus_line),
-            placeholder = if (state.isLoadingLines) stringResource(R.string.placeholder_loading_lines) else stringResource(R.string.placeholder_select_line),
-            enabled = !state.isLoadingLines,
-            onClick = onSelectLine,
-        )
-        PickerField(
-            value = state.selectedStop?.displayName.orEmpty(),
-            label = stringResource(R.string.label_bus_stop),
-            placeholder = when {
-                state.isLoadingStops -> stringResource(R.string.placeholder_loading_stops)
-                else -> stringResource(R.string.placeholder_select_stop)
-            },
-            enabled = !state.isLoadingStops,
-            onClick = onSelectStop,
-        )
-        AlarmInputControls(state, dispatch)
+        SelectionSummaryCard(state)
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        ) {
+            Column(
+                modifier = Modifier.padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                PickerField(
+                    value = state.selectedLine?.displayName.orEmpty(),
+                    label = stringResource(R.string.label_bus_line),
+                    placeholder = if (state.isLoadingLines) stringResource(R.string.placeholder_loading_lines) else stringResource(R.string.placeholder_select_line),
+                    enabled = !state.isLoadingLines,
+                    onClick = onSelectLine,
+                )
+                PickerField(
+                    value = state.selectedStop?.displayName.orEmpty(),
+                    label = stringResource(R.string.label_bus_stop),
+                    placeholder = when {
+                        state.isLoadingStops -> stringResource(R.string.placeholder_loading_stops)
+                        else -> stringResource(R.string.placeholder_select_stop)
+                    },
+                    enabled = !state.isLoadingStops,
+                    onClick = onSelectStop,
+                )
+                AlarmInputControls(state, dispatch)
+            }
+        }
     }
 }
 
@@ -109,7 +124,10 @@ private fun ScheduledAlarmsTab(activeAlarms: List<BusAlarmRequest>, dispatch: (A
 
 @Composable
 private fun ActiveAlarmsCard(activeAlarms: List<BusAlarmRequest>, dispatch: (AlarmIntent) -> Unit) {
-    Card(Modifier.fillMaxWidth()) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+    ) {
         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(
                 text = stringResource(R.string.title_active_alarms, activeAlarms.size, MAX_ACTIVE_ALARMS),
@@ -128,6 +146,8 @@ private fun ActiveAlarmsCard(activeAlarms: List<BusAlarmRequest>, dispatch: (Ala
                         Text(
                             text = stringResource(R.string.text_active_alarm_item, alarm.line, alarm.stopId, alarm.targetMinutes),
                             modifier = Modifier.weight(1f),
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
                         )
                         Switch(
                             checked = alarm.isEnabled,
@@ -158,27 +178,104 @@ private fun ActiveAlarmsCard(activeAlarms: List<BusAlarmRequest>, dispatch: (Ala
 
 @Composable
 private fun SetupHeader() {
-    Row(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
     ) {
-        Image(
-            painter = painterResource(R.drawable.logo),
-            contentDescription = null,
-            modifier = Modifier.size(48.dp),
-        )
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.logo),
+                    contentDescription = null,
+                    modifier = Modifier.size(52.dp),
+                )
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                    Text(
+                        text = stringResource(R.string.app_title),
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                    Text(
+                        text = stringResource(R.string.setup_title),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    )
+                }
+            }
+            Text(
+                text = stringResource(R.string.setup_description),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SetupFactChip(stringResource(R.string.label_bus_line))
+                SetupFactChip(stringResource(R.string.label_bus_stop))
+                SetupFactChip(stringResource(R.string.label_trigger_minutes))
+            }
+        }
+    }
+    Spacer(Modifier.height(4.dp))
+}
+
+@Composable
+private fun SetupFactChip(text: String) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
+        ),
+    ) {
         Text(
-            text = stringResource(R.string.setup_title),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold,
+            text = text,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Medium,
         )
     }
-    Text(
-        text = stringResource(R.string.setup_description),
-        style = MaterialTheme.typography.bodyLarge,
-    )
-    Spacer(Modifier.height(12.dp))
+}
+
+@Composable
+private fun SelectionSummaryCard(state: AlarmState) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+    ) {
+        Column(
+            modifier = Modifier.padding(18.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(
+                text = stringResource(R.string.title_active_alarms, state.activeAlarms.size, MAX_ACTIVE_ALARMS),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Text(
+                text = state.selectedLine?.displayName.orEmpty().ifBlank { stringResource(R.string.placeholder_select_line) },
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Text(
+                text = state.selectedStop?.displayName.orEmpty().ifBlank { stringResource(R.string.placeholder_select_stop) },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Text(
+                text = stringResource(R.string.text_alarm_triggers, state.minutesInput.toIntOrNull() ?: 10),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+        }
+    }
 }
 
 @Composable
