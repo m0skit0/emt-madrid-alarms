@@ -18,8 +18,11 @@ import org.m0skit0.android.emtmadridalarms.data.allStops
 import org.m0skit0.android.emtmadridalarms.data.arrivalsFor
 import org.m0skit0.android.emtmadridalarms.data.clearActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.linesForToday
+import org.m0skit0.android.emtmadridalarms.data.lastRatePromptShown
 import org.m0skit0.android.emtmadridalarms.data.loggingInterceptor
+import org.m0skit0.android.emtmadridalarms.data.markRatePromptShown
 import org.m0skit0.android.emtmadridalarms.data.provideToken
+import org.m0skit0.android.emtmadridalarms.data.recordAppOpen
 import org.m0skit0.android.emtmadridalarms.data.removeActiveAlarm
 import org.m0skit0.android.emtmadridalarms.data.requireEmtSuccess
 import org.m0skit0.android.emtmadridalarms.data.saveActiveAlarm
@@ -86,4 +89,7 @@ val dataModule = module {
     single { setRinging(get()) }
     single { setAlarmEnabled(get()) }
     single { saveSetupHeaderDismissed(get()) }
+    single { recordAppOpen(get()) }
+    single { lastRatePromptShown(get()) }
+    single { markRatePromptShown(get()) }
 }

@@ -49,8 +49,8 @@ android {
         applicationId = "org.m0skit0.android.emtmadridalarms"
         minSdk = 24
         targetSdk = 37
-        versionCode = 4
-        versionName = "1.3"
+        versionCode = 5
+        versionName = "1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -179,6 +179,8 @@ tasks.register<JacocoReport>("jacocoUnitTestReport") {
         "**/data/ApiLoggingInterceptor*.*",
         // AlarmController — sends Android Intents, not unit-testable
         "**/ui/AlarmController*.*",
+        // RateAppPrompter — launches Google Play In-App Review flow, requires Activity
+        "**/ui/RateAppPrompter*.*",
     )
     val debugTree = fileTree("${layout.buildDirectory.get()}/intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes") {
         exclude(fileFilter)
@@ -225,6 +227,8 @@ dependencies {
     implementation("io.insert-koin:koin-androidx-compose:4.1.0")
 
     implementation("com.jakewharton.timber:timber:4.7.1")
+
+    implementation("com.google.android.play:review-ktx:2.0.2")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

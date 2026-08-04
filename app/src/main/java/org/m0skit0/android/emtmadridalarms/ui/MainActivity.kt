@@ -8,15 +8,20 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
+import org.koin.android.ext.android.inject
 
 class MainActivity : ComponentActivity() {
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission(),
     ) { }
+    private val rateAppPrompter: RateAppPrompter by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestNotificationPermissionIfNeeded()
+        if (savedInstanceState == null) {
+            rateAppPrompter(this)
+        }
         setContent { EmtMadridAlarmsApp() }
     }
 

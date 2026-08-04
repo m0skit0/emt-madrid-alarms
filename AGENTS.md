@@ -39,6 +39,7 @@ org.m0skit0.android.emtmadridalarms
 - `EmtResponseValidator.kt` — `EmtResponseValidator` + `requireEmtSuccess()` factory
 - `EmtStopService.kt` — `StopsProvider` + `stopsForLine(...)` factory
 - `FlexibleSerializers.kt` — `FlexibleIntSerializer`, `FlexibleStringSerializer`
+- `RateAppPromptStorage.kt` — `RecordAppOpen`, `LastRatePromptShown`, `MarkRatePromptShown` + factories; defines `RATE_PROMPT_THRESHOLDS` + `nextRatePromptThreshold()` pure function
 
 **`di/`**
 - `DataModule.kt`, `DomainModule.kt`, `PresentationModule.kt`, `ServiceModule.kt`, `StateModule.kt`
@@ -70,8 +71,9 @@ org.m0skit0.android.emtmadridalarms
 - `EmtMadridAlarmsApp.kt` — root composable + `NavHost`
 - `EmtTheme.kt` — `EmtTheme` wrapper
 - `LineLoader.kt` — `LineLoader` + `lineLoader(...)` factory
-- `MainActivity.kt` — `ComponentActivity`; requests `POST_NOTIFICATIONS` on Android 13+
+- `MainActivity.kt` — `ComponentActivity`; requests `POST_NOTIFICATIONS` on Android 13+; launches `RateAppPrompter` on cold start
 - `FuzzySearch.kt` — `fuzzyScore(query, target)` + `fuzzyFilter(options, query, text)` top-level pure functions
+- `RateAppPrompter.kt` — `RequestInAppReview`, `RateAppPrompter` + factories (Android-only; launches Google Play In-App Review at open thresholds 2, 5, 10)
 - `Routes.kt` — internal `object` with route constants + `ALARM_ROUTES` set
 - `ScreenLayout.kt` — `ScreenColumn()` helper composable
 - `SelectionScreens.kt` — `LineSelectionScreen`, `StopSelectionScreen` composables
@@ -250,6 +252,7 @@ fun `given valid inputs when building request then returns success`() { ... }
 | `AlarmViewModel` | `AlarmServiceIntents`, `AlarmServiceCommands` |
 | `BusAlarmModels` (computed properties) | |
 | `FuzzySearch` (`fuzzyScore`, `fuzzyFilter`) | |
+| `RateAppPromptStorage` + `nextRatePromptThreshold` | `RateAppPrompter`, `RequestInAppReview` |
 
 ### `fun interface` mocking rule
 
@@ -264,7 +267,7 @@ val loadLines: LoadBusLinesUseCase = { result }
 
 JaCoCo task `jacocoUnitTestReport` is defined in `app/build.gradle.kts` with `enableUnitTestCoverage = true`. Class files are sourced from `intermediates/built_in_kotlinc/debug/compileDebugKotlin/classes`.
 
-Excluded from coverage: Android entry points (`MainActivity`, `BusAlarmApplication`), DI modules, Compose screens, `AlarmController`, service Android layer (`AlarmMonitorService`, `AlarmSignalPlayer`, `AlarmNotificationFactory`, `AlarmServiceIntents/Commands`), network + DTOs (`EmtArrivalService`, `EmtLineService`, `EmtStopService`, `EmtApiModels`, `EmtResponseValidator`, `ApiLoggingInterceptor`, `EmtDateProvider`).
+Excluded from coverage: Android entry points (`MainActivity`, `BusAlarmApplication`), DI modules, Compose screens, `AlarmController`, `RateAppPrompter`, service Android layer (`AlarmMonitorService`, `AlarmSignalPlayer`, `AlarmNotificationFactory`, `AlarmServiceIntents/Commands`), network + DTOs (`EmtArrivalService`, `EmtLineService`, `EmtStopService`, `EmtApiModels`, `EmtResponseValidator`, `ApiLoggingInterceptor`, `EmtDateProvider`).
 
 ### Notes
 

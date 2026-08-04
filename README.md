@@ -13,6 +13,7 @@ Android app that monitors Madrid EMT bus arrivals through the [EMT OpenData API]
 - Full dark mode and Material 3 theming
 - Localized: English, Spanish, French, Chinese, Arabic
 - Persistent state (survives app restart)
+- Automatic in-app rating prompt after the app is opened 2, 5, and 10 times
 
 ## Requirements
 
