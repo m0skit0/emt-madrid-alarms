@@ -197,11 +197,10 @@ for scene_def in "${SCENES[@]}"; do
 
   printf 'Capturing %s -> %s\n' "$scene" "$local_file"
   adb_cmd shell am force-stop "$PACKAGE_NAME" >/dev/null || true
-  adb_cmd shell am start -n "$PACKAGE_NAME/$ACTIVITY_NAME" \
+  adb_cmd shell am start -W -n "$PACKAGE_NAME/$ACTIVITY_NAME" \
     --es scene "$scene" --es mode "$SHOWCASE_MODE" >/dev/null
   sleep "$WAIT_SECONDS"
   adb_cmd shell am broadcast -a android.intent.action.CLOSE_SYSTEM_DIALOGS >/dev/null 2>&1 || true
-  adb_cmd shell input keyevent KEYCODE_BACK >/dev/null 2>&1 || true
   sleep 1
   adb_cmd exec-out screencap -p > "$local_file"
 done
